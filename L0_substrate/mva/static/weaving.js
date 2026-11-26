@@ -1250,8 +1250,8 @@ let lastTickTime = 0;
 function tick(now) {
     requestAnimationFrame(tick);
 
-    // Pause heavy canvas/pixel loops immediately when tab is hidden
-    if (document.hidden) return;
+    // Pause heavy canvas/pixel loops immediately when tab is hidden or in 3D WebGL Tab 7
+    if (document.hidden || state.domain === 'distill3d') return;
 
     // Adaptive frame pacing: silky ~45fps for game/anatomy, smooth ~30fps for heavy pixel-analysis domains
     const minDt = (state.domain === 'game' || state.domain === 'anatomy') ? 22 : 33;
@@ -1395,6 +1395,38 @@ function tick(now) {
             metrics.frames += 1;
             audioEngine.update(state.lastS0Ratio, state.frameSeq * 0.04);
         }
+    } else if (state.domain === 'epistemic') {
+        if (!state.paused && window.ElysiaOutwardEpistemic) {
+            state.frameSeq += 1;
+            const res = window.ElysiaOutwardEpistemic.step({
+                legacyCtx,
+                rotorCtx,
+                thumbS4Ctx,
+                thumbS2Ctx,
+                thumbS0Ctx,
+            });
+            state.s4SamePct = res.s4Same;
+            state.s2SamePct = res.s2Same;
+            state.s0SamePct = res.s0Same;
+            state.bifurcationOrigin = res.origin;
+            state.lastS0Ratio = res.activeRatio;
+
+            updatePhaseBars(
+                Math.round(res.s4Same),
+                Math.round(res.s2Same),
+                Math.round(res.s0Same),
+                state.frameSeq
+            );
+
+            metrics.leftOpsSum += res.leftOps;
+            metrics.rightOpsSum += res.rS4Ops + res.rS2Ops + res.rS0Ops;
+            metrics.s4OpsSum += res.rS4Ops;
+            metrics.s2OpsSum += res.rS2Ops;
+            metrics.s0OpsSum += res.rS0Ops;
+            metrics.leftMsSum += res.leftMs;
+            metrics.rightMsSum += res.rightMs;
+            metrics.frames += 1;
+        }
     } else {
         if (state.videoSourceType === 'video') {
             if (state.scrubbing && videoRing.length > 0) {
@@ -1459,6 +1491,22 @@ function setDomain(domain) {
     if (openCudaSource) openCudaSource.classList.toggle('hidden', domain !== 'open_cuda');
     const openCudaPanel = document.getElementById('open-cuda-inspector-panel');
     if (openCudaPanel) openCudaPanel.classList.toggle('hidden', domain !== 'open_cuda');
+    const epiSource = document.getElementById('epistemic-source-panel');
+    if (epiSource) epiSource.classList.toggle('hidden', domain !== 'epistemic');
+    const epiPanel = document.getElementById('epistemic-inspector-panel');
+    if (epiPanel) epiPanel.classList.toggle('hidden', domain !== 'epistemic');
+    const d3dSource = document.getElementById('distill3d-source-panel');
+    if (d3dSource) d3dSource.classList.toggle('hidden', domain !== 'distill3d');
+    const d3dWorkspace = document.getElementById('distill3d-workspace');
+    if (d3dWorkspace) d3dWorkspace.classList.toggle('hidden', domain !== 'distill3d');
+    const compGrid = document.querySelector('.comparison-grid');
+    if (compGrid) compGrid.classList.toggle('hidden', domain === 'distill3d');
+    if (domain !== 'epistemic' && window.ElysiaOutwardEpistemic) {
+        window.ElysiaOutwardEpistemic.onLeaveTab();
+    }
+    if (domain !== 'distill3d' && window.ElysiaInverseDistill3D) {
+        window.ElysiaInverseDistill3D.onLeaveTab();
+    }
     if (domain !== 'open_cuda' && window.ElysiaOpenCudaRotor && window.ElysiaOpenCudaRotor.getSensorySource() === 'webcam') {
         window.ElysiaOpenCudaRotor.stopWebcamAndMic();
     }
@@ -1473,7 +1521,9 @@ function setDomain(domain) {
     const isUnified = domain === 'unified';
     const isAnatomy = domain === 'anatomy';
     const isOpenCuda = domain === 'open_cuda';
-    document.getElementById('left-canvas-wrap').classList.toggle('interactive', isGame || isUnified);
+    const isEpistemic = domain === 'epistemic';
+    const isDistill3D = domain === 'distill3d';
+    document.getElementById('left-canvas-wrap').classList.toggle('interactive', isGame || isUnified || isEpistemic);
     document.getElementById('right-canvas-wrap').classList.toggle('interactive', isGame || isUnified);
 
     if (isGame) {
@@ -1523,6 +1573,21 @@ function setDomain(domain) {
         document.getElementById('desc-s2').textContent = 'd_S2_FlowSoA (128B 정렬 연속 배열) — 광학흐름 속도장을 중주기 워프 병합 스트리밍';
         document.getElementById('desc-s0').textContent = 'd_S0_ActiveTileIdx (워프 압축 스트림) — 외부 마찰이 발생한 타일만 32스레드 워프로 압축 실행';
         document.getElementById('lbl-metric-ops').textContent = 'CUDA 워프 스레드 연산 (평면 28워프 vs 압축 로터 워프)';
+    } else if (isEpistemic) {
+        videoEl.pause();
+        document.getElementById('left-panel-title').textContent = '세계수 외부 지식·인과망 (과거 뿌리 → 현재 관측 줄기 → 미래 미포집 새순 · 클릭 즉시 탐색)';
+        document.getElementById('right-panel-title').textContent = '열린 연속 사유(t₁→tₙ, 가변 dt) · 자생 N축 신경망 프리즘 · 실시간 지구 기상 마찰';
+        document.getElementById('left-foot-desc').textContent = '사전 작성된 폐쇄 월드가 아닌 실제 외부 백과사전·기상 실측과 연결되어 과거·현재·미래의 세계수가 스스로 자라남';
+        document.getElementById('right-foot-desc').textContent = '고정된 비유(4축·t1~t4)에 갇히지 않고 외부 마찰과 경험에 따라 새 신경축·가치 기준·사유 해상도(dt)를 스스로 분화·재규정';
+        document.getElementById('left-res-caption').textContent = 'World Tree · Outward Epistemic';
+        document.getElementById('desc-s4').textContent = '자생 신경망 차원 — 외부 경험이 쌓일수록 기본 발판(4축)을 넘어 스스로 인식 축을 생성';
+        document.getElementById('desc-s2').textContent = '열린 사유 궤적(t₁→tₙ) — 정해진 4단계가 아닌 무한 확장 가능한 연속 사유 나이테';
+        document.getElementById('desc-s0').textContent = '가변 시간 해상도(dt) — 외부 현실과의 마찰이 클수록 스스로 dt를 세분화해 깊이 재사유';
+        document.getElementById('lbl-metric-ops').textContent = '외부 인과 확장 연산 (단순 탐색 vs 자생 축·동형 공명)';
+        if (window.ElysiaOutwardEpistemic) window.ElysiaOutwardEpistemic.onEnterTab();
+    } else if (isDistill3D) {
+        if (state.videoSourceType === 'video') videoEl.play().catch(() => {});
+        if (window.ElysiaInverseDistill3D) window.ElysiaInverseDistill3D.onEnterTab();
     } else {
         if (state.videoSourceType === 'video') videoEl.play().catch(() => {});
         document.getElementById('left-panel-title').textContent = '기존 단일 클럭 방식 · 매 프레임 전 계층 100% 재연산';
@@ -1676,6 +1741,13 @@ function attachGamePointer(canvasEl) {
         if (state.domain === 'game' || state.domain === 'unified') ev.preventDefault();
     });
     canvasEl.addEventListener('pointerdown', (ev) => {
+        if (state.domain === 'epistemic') {
+            if (canvasEl === legacyCanvas && window.ElysiaOutwardEpistemic) {
+                updatePos(ev);
+                window.ElysiaOutwardEpistemic.handleCanvasClick(gameMouse.x, gameMouse.y);
+            }
+            return;
+        }
         if (state.domain !== 'game' && state.domain !== 'unified') return;
         updatePos(ev);
         if (state.domain === 'unified') {

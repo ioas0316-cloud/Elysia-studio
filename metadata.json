@@ -1,5 +1,6 @@
 {
   "name": "Elysia Scale-Rotor Causal Engine",
   "description": "Interactive 3D Cognitive CAD and 5-scale fractal rotor hierarchy (S0-S4) visualizer with continuous causal field resonance.",
-  "requestFramePermissions": ["camera", "microphone"]
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -2405,6 +2405,162 @@
         },
         getRingLength() { return historyRing.length; },
 
+        getLiveMultimodalSnapshot() {
+            const p = worldB.chars[0] || {};
+            const sel = worldB.chars[selectedCharIdx] || p;
+            let velSum = 0;
+            let hpSum = 0;
+            let hpMaxSum = 1;
+            for (let i = 0; i < worldB.chars.length; i++) {
+                const c = worldB.chars[i];
+                velSum += Math.hypot(c.vx || 0, c.vy || 0);
+                hpSum += c.hp || 0;
+                hpMaxSum += c.maxHp || 100;
+            }
+            return {
+                tick: worldB.tick,
+                avgMotion: Number((velSum / Math.max(1, worldB.chars.length)).toFixed(3)),
+                shake: Number((worldB.shake || 0).toFixed(2)),
+                crisisLevel: Number((worldB.crisisLevel || 0).toFixed(3)),
+                tradeVolume: Number((worldB.society ? worldB.society.tradeVolume : 0).toFixed(1)),
+                priceIndex: Number((worldB.society ? worldB.society.priceIndex : 100).toFixed(1)),
+                hpRatio: Number(((hpSum / hpMaxSum) * 100).toFixed(1)),
+                playerSp: Number((p.sp || 0).toFixed(1)),
+                monsterCount: worldB.monsters ? worldB.monsters.length : 0,
+                eraName: worldB.society ? worldB.society.eraName : '',
+                chainTitle: worldB.society ? worldB.society.activeChainTitle : '',
+                playerSpeech: p.speech || '',
+                playerEmotion: p.emotion || 'calm',
+                selectedSpeech: sel.speech || '',
+                selectedEmotion: sel.emotion || 'calm',
+                lastSkill: p.lastSkill || '대기',
+                videoMood: { ...latestVideoMood },
+            };
+        },
+
+        getAvailableActionIds() {
+            return ['observe_tick', 'skill_q', 'skill_w', 'skill_e', 'monster_raid', 'mana_vein', 'famine_hoard'];
+        },
+
+        runLiveCausalEpisode(actionId, steps = 16) {
+            const ACTION_META = {
+                skill_q: { label: '서리 창격 (Q)', kind: 'skill', slot: 'q' },
+                skill_w: { label: '전술 도약 (W)', kind: 'skill', slot: 'w' },
+                skill_e: { label: '뇌전 속박진 (E)', kind: 'skill', slot: 'e' },
+                monster_raid: { label: '마물 습격 사건', kind: 'catalyst', cat: 'monster_raid' },
+                mana_vein: { label: '마나 광맥 발견', kind: 'catalyst', cat: 'mana_vein' },
+                famine_hoard: { label: '기근·매점 사건', kind: 'catalyst', cat: 'famine_hoard' },
+                observe_tick: { label: '비개입 기준선 관측', kind: 'observe' },
+            };
+            const meta = ACTION_META[actionId] || ACTION_META.observe_tick;
+            const before = this.getLiveMultimodalSnapshot();
+            let peakAudioHz = 0;
+            const captureAudio = (hz) => {
+                const n = Number(hz) || 0;
+                if (n > peakAudioHz) peakAudioHz = Math.round(n);
+            };
+
+            const p = worldB.chars[0];
+            if (meta.kind === 'skill' && p) {
+                p.skillCd[meta.slot] = 0;
+                p.sp = Math.max(p.sp, (QWER_SKILLS[meta.slot] ? QWER_SKILLS[meta.slot].spCost : 20) + 5);
+                queuedQwerKey = meta.slot;
+            } else if (meta.kind === 'catalyst') {
+                triggerCausalCatalystOnWorld(worldB, meta.cat);
+                captureAudio(meta.cat === 'mana_vein' ? 580 : meta.cat === 'famine_hoard' ? 240 : 320);
+            }
+
+            const nSteps = Math.max(4, Math.min(30, Number(steps) || 16));
+            let peakMotion = before.avgMotion;
+            let peakShake = before.shake;
+            const emptyKeys = new Set();
+            const neutralMouse = { x: W * 0.62, y: H * 0.52, down: false };
+
+            for (let i = 0; i < nSteps; i++) {
+                worldB.tick += 1;
+                worldB.climatePhase += 0.012;
+                worldB.crisisLevel = Math.max(0.14, worldB.crisisLevel * 0.996);
+                if (i % 4 === 0) evolveMacroCausalWorld(worldB, 1.0, 1.0);
+                if (i % 2 === 0) evaluateSocioTacticalLayer(worldB, 2, 1.0, 1.0, quantumLockEnabled, captureAudio);
+                stepMicroPhysics(worldB, emptyKeys, neutralMouse, false, captureAudio);
+                queuedQwerKey = null;
+                queuedDash = false;
+                queuedMoveOrder = null;
+
+                let vSum = 0;
+                for (let c = 0; c < worldB.chars.length; c++) {
+                    vSum += Math.hypot(worldB.chars[c].vx || 0, worldB.chars[c].vy || 0);
+                }
+                const mNow = vSum / Math.max(1, worldB.chars.length);
+                if (mNow > peakMotion) peakMotion = mNow;
+                if ((worldB.shake || 0) > peakShake) peakShake = worldB.shake || 0;
+            }
+            s4Init = false;
+            updateDigitalTwinInspectorUI();
+            updateMobaHudUI();
+
+            const after = this.getLiveMultimodalSnapshot();
+            const spokenSet = new Set();
+            const rawParts = [];
+            worldB.chars.slice(0, 4).forEach((c) => {
+                if (c.speech && c.speech.trim()) {
+                    spokenSet.add(`${c.name}(${c.emotion}): "${c.speech.trim()}"`);
+                    rawParts.push(c.speech.trim());
+                }
+                if (c.lastSkill && c.lastSkill !== '대기') rawParts.push(c.lastSkill);
+                if (c.situation) rawParts.push(c.situation);
+            });
+            if (worldB.bannerText) rawParts.push(worldB.bannerText);
+            if (worldB.society) {
+                if (worldB.society.eraName) rawParts.push(worldB.society.eraName);
+                if (worldB.society.activeChainTitle) rawParts.push(worldB.society.activeChainTitle);
+                if (worldB.society.politicsState) rawParts.push(worldB.society.politicsState);
+            }
+
+            const dMotion = Number((peakMotion - before.avgMotion).toFixed(2));
+            const dCrisis = Number(((after.crisisLevel - before.crisisLevel) * 100).toFixed(1));
+            const dTrade = Number((after.tradeVolume - before.tradeVolume).toFixed(1));
+            const dPrice = Number((after.priceIndex - before.priceIndex).toFixed(1));
+
+            // 6 normalized continuous physical channels [0..1] for unlabeled cross-situational learning
+            const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) || 0));
+            const channelVector = [
+                clamp01(peakMotion / 3.2),                           // 0: 운동(속도)
+                clamp01(peakShake / 8.0),                            // 1: 충격(진동)
+                clamp01(peakAudioHz / 700),                          // 2: 음향(주파수)
+                clamp01((Math.max(0, dCrisis) + after.crisisLevel * 45) / 80), // 3: 위기(긴장)
+                clamp01((after.tradeVolume / 120) + Math.max(0, dTrade) / 40), // 4: 교역(자원흐름)
+                clamp01((Math.max(0, after.priceIndex - 95) + Math.max(0, dPrice) * 2) / 60), // 5: 물가(결핍압력)
+            ].map((v) => Number(v.toFixed(3)));
+
+            return {
+                actionId: meta.kind === 'observe' ? 'observe_tick' : actionId,
+                actionLabel: meta.label,
+                ticksAdvanced: nSteps,
+                before,
+                after,
+                delta: {
+                    dMotion,
+                    peakMotion: Number(peakMotion.toFixed(2)),
+                    peakShake: Number(peakShake.toFixed(2)),
+                    dCrisis,
+                    dTrade,
+                    dPrice,
+                    dHp: Number((after.hpRatio - before.hpRatio).toFixed(1)),
+                    dSp: Number((after.playerSp - before.playerSp).toFixed(1)),
+                    dMonsters: after.monsterCount - before.monsterCount,
+                    peakAudioHz,
+                },
+                channelVector,
+                rawTextStream: rawParts.join(' '),
+                spokenUtterances: Array.from(spokenSet).slice(0, 2),
+                emotionShift: `${before.playerEmotion} → ${after.playerEmotion}`,
+                eraName: after.eraName,
+                chainTitle: after.chainTitle,
+                timestamp: new Date().toISOString(),
+            };
+        },
+
         step({ legacyCtx, rotorCtx, thumbS4Ctx, thumbS2Ctx, thumbS0Ctx, state, keys, mouse, firedClick, audioPulse }) {
             if (state.scrubbing && historyRing.length > 0) {
                 const snap = historyRing[Math.min(historyRing.length - 1, Math.max(0, state.scrubIdx))];
