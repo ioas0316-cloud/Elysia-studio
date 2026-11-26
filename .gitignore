@@ -1,0 +1,269 @@
+# Python
+__pycache__/
+*.pyc
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Build & Dist
+build/
+build_native_tests/
+L1_causal_field/core/bin/
+dist/
+*.spec
+*.egg-info/
+.eggs/
+*.egg
+
+# Logs & runtime state
+*.log
+logs/
+*.jsonl
+elysia_logs/
+elysia_state.json
+
+# Backups
+backups/
+*.bak
+*.backup
+
+# Project data & artifacts
+Elysia_Input_Sanctum/
+data/associative_index.json
+data/telemetry/
+data/generated_images/
+data/storybook_images/
+data/khala_vision/
+data/kg_with_embeddings.json
+!data/curriculum/offline_language_tracks.json
+
+# Saves and temp assets
+saves/
+temp/
+assets/icon.ico
+
+# Binaries
+Elysia.exe
+
+# Godot Engine
+.godot/
+.import/
+export_presets.cfg
+*.translation
+*.pck
+Legacy/ElysiaGodot/.godot/
+Legacy/ElysiaGodot/.import/
+Legacy/ElysiaGodot/*.exe
+Core/Elysia/Godot_*.exe
+*.exe
+
+# IDE/OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Cache
+*.cache/
+*.tmp/
+.cache/
+
+# Testing artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Models
+models/
+*.gguf
+*.bin
+
+# Avatar Models
+!static/models/
+static/models/*.vrm
+!static/models/README.md
+!static/models/*.placeholder
+
+# Database
+memory.db
+*.db
+
+# Large data files
+data/elysia_rainbow.json
+data/memory.db
+
+# Seeds
+# Python
+__pycache__/
+*.pyc
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Build & Dist
+build/
+dist/
+*.spec
+*.egg-info/
+
+# Logs & runtime state
+*.log
+logs/
+*.jsonl
+elysia_logs/
+elysia_state.json
+
+# Backups
+backups/
+*.bak
+*.backup
+
+# Project data & artifacts
+Elysia_Input_Sanctum/
+data/associative_index.json
+data/telemetry/
+data/generated_images/
+data/storybook_images/
+data/khala_vision/
+data/kg_with_embeddings.json
+!data/curriculum/offline_language_tracks.json
+
+# Saves and temp assets
+saves/
+temp/
+assets/icon.ico
+
+# Binaries
+Elysia.exe
+
+# Godot Engine
+.godot/
+.import/
+export_presets.cfg
+*.translation
+*.pck
+Legacy/ElysiaGodot/.godot/
+Legacy/ElysiaGodot/.import/
+Legacy/ElysiaGodot/*.exe
+Core/Elysia/Godot_*.exe
+*.exe
+
+# IDE/OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Cache
+*.cache/
+*.tmp/
+.cache/
+
+# Testing artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Models
+models/
+*.gguf
+*.bin
+
+# Avatar Models
+!static/models/
+static/models/*.vrm
+!static/models/README.md
+!static/models/*.placeholder
+
+# Database
+memory.db
+*.db
+
+# Large data files
+data/elysia_rainbow.json
+data/memory.db
+
+# Seeds (Trinity personality data - changes frequently, stored locally)
+data/seeds/nova/
+data/seeds/chaos/
+seeds/nova/
+seeds/chaos/
+
+# ComfyUI outputs
+ComfyUI/output/
+ComfyUI/temp/
+# Large Data & Wikipedia
+data/wikipedia/
+data/dictionary/
+data/**/*.bz2
+data/**/*.xml
+data/**/*.pt
+data/**/*.bin
+data/**/*.pt
+data/brain_state.pt
+
+# Restructured Trinity Data (Ignored)
+data/Weights/
+data/Logs/
+data/Archive/
+data/Sandbox/Core/Memory/muscle_index.json
+Core/Memory/sediment_xla.bin
+data/archive/S1_Body/L1_Foundation/external/CosyVoice/
+data/**/Engrams/
+tests/test_output*.bak
+debug_d21.py
+fix_d21.py
+
+# Elysia generated state and collapse logs
+*.pkl
+collapses/
+synth_rotor_waveform_*.png
+
+# Runtime state files
+data/matrix_state.json
+data/network_convection.json
+data/
+
+executive/*.so
+lib/phase_kernel.so
+c_rotor.so
+core/hardware/topology_field.so
+core/hardware/topology_field.dll
+core/hardware/libtopology.so
+node_modules/
+mva/__pycache__
+mva/api/__pycache__
+
+# Compiled binary objects
+*.so
+*.dylib
+*.dll
+
+# Third party dependencies
+third_party/
+
+# 3D Mesh and Trajectory Exports
+*.obj
+*.csv
+memory_torus_manifold.obj
+geodesic_path.csv
+test_torus.obj
+test_path.csv

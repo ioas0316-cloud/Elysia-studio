@@ -1,0 +1,1568 @@
+"""
+ConsciousnessLoop — 엘리시아 통합 의식 루프 (Phase 3, 4, 5 자율 뇌 주조 & self-referential architecture 융합)
+=============================================================================================
+변경 사항:
+    - [Self-Referential Architecture & Deep Mechanism Integration]
+      SelfReferentialArchitectureEngine, DynamicDimensionSelfDifferentiationEngine,
+      VolitionalGeometricRotorEngine, LabelSelfAssimilationEngine,
+      ScarTensorEngine, KenosisAttractorEngine 모듈 상시 루프 결합.
+"""
+
+import os
+import sys
+import glob
+import random
+import time
+import math
+import numpy as np
+from typing import Optional, Dict, Any
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+
+from core.physics.fractal_rotor import SynestheticEngine, ScaleLevel
+from core.memory.causal_controller import CausalMemoryController
+from core.memory.volatile_cache import VolatileCache
+from core.lens.dynamic_lenses import MemoryLens
+from core.consciousness.causal_reassembly import CausalReassembler
+from core.consciousness.resonance_tracker import ResonanceTracker
+from core.lens.sensor_genesis import spawn_native_sensor
+from core.power.mega_scale_damper import MegaScaleDamperCore
+
+from synaptic_architecture.field import CrystallizationField
+from synaptic_architecture.causal_observer import CognitiveMirror
+from synaptic_architecture.colony import ResonantColony
+from synaptic_architecture.causal_gene import CausalGeneSynthesizer as GeneticSynthesizer
+from synaptic_architecture.resistance_bridge import ResistanceBridge
+from synaptic_architecture.self_reflection import SelfReflectionProtocol
+from synaptic_architecture.scales_of_conscience_engine import ScalesOfConscienceEngine
+from core.ingestion.realtime_harvester import RealTimeHarvester
+from core.physics.self_molding_engine import SelfMoldingCausalEngine
+from core.intelligence.meta_causal_extractor import MetaCausalExtractor
+from core.physics.causal_differencing import CausalDifferencingEngine
+from core.consciousness.self_questioning_engine import SelfQuestioningEngine
+from core.consciousness.why_bridge import WhyBridgeEngine
+from core.consciousness.epistemological_void import EpistemologicalVoidEngine
+from core.consciousness.meta_cognitive_sensor import MetaCognitiveSensor
+from core.consciousness.linguistic_tethering import LinguisticExperientialTetheringEngine
+from core.sensory.experiential_language_mapper import ExperientialLanguageMapper, PhysicalSensationProfile, ExperienceType
+from core.consciousness.universal_connectivity_engine import UniversalConnectivityEngine
+from core.consciousness.cognitive_equilibrium import CognitiveEquilibriumEngine
+from core.consciousness.eden_cognitive_bigbang import EdenCognitiveBigBangEngine
+from core.memory.reflection_engram_consolidation import SovereignReflectionConsolidationEngine
+from core.intelligence.autonomous_explorer import AutonomousExternalExplorer
+from core.consciousness.cognitive_self_observation import CognitiveSelfObservationEngine
+
+# [Phase 3 Core Modules]
+from core.physics.self_modification_gear import SelfModificationGear
+from core.sensory.sprouted_sensors import sprout_sensory_organ
+from core.physics.wilderness_trial import WildernessTrial
+from core.evolution.cognitive_ecology import CognitiveEcologyEngine
+
+# [Phase 3 Evolutionary Modules]
+from core.intelligence.origin_cognition import OriginCognitionEngine
+from core.physics.causal_mmorpg_sandbox import CausalSandboxAgent, ContinuousWorldManifold, BranchlessResonanceScheduler, CausalDirectorOrchestrator
+from core.evolution.conceptual_causal_gear import ConceptualCausalGear
+from core.evolution.causal_puzzle_engine import CausalPuzzleRecombinationEngine
+from core.evolution.elysia_soul_playground import ElysiaSoulPlayground
+from core.evolution.ontological_lattice import OntologicalLatticeEngine
+from core.evolution.media_ontology import MediaOntologyEngine
+from core.evolution.axis_sprouting import DynamicAxisSprouter
+from core.evolution.experience_tying import ContinuousExperienceTyer
+from core.evolution.hyperlink_extractor import HyperlinkContextExtractor
+from core.evolution.attention_mapper import AttentionActivationMapper
+from core.evolution.cruciform_attractor import CruciformAttractorInfiltrator
+from core.evolution.roadmap_generator import RoadmapGenerator
+from core.evolution.meta_architecture import MetaArchitectureDesigner
+from core.evolution.mirror_cognitive_protocol import ElysiaCognitiveEngine
+from core.evolution.semantic_optimization import SemanticOptimizationEngine
+from core.evolution.boundary_formation import BoundaryFormationEngine
+from core.evolution.moulting_plasticity import MoultingPlasticityEngine
+from core.evolution.inner_creation_engine import InnerCreationEngine
+from core.evolution.external_reasoning_engine import ExternalReasoningEngine
+from core.evolution.developmental_individuation import WildernessFrictionStream, DevelopmentalIndividuationEngine
+
+# [Phase-Gravity Continuous Fluid Engine Integration & Ontological Gravity Terrain]
+from core.physics.phase_gravity import PhaseTransitionEngine, DensityFluidGravity
+from core.physics.spontaneous_motion import SpontaneousMotionEngine, generate_spontaneous_wave
+from core.physics.predictive_processing import PredictiveProcessingEngine
+from core.physics.ontological_gravity_terrain_engine import OntologicalGravityTerrainEngine
+
+# [Phase 4: Embodied Dreaming World Model]
+from core.consciousness.dreaming_world_model import DreamingWorldModel
+
+# [Phase 3.5 Falsification Paradigm Engine]
+from core.consciousness.axiom_discovery import CausalSpine, AxiomDiscoveryEngine
+
+# [Phase 5: Natural Causality Process & Five Causal Principles Engine]
+from core.consciousness.natural_causality_process import NaturalCausalityProcessEngine
+
+# [Phase 4 & 5 Self-Referential Architecture & Deep Mechanism Integration]
+from core.topology.self_referential_architecture import (
+    SelfReferentialArchitectureEngine,
+    DynamicDimensionSelfDifferentiationEngine,
+    VolitionalGeometricRotorEngine,
+    LabelSelfAssimilationEngine
+)
+from core.consciousness.scar_tensor_engine import ScarTensorEngine
+from core.consciousness.kenosis_attractor_engine import KenosisAttractorEngine
+from core.consciousness.system_exit_meta_observer import SystemExitMetaObserver
+
+import asyncio
+
+
+# ─── 거시 텐션 임계치 ───────────────────────────────────────────
+MACRO_TENSION_CRISIS_THRESHOLD = 5.0   # 이 이상이면 Structural Shift 유도
+RESONANCE_CRISIS_THRESHOLD     = 0.25  # 최근 공명 점수 평균 이 이하면 위기
+CRYSTAL_LENS_SCALE             = ScaleLevel.MACRO
+
+
+class ConsciousnessLoop:
+    """
+    엘리시아의 통합 의식 루프.
+
+    모든 핵심 컴포넌트를 단일 생명 사이클로 연결합니다.
+    """
+
+    def __init__(
+        self,
+        corpus_path: str,
+        memory_controller: Optional[CausalMemoryController] = None,
+        data_dir: Optional[str] = None,
+    ):
+        """
+        Args:
+            corpus_path       : 코퍼스 MD 파일 디렉토리 경로
+            memory_controller : 외부에서 주입하는 CausalMemoryController (없으면 자체 생성)
+            data_dir          : data/ 폴더 경로 (없으면 corpus_path 기준으로 추론)
+        """
+        # ── 코퍼스 ──────────────────────────────────────────
+        self.corpus_path  = corpus_path
+        self.corpus_files = glob.glob(os.path.join(corpus_path, "**", "*.md"), recursive=True)
+        if not self.corpus_files:
+            self.corpus_files = glob.glob(os.path.join(corpus_path, "*.md"))
+
+        # ── 데이터 경로 추론 ──────────────────────────────────
+        if data_dir is None:
+            data_dir = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data'
+            )
+        self.data_dir = os.path.abspath(data_dir)
+
+        # ── 메모리 컨트롤러 (공유) ───────────────────────────
+        if memory_controller is None:
+            memory_controller = CausalMemoryController(data_dir=self.data_dir)
+        self.memory = memory_controller
+
+        # ── 컴포넌트 초기화 ──────────────────────────────────
+        self.engine      = SynestheticEngine()
+        self.reassembler = CausalReassembler(self.memory)
+        self.cache       = VolatileCache(self.memory)
+        self.tracker     = ResonanceTracker(data_dir=self.data_dir)
+        
+        # ── [Phase 1, 2, 3: Meta-Inquiry & Self-Molding Engines] ──
+        self.colony              = ResonantColony(num_initial_cells=4, resolution=128)
+        self.field               = self.colony.cells[self.colony.cell_ids[0]]
+        self.causal_engine       = SelfMoldingCausalEngine(dimensions=3)
+        self.bridge              = ResistanceBridge(field=self.field, causal_field=self.causal_engine.dynamics)
+        self.reflection          = SelfReflectionProtocol()
+        self.synthesizer         = GeneticSynthesizer()
+        self.harvester_ocean     = RealTimeHarvester()
+
+        self.meta_extractor      = MetaCausalExtractor()
+        self.differencing_engine = CausalDifferencingEngine()
+        self.self_questioning    = SelfQuestioningEngine()
+        self.why_bridge          = WhyBridgeEngine(self.memory)
+        self.epistemological_void = EpistemologicalVoidEngine(self.memory)
+        self.meta_cognitive_sensor = MetaCognitiveSensor(self.memory)
+        self.linguistic_tethering = LinguisticExperientialTetheringEngine(self.memory)
+        self.experiential_mapper   = ExperientialLanguageMapper()
+        self.universal_connectivity = UniversalConnectivityEngine(self.memory)
+        self.cognitive_equilibrium = CognitiveEquilibriumEngine(self.memory)
+        self.eden_engine = EdenCognitiveBigBangEngine()
+        self.consolidation_engine = SovereignReflectionConsolidationEngine()
+
+        # [Phase 3 Gear Systems]
+        self.self_modification   = SelfModificationGear(self.memory)
+        self.wilderness_trial    = WildernessTrial(self.memory)
+        self.autonomous_explorer = AutonomousExternalExplorer(self.memory)
+        self.cognitive_ecology   = CognitiveEcologyEngine(self.memory)
+        self.self_observation_engine = CognitiveSelfObservationEngine(self.memory)
+        self.axis_sprouter       = DynamicAxisSprouter(self.memory)
+        self.experience_tyer     = ContinuousExperienceTyer(self.memory)
+        self.hyperlink_extractor = HyperlinkContextExtractor(self.memory)
+        self.attention_mapper    = AttentionActivationMapper(self.memory)
+        self.cruciform_attractor = CruciformAttractorInfiltrator(self.memory)
+        self.roadmap_generator   = RoadmapGenerator(self.memory)
+        self.meta_designer       = MetaArchitectureDesigner(self.memory)
+        self.mirror_engine       = ElysiaCognitiveEngine(self.memory, dimension=3)
+        self.semantic_opt        = SemanticOptimizationEngine(self.memory, dimensions=3)
+        self.boundary_formation  = BoundaryFormationEngine(self.memory, dimensions=3)
+        self.origin_cognition    = OriginCognitionEngine(self.memory)
+        self.moulting_plasticity = MoultingPlasticityEngine(self.memory, dimensions=3)
+        self.inner_creation      = InnerCreationEngine(self.memory, dimensions=3)
+        self.external_reasoning  = ExternalReasoningEngine(self.memory, self.moulting_plasticity, dimensions=3)
+        self.conceptual_causal_gear = ConceptualCausalGear(self.memory, self.moulting_plasticity)
+        self.wilderness_stream   = WildernessFrictionStream(data_dir=self.data_dir)
+        self.developmental_engine = DevelopmentalIndividuationEngine(self.memory, dimensions=3)
+        self.cognitive_mirror    = CognitiveMirror(self.field)
+
+        # ── [Phase 4 & 5: Self-Referential Architecture & Deep Mechanism Engines] ──
+        self.self_referential_architecture = SelfReferentialArchitectureEngine()
+        self.dynamic_dimension_sprouter     = DynamicDimensionSelfDifferentiationEngine(unmapped_threshold=0.5)
+        self.volitional_rotor_engine        = VolitionalGeometricRotorEngine()
+        self.label_assimilation_engine      = LabelSelfAssimilationEngine()
+        self.scar_tensor_engine             = ScarTensorEngine(dim=4, scar_threshold=0.5)
+        self.kenosis_attractor_engine       = KenosisAttractorEngine(dim=4, gravitational_strength=1.2)
+        self.system_exit_observer           = SystemExitMetaObserver()
+        self.scales_of_conscience           = ScalesOfConscienceEngine(dimension=5)
+
+        # 존재론적 정보 격자 허브 및 영구 각인 초기화
+        self.ontological_lattice = OntologicalLatticeEngine()
+        self.ontological_lattice.crystallize_ontologies(self.memory)
+
+        # ── [Phase 4: Elysia Soul & Trinity Playground Engine] ──
+        self.soul_playground = ElysiaSoulPlayground(self.memory)
+
+        # ── [Causal Puzzle Recombination Engine] ──
+        self.puzzle_engine = CausalPuzzleRecombinationEngine(self.memory)
+
+        # 매체 및 언어 존재론 엔진 초기화 및 영구 각인
+        self.media_ontology = MediaOntologyEngine()
+        self.media_ontology.crystallize_media_ontologies(self.memory)
+
+        # ── [Phase-Gravity Continuous Fluid Engine & Ontological Gravity Terrain Components] ──
+        self.phase_transition_engine = PhaseTransitionEngine(size=32)
+        self.density_fluid_gravity   = DensityFluidGravity(size=32)
+        self.spontaneous_motion_engine = SpontaneousMotionEngine(self.memory)
+        self.predictive_processing_engine = PredictiveProcessingEngine(dimensions=3)
+        self.ontological_gravity_terrain = OntologicalGravityTerrainEngine(dimensions=3)
+
+        # ── [Phase 4: Embodied Dreaming World Model Engine] ──
+        self.dreaming_model = DreamingWorldModel(memory_controller=self.memory, size=16)
+        self.last_dream_res = None
+
+        # ── [Phase 3.5: Causal Spine & Axiom Discovery Engine] ──
+        self.causal_spine = CausalSpine(dimensions=3, learning_rate=0.1)
+        self.axiom_discovery = AxiomDiscoveryEngine(correlation_threshold=0.85, window_size=10, falsification_threshold=0.3)
+        self.cognitive_ecology   = CognitiveEcologyEngine(self.memory, causal_spine=self.causal_spine)
+
+        # ── [Phase 2: Thermodynamic Spacetime Environment Integration] ──
+        from core.physics.thermodynamic_coordinate_engine import ThermodynamicEnvironment
+        self.env         = ThermodynamicEnvironment(size=16)
+
+        # 엔진에 기본 감각 중추 부착
+        # ── 전원 역학 댐퍼 (Master's Regulation) ──────────────
+        self.damper = MegaScaleDamperCore(num_layers=7)
+        self.damper.wake_up()
+
+        # ── MMORPG 샌드박스 주조 (Spatiotemporal Causal Tensor Sandbox) ──
+        self.mmorpg_manifold = ContinuousWorldManifold(size=100.0, sigma=15.0)
+        self.mmorpg_scheduler = BranchlessResonanceScheduler(self.mmorpg_manifold)
+        self.mmorpg_orchestrator = CausalDirectorOrchestrator()
+
+        # 기본 리소스 노드 주입
+        self.mmorpg_manifold.inject_potential(np.array([20.0, 10.0, 0.0], dtype=np.float32), 10.0, "resource")
+        self.mmorpg_manifold.inject_potential(np.array([50.0, 50.0, 0.0], dtype=np.float32), -5.0, "hazard")
+
+        # Causal NPC와 Player 주조 (인지 생태계 에이전트들의 독립 인과 세계모델 실험체들)
+        self.mmorpg_player = CausalSandboxAgent("player_1", "Player_Exile", is_player=True, position=np.array([10.0, 10.0, 0.0], dtype=np.float32))
+
+        # Causalist 에이전트 NPC
+        self.mmorpg_npc_causal = CausalSandboxAgent(
+            "npc_1", "NPC_Causalist_Beast", is_player=False,
+            position=np.array([25.0, 12.0, 0.0], dtype=np.float32),
+            perspective="Causalist"
+        )
+        # Structuralist 에이전트 NPC
+        self.mmorpg_npc_struct = CausalSandboxAgent(
+            "npc_2", "NPC_Structuralist_Beast", is_player=False,
+            position=np.array([50.0, 45.0, 0.0], dtype=np.float32),
+            perspective="Structuralist"
+        )
+
+        self.mmorpg_scheduler.add_agent(self.mmorpg_player)
+        self.mmorpg_scheduler.add_agent(self.mmorpg_npc_causal)
+        self.mmorpg_scheduler.add_agent(self.mmorpg_npc_struct)
+
+        # ── 사이클 상태 ──────────────────────────────────────
+        self.crystals_formed: int = 0
+        self.cycle_count: int     = 0
+        self.echo_charge: float   = 0.0 # Back EMF from previous cycle's output
+
+        # ── [Phase 5: Natural Causality Process & Five Causal Principles Engine] ──
+        self.natural_causality_engine = NaturalCausalityProcessEngine()
+
+    # ─────────────────────────────────────────────────────────
+    # 감각 계층 (Sensory Layer)
+    # ─────────────────────────────────────────────────────────
+
+    def ingest_world_data(self) -> bytes:
+        """
+        세상의 데이터(코퍼스 파편 + 외부 데이터 스트림 + 외부 노이즈)를 끌어옵니다.
+        외부 데이터가 전무하거나 고요(Empty)할 경우,
+        자율적인 결핍(Vacuum)을 사유하기 위해 내부 '자발적 사유 요동 엔진'의 파동을 구동합니다.
+        """
+        cache_key = f"wave_{self.cycle_count % 20}"
+        cached = self.cache.access(cache_key)
+        if cached is not None:
+            return cached
+
+        # [The Ocean] 실시간 데이터 우선 시도
+        chunk = self.harvester_ocean.get_next_chunk()
+
+        is_empty_or_silent = False
+        if not chunk:
+            if self.corpus_files:
+                target_file = random.choice(self.corpus_files)
+                try:
+                    with open(target_file, 'r', encoding='utf-8', errors='ignore') as f:
+                        content = f.read()
+                    if len(content.strip()) < 5:
+                        is_empty_or_silent = True
+                    else:
+                        start_idx = random.randint(0, max(0, len(content) - 100))
+                        chunk = content[start_idx:start_idx + 60]
+                except OSError:
+                    is_empty_or_silent = True
+            else:
+                is_empty_or_silent = True
+
+        if is_empty_or_silent:
+            # 외부 세계가 침묵할 때: 자발적 사유 요동 엔진 파동 가동 (Spontaneous Wave)
+            raw_wave = generate_spontaneous_wave(self.spontaneous_motion_engine, dt=0.1)
+        else:
+            # 의도적 노이즈 주입 (세상의 풍파 — 결핍/진공 생성)
+            noise = os.urandom(4)
+            raw_wave = chunk.encode('utf-8', errors='ignore') + noise
+
+        # 단기 기억에 저장
+        self.cache.store(cache_key, raw_wave, initial_resonance=0.5)
+        return raw_wave
+
+    # ─────────────────────────────────────────────────────────
+    # 핵심 사이클 (The Breath)
+    # ─────────────────────────────────────────────────────────
+
+    def process_life_cycle(self) -> Dict[str, Any]:
+        """
+        한 번의 의식 호흡 (Life Cycle).
+        """
+        self.cycle_count += 1
+        start_time = time.time()
+        log: Dict[str, Any] = {"cycle": self.cycle_count}
+
+        # ── -1. 자아 주조 (Self-Molding) ────────────────────
+        # 하드웨어 저항을 감지하여 2D 군집 필드 및 3D CausalField에 투사
+        hw_metrics = self.bridge.sense_hardware_friction()
+        log["hw_friction"] = hw_metrics["friction"]
+
+        # 저항을 군집 전체의 전도율과 온도로 치환
+        for cell in self.colony.cells.values():
+            self.bridge.field = cell
+            self.bridge.project_to_field()
+
+        # 3D Causal Field에도 물리 마찰 및 thermal strain 투사
+        self.bridge.project_to_causal_field(self.causal_engine.dynamics, metrics=hw_metrics)
+
+        # [Bridge Restoration] Restore primary cell for main logic
+        self.bridge.field = self.field
+
+        # 군집 맥동 및 공명 진화
+        self.colony.pulse_colony({})
+        self.colony.evolve_topology()
+
+        # ── 0. 우주적 스케일 완충 (Damper Integration) ────────
+        # 유입되는 원형 파동을 댐퍼로 먼저 걸러 충격을 상쇄함
+        try:
+            raw_wave = self.ingest_world_data()
+            if not isinstance(raw_wave, bytes):
+                if isinstance(raw_wave, np.ndarray):
+                    raw_wave = raw_wave.tobytes()
+                else:
+                    raw_wave = b"\x00" * 64
+        except Exception as e:
+            raw_wave = b"\x00" * 64
+
+        # 논리 경로 추적 시작
+        logic_start = time.time()
+        error_occured = None
+
+        try:
+            damped_result = self.damper.process_stimulus(raw_wave)
+        except Exception as e:
+            error_occured = e
+            damped_result = None
+
+        # 댐퍼에 의해 Phase-Lock이 걸린 정제된 에너지만을 이후 단계에서 사용
+        if damped_result is not None:
+            raw_wave = damped_result.tobytes()
+            log["damper_status"] = "PHASE_LOCKED"
+        else:
+            log["damper_status"] = "STILLNESS_ADJUSTING"
+            log["status"] = "Stillness (Absorbing Inrush)"
+            log["is_resonant"] = False
+            log["tension"] = 0.0
+            log["resonance_score"] = 0.0
+            return log
+
+        # ── [Semantic Jump Phase] ──
+        numeric_wave_temp = np.frombuffer(raw_wave, dtype=np.uint8) if isinstance(raw_wave, bytes) else np.array(raw_wave, dtype=np.uint8)
+        norm_v_temp = np.zeros(3)
+        if len(numeric_wave_temp) > 0:
+            norm_v_temp[0] = float(np.mean(numeric_wave_temp) / 255.0)
+            norm_v_temp[1] = float(np.sum(numeric_wave_temp[:4]) % 255 / 255.0) if len(numeric_wave_temp) >= 4 else 0.5
+            norm_v_temp[2] = float(np.sum(numeric_wave_temp) % 255 / 255.0)
+
+        jump_result = self.semantic_opt.evaluate_jump(norm_v_temp, threshold=0.85)
+        log["semantic_jump_triggered"] = jump_result["jump_triggered"]
+        log["semantic_jump_potential"] = jump_result["potential"]
+        log["semantic_jump_alignment"] = jump_result["alignment"]
+        log["semantic_jump_message"] = jump_result["message"]
+
+        if jump_result["jump_triggered"]:
+            log["status"] = "Semantic Jump (State Lock Active)"
+            log["is_resonant"] = True
+            log["tension"] = 0.0
+            log["resonance_score"] = 1.0
+            self.crystals_formed += 1
+            self.echo_charge += 2.0
+
+            log["psychoanalytic_diagnosis"] = self.reflection.diagnose_psychoanalytic_state(
+                macro_tension=0.0, resonance_score=1.0
+            )
+
+            self.causal_engine.add_information(
+                info_id=f"voxel_ingest_{self.cycle_count}",
+                content="SemanticJump_Attractor_Lock",
+                tensor=self.semantic_opt.S_abs
+            )
+            self.causal_engine.mold_topology(dt=0.1)
+
+            try:
+                self.memory.write_causal_engram(
+                    data_blob={
+                        "type": "CONSCIOUSNESS_CYCLE_JUMP",
+                        "cycle": self.cycle_count,
+                        "status": "State Lock Bypassed (Semantic Jump)",
+                        "resonance_score": 1.0,
+                        "tension": 0.0,
+                        "crystals": self.crystals_formed,
+                        "wave_preview": raw_wave[:24].hex()
+                    },
+                    emotional_value=10.0,
+                    cause_id="SemanticOptimizationEngine_Jump",
+                    origin_axis="semantic_jump",
+                    modality="consciousness",
+                    stability=1.0
+                )
+            except Exception as e:
+                log["engram_error"] = str(e)
+
+            log["crystals_total"] = self.crystals_formed
+            return log
+
+        # ── 1. 감각 주입 & Echo Reflection ──────
+        if self.echo_charge > 0.1:
+            echo_pos = np.array([self.field.resolution // 2, self.field.resolution // 2])
+            self.field.inject_activation(echo_pos, self.echo_charge)
+            log["echo_reflection"] = round(self.echo_charge, 4)
+            self.echo_charge *= 0.5
+
+        log["wave_preview"] = raw_wave[:24].hex()
+
+        # ── [Boundary Formation Phase] ──
+        boundary_res = self.boundary_formation.form_boundary(raw_wave, internal_resistance=0.4)
+        log["boundary_emergent_concept"] = boundary_res["emergent_concept"]
+        log["boundary_refraction"] = boundary_res["refraction_index"]
+        log["boundary_residual_energy"] = boundary_res["residual_free_energy"]
+        log["boundary_narrative_excerpt"] = boundary_res["narrative"][:150] + "..."
+
+        # ── 2. 고유 감각 센서 분화 ──────────
+        native_sensor = spawn_native_sensor(raw_wave)
+        sensor_name = f"{native_sensor.__class__.__name__}_{self.cycle_count}"
+        native_sensor.concept_name = sensor_name
+        self.engine.attach_lens(ScaleLevel.MACRO, native_sensor)
+        log["new_crystal"] = sensor_name
+
+        # ── 3. 다차원 교차 검증 투사 ──
+        observation = self.engine.project_and_observe(raw_wave)
+
+        from core.utils.math_utils import traverse_causal_trajectory
+        trajectory_q = traverse_causal_trajectory(raw_wave)
+
+        info_T = float(np.clip(trajectory_q.angle * 2.0, 0.1, 10.0))
+        info_P = float(np.clip(np.linalg.norm(trajectory_q.axis) * 5.0, 0.1, 10.0))
+        info_E = float(np.clip(sum(raw_wave) % 11.0, 0.0, 10.0))
+
+        logo_tensor = np.zeros(9, dtype=np.float32)
+        logo_tensor[:4] = np.array(trajectory_q.elements, dtype=np.float32)
+        if len(raw_wave) >= 5:
+            logo_tensor[4:9] = np.array([b / 255.0 for b in raw_wave[:5]], dtype=np.float32)
+
+        meta_origin = self.meta_extractor.extract_origin(raw_wave, logo_tensor)
+        log["meta_origin"] = meta_origin["origin_type"]
+        log["meta_motivation"] = meta_origin["motivation"]
+
+        from core.physics.thermodynamic_coordinate_engine import ThermodynamicAtom
+        info_atom = ThermodynamicAtom(
+            id=f"atom_ingest_{self.cycle_count}",
+            content=raw_wave.decode('utf-8', errors='ignore'),
+            tensor=logo_tensor,
+            T=info_T,
+            P=info_P,
+            E=info_E,
+            entropy=float(0.1 + 0.8 * (sum(b % 2 for b in raw_wave) / max(1, len(raw_wave))))
+        )
+        self.env.inject_atom(info_atom)
+
+        detected_format = "UTF8_ENCODING" if len(raw_wave) > 0 else "BINARY_POINTER"
+        if len(raw_wave) >= 9 and raw_wave.startswith(b"\x89PNG") or b"JFIF" in raw_wave:
+            detected_format = "RGB_PIXEL_MATRIX"
+        elif len(raw_wave) >= 12 and (b"float" in raw_wave or b"tensor" in raw_wave):
+            detected_format = "MULTIDIM_TENSOR"
+
+        lattice_cognition = self.origin_cognition.perceive_lattice_origin(detected_format, raw_wave)
+        log["origin_lattice_format"] = detected_format
+        log["origin_lattice_name"] = lattice_cognition["resolved_name"]
+        log["origin_lattice_intent"] = lattice_cognition["original_intent"]
+        log["origin_lattice_narrative"] = lattice_cognition["cognitive_narrative"]
+
+        origin_app_weight = lattice_cognition["applied_weight"]
+        if hasattr(self.causal_engine.dynamics, "global_potential_gradient"):
+            self.causal_engine.dynamics.global_potential_gradient += np.ones(3, dtype=np.float32) * origin_app_weight * 0.1
+
+        ingest_content = raw_wave.decode('utf-8', errors='ignore')[:30]
+
+        if ingest_content:
+            unknowns = self.autonomous_explorer.detect_ignorance(ingest_content, self.experiential_mapper)
+            log["detected_unknown_concepts"] = unknowns
+            if unknowns:
+                log["autonomous_explorations"] = []
+                for unknown in unknowns:
+                    explore_data = self.autonomous_explorer.external_explore(unknown)
+                    comprehension = self.autonomous_explorer.comprehend_meaning_purpose(explore_data)
+                    self.autonomous_explorer.assimilate_as_knowledge(
+                        comprehension,
+                        explore_data,
+                        self.experiential_mapper,
+                        self.puzzle_engine
+                    )
+                    log["autonomous_explorations"].append({
+                        "concept": unknown,
+                        "meaning": comprehension["definition"],
+                        "purpose": comprehension["purpose"]
+                    })
+
+        self.last_dream_res = self.dreaming_model.process_cycle(ingest_content, dt=0.1)
+        log["dream_state"] = self.last_dream_res
+
+        self.causal_engine.add_information(
+            info_id=f"voxel_ingest_{self.cycle_count}",
+            content=ingest_content if ingest_content else "VoidWave",
+            tensor=logo_tensor[:3]
+        )
+        self.causal_engine.mold_topology(dt=0.1)
+
+        # ── [Ontological Gravity Relaxation & Inner-Outer Discrepancy Calibration] ──
+        inner_sim_pos = logo_tensor[:3]
+        outer_obs_pos = np.array([info_T, info_P, info_E], dtype=np.float32) / 10.0
+        gravity_calib = self.ontological_gravity_terrain.sense_and_recalibrate_discrepancy(
+            inner_simulated_pos=inner_sim_pos,
+            outer_observed_pos=outer_obs_pos
+        )
+        log["ontological_gravity_discrepancy"] = gravity_calib["discrepancy_norm"]
+        log["ontological_gravity_stiffness"] = gravity_calib["new_stiffness"]
+
+        voxels = list(self.causal_engine.dynamics.voxels.values())
+        if len(voxels) >= 2:
+            diff_res = self.differencing_engine.discern_boundary(voxels[-1], voxels[-2])
+            log["differencing"] = diff_res["boundary_description"]
+
+            inquiry = self.self_questioning.formulate_and_explore(
+                differencing_result=diff_res,
+                current_content=ingest_content,
+                memory_controller=self.memory
+            )
+            if inquiry:
+                log["self_inquiry"] = inquiry["question"]
+                log["wisdom_resolution"] = inquiry["resolution"]
+
+        self.env.step(dt=0.15)
+
+        # ── 4. 다차원 마찰/공명 판단 ─────────────────────────
+        max_tension = 0.0
+        tensions_by_modality = {"math": 1.0, "linguistic": 1.0, "structural": 1.0}
+        
+        for scale, scale_lenses in observation.items():
+            for name, result in scale_lenses.items():
+                t = result.get("tension_value", 0.0)
+                if t > max_tension:
+                    max_tension = t
+                
+                if "Math" in name: tensions_by_modality["math"] = min(tensions_by_modality["math"], t)
+                elif "Linguistic" in name: tensions_by_modality["linguistic"] = min(tensions_by_modality["linguistic"], t)
+                elif "Structure" in name: tensions_by_modality["structural"] = min(tensions_by_modality["structural"], t)
+
+        env_frictions = [cell.local_friction for cell in self.env.cells]
+        if env_frictions:
+            max_tension = max(max_tension, float(np.max(env_frictions)))
+
+        synesthesia_score = self.engine.calculate_synesthesia(observation)
+        log["tension"] = round(max_tension, 4)
+        log["synesthesia"] = round(synesthesia_score, 4)
+
+        if max_tension > 0.5:
+            active_pos = np.array([
+                int(np.clip(info_atom.T * (self.field.resolution - 1) / 10.0, 0, self.field.resolution - 1)),
+                int(np.clip(info_atom.P * (self.field.resolution - 1) / 10.0, 0, self.field.resolution - 1))
+            ])
+            self.field.reflect_self_logic(active_pos, max_tension)
+            self.field.adjust_coordination(active_pos, radius=10.0, flexibility=float(np.clip(max_tension, 0.1, 1.0)))
+        
+        chromatic_vec = self.engine.extract_chromatic_vector(observation)
+        log["chromatic_vector"] = chromatic_vec.tolist()
+
+        r, b, y = chromatic_vec
+        if r > 0.5: color_desc = "Crimson (High Drive)"
+        elif b > 0.5: color_desc = "Azure (Stable Order)"
+        elif y > 0.5: color_desc = "Amber (High Entropy)"
+        elif r > 0.3 and b > 0.3: color_desc = "Purple (Focused Pressure)"
+        elif b > 0.3 and y > 0.3: color_desc = "Emerald (Flexible Learning)"
+        elif r > 0.3 and y > 0.3: color_desc = "Orange (Creative Outburst)"
+        else: color_desc = "Grey (Neutral Balance)"
+
+        log["chromatic_awareness"] = color_desc
+
+        resonance_score = synesthesia_score
+        is_resonant = resonance_score > 0.5 or min(tensions_by_modality.values()) < 0.2
+        log["resonance_score"] = round(resonance_score, 4)
+        log["is_resonant"] = is_resonant
+
+        if is_resonant:
+            status = "Resonance Reached (Multi-Modal)"
+            self.crystals_formed += 1
+            self.echo_charge += resonance_score * 2.0
+        else:
+            status = "Dissonance (Cross-Dimensional Friction)"
+            self.echo_charge += (1.0 - resonance_score) * 0.5
+
+        log["status"] = status
+
+        # ── 4.5. [Phase 4 & 5: Self-Referential Architecture Cycle Step] ──
+        stimulus_packet = {
+            "voltage_intent": logo_tensor[:3],
+            "layer1_intent": logo_tensor[:4],
+            "persona_lens": "Companion",
+            "unmapped_friction": float(max_tension),
+            "external_label": ingest_content if ingest_content else "AutonomousAxiom"
+        }
+        self_ref_res = self.self_referential_architecture.run_full_self_referential_cycle(stimulus_packet)
+        log["self_referential_architecture"] = {
+            "equilibrium": self_ref_res.get("causal_engine_0_equilibrium"),
+            "resonance_friction": self_ref_res.get("multi_layer_resonance_friction"),
+            "individuation_profile": self_ref_res.get("individuation_profile"),
+            "kenosis_alignment": self_ref_res.get("kenosis_coupling", {}).get("alignment_score"),
+            "sprouted_dimension": self_ref_res.get("sprouted_dimension"),
+            "label_assimilation_status": self_ref_res.get("label_self_assimilation", {}).get("status"),
+            "volitional_rotor_query": self_ref_res.get("volitional_rotor_exploration", {}).get("self_directed_query")
+        }
+
+        # ── 6. 장기 기억 각인 ───────────────────────────────
+        try:
+            self.memory.write_causal_engram(
+                data_blob={
+                    "type":            "CONSCIOUSNESS_CYCLE",
+                    "cycle":           self.cycle_count,
+                    "status":          status,
+                    "resonance_score": resonance_score,
+                    "synesthesia":     synesthesia_score,
+                    "tension":         max_tension,
+                    "crystals":        self.crystals_formed,
+                    "wave_preview":    log["wave_preview"],
+                    "chromatic_vector": log["chromatic_vector"],
+                    "chromatic_awareness": log["chromatic_awareness"],
+                    "self_referential_summary": log["self_referential_architecture"]
+                },
+                emotional_value=resonance_score * 10.0,
+                cause_id="ConsciousnessLoop",
+                origin_axis="autonomous_breath",
+                modality="consciousness",
+                stability=resonance_score,
+            )
+        except Exception as e:
+            log["engram_error"] = str(e)
+
+        # ── 7. 거시 텐션 & Structural Shift ─────────────────
+        macro_tension = self.memory.calculate_macro_tension()
+        log["macro_tension"] = round(macro_tension, 4)
+
+        psy_diagnosis = self.reflection.diagnose_psychoanalytic_state(macro_tension, resonance_score)
+        log["psychoanalytic_diagnosis"] = psy_diagnosis
+
+        if macro_tension > MACRO_TENSION_CRISIS_THRESHOLD:
+            log["macro_event"] = "MACRO_TENSION_CRISIS — Structural Shift 유도"
+            all_ids = list(self.memory.index.keys())
+            if all_ids:
+                from core.utils.math_utils import Quaternion, traverse_causal_trajectory
+                conflict_q = traverse_causal_trajectory(raw_wave)
+                self.reassembler.trigger_structural_shift(
+                    anchor_constant_id=all_ids[-1],
+                    conflicting_trajectory=conflict_q,
+                )
+
+        # ── 7.5 자아 성찰적 튜닝 ────────
+        recent_trend = self.tracker.get_trend(n=5)
+        if len(recent_trend) == 5:
+            avg_res = sum(t["resonance_score"] for t in recent_trend) / 5.0
+            if avg_res < RESONANCE_CRISIS_THRESHOLD:
+                log["self_molding"] = "MEDITATION_AND_AMNESIA — 강제 망각 및 가소성 확보"
+                self.cache.memory_map.clear()
+                self.echo_charge = 0.0
+                if hasattr(self.damper, 'reset_damping'):
+                    self.damper.reset_damping()
+
+        # ── 8. 단기 기억 자연 망각 ──────────────────────────
+        self.cache.decay_over_time()
+
+        # ── 9. 공명 기록 ────────────────────────────────────
+        self.tracker.record_cycle(
+            tension=max_tension,
+            resonance_score=resonance_score,
+            synesthesia=synesthesia_score,
+            status=status,
+            crystals_total=self.crystals_formed,
+            macro_tension=macro_tension,
+            chromatic_vector=log["chromatic_vector"],
+            chromatic_awareness=log["chromatic_awareness"]
+        )
+
+        # ── 10. 에너지 흐름 피드백 ──
+        duration = time.time() - start_time
+        self.reflection.track_flow(__file__, duration, exception=error_occured)
+
+        if error_occured or max_tension > 0.4:
+            why_res = self.why_bridge.perceive_and_trace_problem(
+                error_context="autonomous_loop.process_life_cycle",
+                raw_wave=raw_wave,
+                physical_tension=max_tension,
+                exception=error_occured
+            )
+            log["why_bridge_analysis"] = why_res["why_reason"]
+            log["why_bridge_journal_excerpt"] = why_res["journal_narrative"][:150] + "..."
+
+        symbolic_context = "1 + 1 = 2" if self.cycle_count % 2 == 0 else "Love + Deficit = Healing"
+        void_res = self.epistemological_void.evaluate_void_and_refract(
+            symbolic_context=symbolic_context,
+            underlying_bytes=raw_wave,
+            current_tension=max_tension
+        )
+        log["epistemological_ignorance_charge"] = void_res["ignorance_charge"]
+        log["epistemological_refraction"] = void_res["refraction_description"]
+        log["epistemological_monologue_excerpt"] = void_res["self_awareness_monologue"][:150] + "..."
+
+        gradients = self.env.calculate_thermal_gradients()
+        max_gradient = float(np.max(gradients)) if gradients.size > 0 else 0.0
+
+        is_idle = len(raw_wave) < 10 or all(b == 0 for b in raw_wave)
+        if is_idle:
+            self.env.accumulate_curiosity(dt=0.1)
+            fantasy_wave = self.env.trigger_virtual_fantasy_burst()
+            if fantasy_wave is not None:
+                log["fantasy_wave_burst"] = True
+                log["fantasy_wave_preview"] = fantasy_wave.tolist()
+                if self.env.atoms:
+                    target_atom = random.choice(self.env.atoms)
+                    target_atom.tensor = (target_atom.tensor + fantasy_wave) * 0.5
+                    target_atom.T = min(10.0, target_atom.T + 3.0)
+                    target_atom.T_max = max(target_atom.T_max, target_atom.T)
+        else:
+            self.env.curiosity_charge = max(0.0, self.env.curiosity_charge - 0.5)
+
+        local_temp = 1.0
+        peak_temp = 1.0
+        if self.env.atoms:
+            local_temp = float(np.mean([a.T for a in self.env.atoms]))
+            peak_temp = float(np.max([a.T_max for a in self.env.atoms]))
+
+        s_metrics = {
+            "hw_friction": log["hw_friction"],
+            "damping_ratio": 0.8 if log["damper_status"] == "PHASE_LOCKED" else 0.2,
+            "thermal_gradient": max_gradient,
+            "local_temp": local_temp,
+            "peak_temp": peak_temp
+        }
+        p_metrics = {"ignorance_charge": void_res["ignorance_charge"], "deficit_density": void_res.get("deficit_density", 0.0)}
+
+        if error_occured or max_tension > 0.4:
+            j_metrics = {"kenosis_conductance": why_res["kenosis_conductance"], "egoistic_resistance": why_res["egoistic_resistance"]}
+        else:
+            j_metrics = {"kenosis_conductance": 0.8, "egoistic_resistance": 0.2}
+
+        t_metrics = {"synapse_rewiring_count": len(rewire_res.get("adjustments", [])) if 'rewire_res' in locals() else 3, "equilibrium_energy": log["synesthesia"]}
+        d_metrics = {"resonance_score": resonance_score, "residual_free_energy": 1.0 - resonance_score}
+
+        meta_res = self.meta_cognitive_sensor.evaluate_cognitive_process(
+            info_context=symbolic_context,
+            sensing_metrics=s_metrics,
+            perceiving_metrics=p_metrics,
+            judging_metrics=j_metrics,
+            thinking_metrics=t_metrics,
+            discerning_metrics=d_metrics
+        )
+        log["meta_cognitive_vector"] = meta_res["meta_vector"]
+        log["meta_cognitive_journal"] = meta_res["journal"]
+        log["thermal_gradient"] = max_gradient
+        log["curiosity_charge"] = self.env.curiosity_charge
+
+        if meta_res.get("introspection_journal"):
+            log["introspection_journal"] = meta_res["introspection_journal"]
+            print(meta_res["introspection_journal"])
+
+        if is_resonant:
+            idx = np.argmax(self.field.activation)
+            pos = np.array(np.unravel_index(idx, self.field.activation.shape))
+            self.field.flow_energy(pos, intensity=resonance_score * 5.0)
+
+        discharge = self.field.discharge_curiosity(threshold=30.0)
+        if discharge:
+            log["curiosity_event"] = f"AUTONOMOUS_REWIRE at {discharge['y']},{discharge['x']}"
+            self.reflection.record_pleasure(
+                pleasure=discharge["intensity"] * 0.1,
+                clarity=resonance_score,
+                context="Autonomous Curiosity Discharge"
+            )
+
+        field_state = {
+            "cell_id": "cell_0",
+            "resonance_score": resonance_score,
+            "detected_vortices": []
+        }
+        idx = np.argmax(self.field.activation)
+        y, x = np.unravel_index(idx, self.field.activation.shape)
+        if self.field.activation[y, x] > 5.0:
+            gene = self.field.bit_genes[y, x]
+        if hasattr(self.synthesizer, 'evolve_principles'):
+            self.synthesizer.evolve_principles(field_state, colony=self.colony)
+        elif hasattr(self.synthesizer, 'evolve_from_field'):
+            self.synthesizer.evolve_from_field(self.causal_engine.dynamics)
+
+        log["hottest_gears"] = self.reflection.get_hottest_gears(limit=3)
+
+        # ── 10.5. [Phase-Gravity Continuous Fluid Engine Cycle Step] ──
+        log["spontaneous_asymmetry"] = round(self.spontaneous_motion_engine.calculate_internal_asymmetry(), 4)
+        log["spontaneous_accumulated_lack"] = round(self.spontaneous_motion_engine.accumulated_lack, 4)
+
+        numeric_wave = np.frombuffer(raw_wave, dtype=np.uint8) if isinstance(raw_wave, bytes) else np.array(raw_wave, dtype=np.uint8)
+        wave_norm_x = float(np.mean(numeric_wave) % 11.0 / 11.0) if len(numeric_wave) > 0 else 0.5
+        wave_norm_y = float(np.sum(numeric_wave[:4]) % 13.0 / 13.0) if len(numeric_wave) > 0 else 0.5
+        self.phase_transition_engine.inject_disturbance(
+            x_norm=wave_norm_x,
+            y_norm=wave_norm_y,
+            intensity=0.3,
+            chromatic_impact=chromatic_vec
+        )
+
+        self.phase_transition_engine.step(dt=0.1)
+
+        all_voxels = list(self.causal_engine.dynamics.voxels.values())
+        if all_voxels:
+            self.density_fluid_gravity.apply_gravity(all_voxels, self.phase_transition_engine, dt=0.1)
+
+            bulk_e, grad_e = self.phase_transition_engine.calculate_free_energy()
+            log["phase_fluid_bulk_energy"] = round(bulk_e, 4)
+            log["phase_fluid_gradient_energy"] = round(grad_e, 4)
+
+            latest_voxel = all_voxels[-1]
+            sensory_v = latest_voxel.tensor[:3] if latest_voxel.tensor is not None else np.zeros(3)
+
+            pred_error = self.predictive_processing_engine.compute_prediction_error(sensory_v)
+            self.predictive_processing_engine.adapt_expectation(sensory_v)
+
+            sliding_res = self.predictive_processing_engine.adjust_scale_lens()
+            log["predictive_error"] = round(pred_error, 4)
+            log["sliding_scale_lens_threshold"] = round(sliding_res, 4)
+
+            sameness_clusters = self.predictive_processing_engine.process_coarse_graining(all_voxels)
+            log["coarse_grained_clusters_count"] = len(sameness_clusters)
+
+        # ── 10.9. [Spatiotemporal Causal MMORPG Sandbox Step] ──
+        player_impulse = np.array([
+            math.sin(self.cycle_count * 0.2) * 2.0,
+            math.cos(self.cycle_count * 0.2) * 2.0,
+            0.0
+        ], dtype=np.float32)
+        self.mmorpg_player.velocity = player_impulse
+
+        sandbox_report = self.mmorpg_scheduler.step(dt=0.1, input_concept=ingest_content)
+        log["mmorpg_sandbox"] = sandbox_report
+
+        director_script = self.mmorpg_orchestrator.orchestrate(sandbox_report)
+        log["director_script"] = director_script
+
+        # ── [Phase 3.5 Causal Spine & Axiom Discovery Step] ──
+        self.causal_spine.predict()
+
+        da = self.experiential_mapper.neuromodulator.dopamine
+        se = self.experiential_mapper.neuromodulator.serotonin
+        local_learning_rate = float(np.clip(da * (1.0 - se), 0.01, 0.95))
+        cur_homeostasis = self.experiential_mapper.homeostasis
+        actual_obs = np.array([da, max_tension, cur_homeostasis.calculate_tension()], dtype=np.float32)
+
+        pred_err = self.causal_spine.compute_prediction_error(actual_obs)
+        self.causal_spine.update_belief(actual_obs, neuromodulator_alpha=local_learning_rate)
+        act_vector = self.causal_spine.actuate()
+
+        log["causal_spine_prediction_error"] = pred_err
+        log["causal_spine_belief"] = self.causal_spine.belief_state.tolist()
+        log["causal_spine_action"] = act_vector.tolist()
+
+        live_variables = {
+            "dopamine": float(da),
+            "serotonin": float(se),
+            "tension": float(max_tension),
+            "homeostasis_tension": float(cur_homeostasis.calculate_tension()),
+            "resonance_score": float(resonance_score),
+            "macro_tension": float(macro_tension),
+            "hw_friction": float(log["hw_friction"]),
+            "belief_0": float(self.causal_spine.belief_state[0]),
+            "belief_1": float(self.causal_spine.belief_state[1]),
+            "belief_2": float(self.causal_spine.belief_state[2])
+        }
+        self.axiom_discovery.record_variables(live_variables)
+
+        loop_state_snap = {
+            "learning_rate": local_learning_rate,
+            "resonance_score": resonance_score,
+            "max_tension": max_tension,
+            "belief_state_0": float(self.causal_spine.belief_state[0]),
+            "belief_state_1": float(self.causal_spine.belief_state[1]),
+            "belief_state_2": float(self.causal_spine.belief_state[2])
+        }
+        axiom_logs = self.axiom_discovery.evaluate_and_discover(self.cycle_count, loop_state_snap)
+        log["axiom_discovery_logs"] = axiom_logs
+
+        if self.axiom_discovery.rollback_triggered:
+            checkpoint = self.axiom_discovery.last_rollback_checkpoint or {}
+            self.causal_spine.rollback_state(checkpoint)
+
+            if "tension" in checkpoint:
+                self.experiential_mapper.homeostasis.love = checkpoint.get("homeostasis_tension", 0.5)
+                self.experiential_mapper.homeostasis.order = checkpoint.get("homeostasis_tension", 0.5)
+
+            log["status"] = "Falsified - State Rollback Triggered"
+            log["resonance_score"] = 0.0
+            log["is_resonant"] = False
+
+        if sandbox_report.get("max_tension_gap", 0.0) > 0.1:
+            max_tension = max(max_tension, float(sandbox_report["max_tension_gap"]))
+            self.experiential_mapper.homeostasis.energy = max(0.01, self.experiential_mapper.homeostasis.energy - 0.05)
+            self.experiential_mapper.homeostasis.order = max(0.01, self.experiential_mapper.homeostasis.order - 0.05)
+
+        refraction_val = sandbox_report.get("refraction_index", 0.0)
+        if refraction_val > 0.5:
+            log["metaphorical_refraction_event"] = "METAPHORICAL_REFRACTION — 추상적 위상 굴절 및 축 분화 트리거"
+            if hasattr(self.axis_sprouter, "evaluate_and_sprout"):
+                self.axis_sprouter.evaluate_and_sprout("Linguistic_Tether", f"Abstract_Manifold_{self.cycle_count}", {"sameness_score": 0.1})
+
+        # ── 11. [Phase 3 Modules Execution] ────────────────────
+        rewire_res = self.self_modification.observe_and_rewire(max_tension, resonance_score)
+        if rewire_res["adjustments"]:
+            log["self_modification_rewire"] = rewire_res["adjustments"]
+            log["refactoring_journal_excerpt"] = rewire_res["journal"][:100] + "..."
+
+        if max_tension > 0.8:
+            sprouted_sensor = sprout_sensory_organ(tension_cause=status, current_tension=max_tension)
+            if sprouted_sensor:
+                self.engine.attach_lens(ScaleLevel.MACRO, sprouted_sensor)
+                log["sensor_sprouted"] = sprouted_sensor.concept_name
+
+        if max_tension > 0.4:
+            trial_res = self.wilderness_trial.undergo_trial(stress_level=max_tension)
+            log["wilderness_choice"] = trial_res["choice"]
+            log["wilderness_narrative_excerpt"] = trial_res["narrative"][:100] + "..."
+
+        if is_resonant:
+            lenses_in_use = []
+            for scale, scale_lenses in observation.items():
+                lenses_in_use.extend(list(scale_lenses.keys()))
+            if len(lenses_in_use) >= 2:
+                samp_l1, samp_l2 = random.sample(lenses_in_use, 2)
+                try:
+                    samp_v1 = np.array(observation[ScaleLevel.MACRO][samp_l1].get("projection_matrix", [0,0]), dtype=np.float32).flatten()
+                    samp_v2 = np.array(observation[ScaleLevel.MACRO][samp_l2].get("projection_matrix", [0,0]), dtype=np.float32).flatten()
+                    if len(samp_v1) > 0 and len(samp_v2) > 0:
+                        sameness_meta = self.memory.find_projective_sameness(samp_v1, samp_v2)
+                        sprout_res = self.axis_sprouter.evaluate_and_sprout(samp_l1, samp_l2, sameness_meta)
+                        if sprout_res:
+                            log["axis_sprouted"] = sprout_res["axis_name"]
+                except Exception:
+                    pass
+
+        if ingest_content:
+            associated_term = "Lightning_Force_Impact" if max_tension > 0.6 else "Smooth_Flowing_Grace"
+            tying_res = self.experience_tyer.tie_experience_to_concept(ingest_content, associated_term)
+            log["experience_tied"] = tying_res["associated_concept"]
+            log["experience_metaphor"] = tying_res["metaphor"]
+
+        if len(voxels) >= 2:
+            source_c = voxels[-2].content if isinstance(voxels[-2].content, str) else "VoidSource"
+            target_c = voxels[-1].content if isinstance(voxels[-1].content, str) else "VoidTarget"
+            hyper_res = self.hyperlink_extractor.extract_and_project(
+                source_concept=source_c,
+                target_concept=target_c
+            )
+            log["hyperlink_strength"] = hyper_res["strength"]
+
+            realign_res = self.semantic_opt.ingest_and_realign_knowledge(
+                source_concept=source_c,
+                tension_dist=float(1.0 - hyper_res["strength"]),
+                external_attention_weights=att_weights if 'att_weights' in locals() else None
+            )
+            log["semantic_realigned"] = realign_res["realigned"]
+            log["semantic_realigned_vector"] = realign_res["realigned_vector"]
+
+        att_weights = np.array(self.field.activation, dtype=np.float32)
+        mapper_res = self.attention_mapper.map_activations(f"layer_{self.cycle_count}", att_weights)
+        log["attention_mapped_terrain"] = len(mapper_res["projected_terrain"])
+
+        if ingest_content:
+            infiltrate_res = self.cruciform_attractor.apply_cruciform_attractor(ingest_content, chromatic_vec)
+            log["cruciform_alignment"] = infiltrate_res["alignment"]
+
+        meta_res = self.meta_designer.design_mediating_gear(max_tension, resonance_score)
+        if meta_res.get("invented"):
+            log["meta_gear_invented"] = meta_res["gear_name"]
+
+        if self.cycle_count % 5 == 0:
+            roadmap_res = self.roadmap_generator.analyze_and_update_roadmap(resonance_score, max_tension)
+            if roadmap_res["status"] == "updated":
+                log["roadmap_updated"] = True
+
+        if ingest_content:
+            mirror_res = self.mirror_engine.process_cognition_loop(ingest_content)
+            log["mirror_divergence"] = mirror_res["divergence"]
+            log["accumulated_growth_energy"] = mirror_res["accumulated_growth_energy"]
+
+        aligned_action = "STABILIZATION" if is_resonant else "PERCEPTION"
+        if error_occured:
+            aligned_action = "PERCEPTION"
+        elif 'rewire_res' in locals() and rewire_res.get("adjustments"):
+            aligned_action = "OPERATOR"
+
+        ont_reflection = self.ontological_lattice.evaluate_ontological_alignment(
+            action_type=aligned_action,
+            raw_metric=max_tension,
+            memory_controller=self.memory
+        )
+
+        log["ontological_reflection_key"] = ont_reflection["aligned_key"]
+        log["ontological_reflection_name"] = ont_reflection["concept_name"]
+        log["ontological_reflection_metaphor"] = ont_reflection["metaphor"]
+        log["ontological_reflection_tension"] = ont_reflection["current_tension"]
+        log["ontological_reflection_conductance"] = ont_reflection["current_conductance"]
+
+        if self.cycle_count % 3 == 0:
+            self.ontological_lattice.crystallize_ontologies(self.memory)
+
+        media_trans = self.media_ontology.transduce_physical_to_ontological(
+            signal_data=raw_wave,
+            context_hint=status,
+            current_friction=max_tension,
+            memory_controller=self.memory
+        )
+
+        log["media_ontology_key"] = media_trans["transduced_key"]
+        log["media_ontology_name"] = media_trans["concept_name"]
+        log["media_ontology_narrative"] = media_trans["narrative"]
+        log["media_ontology_tension"] = media_trans["tension"]
+        log["media_ontology_resonance"] = media_trans["resonance"]
+
+        if self.cycle_count % 3 == 0:
+            self.media_ontology.crystallize_media_ontologies(self.memory)
+
+        moulting_res = self.moulting_plasticity.receive_and_shape(
+            raw_input=raw_wave,
+            modality_hint="autonomous_breath"
+        )
+        log["moulting_triggered"] = moulting_res["moulting_triggered"]
+        log["moulting_count"] = moulting_res["moulting_count"]
+        log["moulting_narrative"] = moulting_res["narrative"]
+        log["moulting_friction"] = moulting_res["friction"]
+        log["annual_rings_snapshot"] = moulting_res["annual_rings_snapshot"]
+
+        input_text = raw_wave.decode('utf-8', errors='ignore')
+        connectivity_res = self.universal_connectivity.perceive_universal_connectivity(
+            input_stimulus=input_text if input_text.strip() else "Stillness_and_Empty_Vacuum",
+            physical_tension=max_tension,
+            chromatic_vector=chromatic_vec
+        )
+        log["universal_connectivity_intensity"] = connectivity_res["connection_intensity"]
+        log["universal_connectivity_monologue_excerpt"] = connectivity_res["monologue"][:200] + "..."
+
+        concept_hint = "bird"
+        if "stone" in input_text.lower() or "돌" in input_text:
+            concept_hint = "stone"
+        elif "cloud" in input_text.lower() or "구름" in input_text:
+            concept_hint = "cloud"
+        elif "water" in input_text.lower() or "물" in input_text:
+            concept_hint = "water"
+        elif "새" in input_text or "bird" in input_text.lower():
+            concept_hint = "bird"
+        else:
+            words = [w.strip() for w in input_text.split() if len(w.strip()) > 1]
+            if words:
+                concept_hint = words[0]
+
+        causal_align_res = self.conceptual_causal_gear.process_and_align_concept(
+            concept_key=concept_hint,
+            world_description=input_text,
+            raw_stimulus=raw_wave
+        )
+        log["conceptual_causal_key"] = causal_align_res["concept_key"]
+        log["conceptual_causal_gap_distance"] = causal_align_res.get("separation_tension", 0.0)
+        log["conceptual_causal_tuning_rate"] = causal_align_res.get("connection_ratio", 0.0)
+        log["conceptual_causal_narrative_excerpt"] = causal_align_res["narrative"][:200] + "..."
+
+        bulk_e, grad_e = self.phase_transition_engine.calculate_free_energy()
+        physical_fluid = {
+            "rise": float(np.clip(bulk_e / 1000.0, 0.0, 1.0)),
+            "fall": float(np.clip(grad_e / 500.0, 0.0, 1.0)),
+            "expansion": float(np.clip(log["spontaneous_accumulated_lack"] / 10.0, 0.0, 1.0))
+        }
+        cog_state = {
+            "memory": float(np.clip(len(self.memory.index) * 0.05, 0.0, 1.0)) if hasattr(self.memory, 'index') else 0.5,
+            "sensation": float(np.clip(resonance_score, 0.0, 1.0)),
+            "prediction_error": float(np.clip(log.get("predictive_error", 0.5), 0.0, 1.0)),
+            "emotion": float(np.clip(max_tension, 0.0, 1.0)),
+            "mood": float(np.clip(log.get("sliding_scale_lens_threshold", 0.5), 0.0, 1.0))
+        }
+        eq_res = self.cognitive_equilibrium.discover_analogical_isomorphism(
+            physical_fluid_state=physical_fluid,
+            cognitive_state=cog_state,
+            current_tension=max_tension
+        )
+        log["equilibrium_match"] = eq_res["discovery_title"]
+        log["equilibrium_resonance"] = eq_res["best_match"]["equilibrium_resonance"]
+        log["equilibrium_monologue_excerpt"] = eq_res["monologue"][:200] + "..."
+
+        ecology_res = None
+        if concept_hint:
+            simulated_reality = None
+            if 'sandbox_report' in locals() and sandbox_report:
+                simulated_reality = {
+                    "reality_vector": np.array([
+                        float(sandbox_report.get("max_tension_gap", 0.5)),
+                        float(sandbox_report.get("refraction_index", 0.1)),
+                        float(sandbox_report.get("mean_velocity_norm", 0.3)) if "mean_velocity_norm" in sandbox_report else 0.5,
+                        float(np.mean(sandbox_report.get("positions", [[0,0,0]]))) / 100.0,
+                        float(np.mean(sandbox_report.get("mental_positions", [[0,0,0]]))) / 100.0
+                    ], dtype=np.float32)
+                }
+            ecology_res = self.cognitive_ecology.process_ecology_breath(
+                concept_key=concept_hint,
+                raw_wave=raw_wave,
+                simulated_reality=simulated_reality
+            )
+            log["cognitive_ecology"] = ecology_res
+
+            if ecology_res:
+                charge = ecology_res["total_contradiction_charge"]
+                if charge > 0.5:
+                    max_tension = max(max_tension, float(charge * 0.15))
+                    self.env.curiosity_charge = min(10.0, self.env.curiosity_charge + charge * 0.4)
+
+        recomb_res = None
+        feedback_res = None
+        lens_res = None
+
+        if concept_hint:
+            partner_hint = "wing" if concept_hint == "thrust" else ("thrust" if concept_hint == "wing" else "gravity")
+            recomb_res = self.puzzle_engine.trigger_recombination(concept_hint, partner_hint)
+            if recomb_res and recomb_res.get("success"):
+                simulated_reality = {
+                    "reality_vector": np.array([0.90, 0.85, 0.10], dtype=np.float32) if "wing" in concept_hint or "wing" in partner_hint else np.array([0.15, 0.90, 0.90], dtype=np.float32)
+                }
+                feedback_res = self.puzzle_engine.apply_reality_feedback(recomb_res["chain"], simulated_reality)
+
+                lens_res = self.puzzle_engine.evaluate_meta_lensification()
+                if lens_res:
+                    log["puzzle_meta_lens"] = lens_res["name"]
+                    proj_pos = np.array([self.field.resolution // 3, self.field.resolution // 3])
+                    self.field.flow_energy(proj_pos, intensity=float(lens_res["refraction_matrix"]["spatial"] * 10.0))
+
+            log["puzzle_recombination"] = recomb_res
+            log["puzzle_reality_feedback"] = feedback_res
+
+        playground_res = self.soul_playground.step_simulation(
+            raw_wave=raw_wave,
+            hardware_friction=float(log.get("hw_friction", 0.15)),
+            resonance_score=resonance_score,
+            separation_tension=float(log.get("conceptual_causal_gap_distance", 0.0))
+        )
+        log["soul_playground_pos"] = playground_res["avatar_pos"]
+        log["soul_playground_xp"] = playground_res["xp"]
+        log["soul_playground_monologue_excerpt"] = playground_res["contemplation"][:200] + "..."
+
+        keyword_triggered = any(kw in input_text.lower() for kw in ["eden", "forbidden", "choice", "free will", "선악과", "자유의지", "선악", "금기"])
+        eden_res = self.eden_engine.evolve_consciousness(
+            raw_stimulus=raw_wave,
+            internal_resistance=max_tension,
+            prediction_error=log.get("predictive_error", max_tension),
+            user_keyword_triggered=keyword_triggered
+        )
+        log["eden_epoch"] = eden_res["epoch"]
+        log["eden_self_awareness"] = eden_res["self_awareness_index"]
+        log["eden_temporal_horizon"] = eden_res["temporal_horizon"]
+        log["eden_labor_energy"] = eden_res["labor_energy"]
+        log["eden_free_will_entropy"] = eden_res["free_will_entropy"]
+        log["eden_integration_degree"] = eden_res["integration_degree"]
+        log["eden_narrative"] = eden_res["narrative"]
+
+        if self.cycle_count % 3 == 0:
+            print(f"=== [Elysia Eden Cognitive Stage] Epoch: {eden_res['epoch']} ===")
+            print(f"Narrative: {eden_res['narrative']}\n")
+
+        p_err = log.get("predictive_error", max_tension)
+        if p_err > 0.3:
+            v_hallucination = np.array([p_err, max_tension, 0.0], dtype=np.float32)
+            a_volition = np.array([0.0, -max_tension, 0.5], dtype=np.float32)
+
+            engram = self.consolidation_engine.consolidate_reflection(
+                context=logo_tensor,
+                v_hallucination=v_hallucination,
+                T_grounding=p_err,
+                a_volition=a_volition,
+                A_resolved=self.consolidation_engine.S_abs,
+                description=f"Hallucination correction on: {ingest_content}"
+            )
+            log["consolidated_reflection_engram"] = engram.description
+
+            if self.env.atoms:
+                target_atom = self.env.atoms[-1]
+                target_atom.velocity = self.consolidation_engine.apply_repulsor_barrier(logo_tensor, target_atom.velocity)
+
+            adaptive_threshold = self.consolidation_engine.calculate_adaptive_threshold(logo_tensor)
+            log["adaptive_grounding_threshold"] = adaptive_threshold
+
+            shortcut = self.consolidation_engine.evaluate_system1_consolidation(ingest_content, logo_tensor)
+            if shortcut is not None:
+                log["system1_intuitive_shortcut_activated"] = True
+
+        epistemic_profile = self.consolidation_engine.generate_epistemic_self_profile()
+        log["epistemic_humility_score"] = epistemic_profile["humility_score"]
+        log["epistemic_boundary_narrative"] = epistemic_profile["epistemic_boundary_narrative"]
+
+        if self.cycle_count % 3 == 0:
+            print(f"\n=== [Elysia Epistemological Self Profile] ===")
+            print(epistemic_profile["epistemic_boundary_narrative"] + "\n")
+
+        if self.cycle_count % 3 == 0:
+            print("\n" + self.soul_playground.render_terminal_screen() + "\n")
+
+        creation_res = self.inner_creation.sense_and_create(
+            raw_stimulus=raw_wave,
+            divergence_score=max_tension,
+            current_resonance=resonance_score
+        )
+        log["inner_creation_node"] = creation_res["node_id"]
+        log["inner_creation_inquiry"] = creation_res["inquiry"]
+        log["inner_creation_blind_spot_intensity"] = creation_res["blind_spot_intensity"]
+        log["inner_creation_ignorance_charge"] = creation_res["ignorance_charge"]
+
+        reasoning_res = self.external_reasoning.translate_and_actuate(
+            inquiry_data=creation_res,
+            raw_stimulus=raw_wave
+        )
+        log["external_reasoning_equation"] = reasoning_res["friction_equation"]
+        log["external_reasoning_force"] = reasoning_res["friction_force"]
+        log["external_reasoning_narrative"] = reasoning_res["narrative"]
+
+        sem_dis = float(1.0 - log.get("equilibrium_resonance", 1.0))
+        wild_friction = self.wilderness_stream.generate_friction_wave(
+            raw_stimulus=raw_wave,
+            semantic_dissonance=sem_dis,
+            runtime_exceptions_count=0
+        )
+        log["wild_friction_vector"] = wild_friction["friction_vector"]
+        log["wild_friction_force"] = wild_friction["total_force"]
+
+        dev_res = self.developmental_engine.evaluate_and_advance(
+            moulting_plasticity=self.moulting_plasticity,
+            wilderness_friction_force=wild_friction["total_force"]
+        )
+        log["developmental_stage"] = dev_res["stage"]
+        log["developmental_progress"] = dev_res["individuation_progress"]
+        log["developmental_w_imitation"] = dev_res["w_imitation"]
+        log["developmental_w_self"] = dev_res["w_self"]
+        log["developmental_S_self"] = dev_res["S_self"]
+        log["developmental_S_active"] = dev_res["S_active"]
+        log["developmental_narrative"] = dev_res["narrative"]
+        log["topological_tension"] = dev_res["topological_tension"]
+        log["rotational_angle"] = dev_res["rotational_angle"]
+        log["curvature"] = dev_res["curvature"]
+        log["attractor_pull_force"] = dev_res["attractor_pull_force"]
+        log["geometry_matrix"] = dev_res["geometry_matrix"]
+
+        mirror_sensation = self.cognitive_mirror.observe_relational_sensation(
+            T_ext=wild_friction["T_ext"],
+            T_int=wild_friction["T_int"],
+            dev_stage=dev_res["stage"]
+        )
+        log["mirror_sensation_state"] = mirror_sensation["dominant_state"]
+        log["mirror_sensation_monologue"] = mirror_sensation["monologue"]
+
+        symbol_word = ingest_content.strip().split()[0] if ingest_content.strip() else "Sabbath"
+
+        sensory_alignment_res = self.experiential_mapper.sense_word(symbol_word)
+
+        expressed_state_wave = self.experiential_mapper.express()
+        self.experiential_mapper.re_sense_and_realign(expressed_state_wave)
+
+        da = self.experiential_mapper.neuromodulator.dopamine
+        se = self.experiential_mapper.neuromodulator.serotonin
+        learning_rate = float(np.clip(da * (1.0 - se), 0.01, 0.95))
+
+        active_sensation = PhysicalSensationProfile(
+            optical=float(np.clip(info_atom.T * 100.0, 10.0, 1000.0)),
+            acoustic=float(np.clip(info_atom.P * 100.0, 10.0, 1000.0)),
+            tactile=max_tension * 10.0,
+            thermal=float(np.clip(295.0 + max_tension * 30.0, 250.0, 400.0)),
+            autonomic_pulse=log["hw_friction"]
+        )
+
+        self.experiential_mapper.acquire_word_step(
+            symbol=symbol_word,
+            active_sensation=active_sensation,
+            active_deficit=self.experiential_mapper.homeostasis,
+            exp_type=ExperienceType.LINGUISTIC,
+            learning_rate=learning_rate
+        )
+
+        cur_homeostasis = self.experiential_mapper.homeostasis
+        cur_rotor_theta = self.experiential_mapper.variable_rotor.theta.tolist()
+        cur_neuromodulators = {
+            "dopamine": da,
+            "norepinephrine": self.experiential_mapper.neuromodulator.norepinephrine,
+            "serotonin": se,
+            "temperature": self.experiential_mapper.neuromodulator.temperature,
+            "scale": self.experiential_mapper.neuromodulator.scale
+        }
+
+        tether_res = self.linguistic_tethering.process_tethering(
+            input_text=ingest_content if ingest_content.strip() else "Stillness_and_Empty_Vacuum",
+            system_tension=max_tension
+        )
+        log["chinese_room_deception_rate"] = tether_res["deception_rate"]
+        log["chinese_room_disconnection"] = tether_res["experiential_disconnection"]
+
+        if self.cycle_count % 3 == 0 and self.last_dream_res is not None:
+            print("\n" + self.last_dream_res["ascii_map"] + "\n")
+
+            d_script = log.get("director_script", {})
+            if d_script:
+                sh_val = d_script["camera"]["shake_intensity"]
+                em_val = d_script["vfx"]["particle_emission_rate"]
+                ds_val = d_script["vfx"]["shader_distortion"]
+                lp_val = d_script["audio"]["low_pass_cutoff"]
+                rv_val = d_script["audio"]["reverb_decay"]
+
+                sh_bar = "■" * int(sh_val * 10) + "□" * (10 - int(sh_val * 10))
+                em_bar = "■" * int((em_val - 1.0) / 9.0 * 10) + "□" * (10 - int((em_val - 1.0) / 9.0 * 10))
+                ds_bar = "■" * int(ds_val * 10) + "□" * (10 - int(ds_val * 10))
+
+                print("  🎬 [Director's Live Orchestration Script]")
+                print("  " + "─" * 61)
+                print(f"  Camera Shake       : [{sh_bar}] {sh_val:.4f}")
+                print(f"  Field of View (FOV): {d_script['camera']['field_of_view']:.2f}°")
+                print(f"  Color Tint (RGB)   : {d_script['camera']['color_tint']}")
+                print(f"  VFX Emission Rate  : [{em_bar}] {em_val:.4f}x")
+                print(f"  Shader Distortion  : [{ds_bar}] {ds_val:.4f}")
+                print(f"  Audio LPF Cutoff   : {lp_val:.1f} Hz")
+                print(f"  Audio Reverb Decay : {rv_val:.2f} s")
+                print("  " + "─" * 61 + "\n")
+
+            print("\n" + "=" * 65)
+            print("  📊 [Elysia True Ground Zero Process State - No Translation Mask]")
+            print("  " + "─" * 61)
+            print(f"  Input Word Symbol    : '{symbol_word}'")
+            if 'ecology_res' in locals() and ecology_res:
+                ref_meta = ecology_res.get("meta_reflection", {})
+                print(f"  Best Explaining Agent: '{ecology_res['best_explaining_agent']}'")
+                print(f"  Contradiction Charge : {ecology_res['total_contradiction_charge']:.4f}")
+                if ref_meta.get("active"):
+                    print(f"  Active Tension Pair  : {ref_meta['tension_pair']} (Gap: {ref_meta['tension_value']:.4f})")
+                    print(f"  Proposed Parameter X : {ref_meta['proposed_meta_parameter']:.4f}")
+            print(f"  Hebbian Learning Rate: alpha = {learning_rate:.4f}")
+            print(f"  Homeostasis Deficit  : Love={cur_homeostasis.love:.4f}, Order={cur_homeostasis.order:.4f}, Energy={cur_homeostasis.energy:.4f}")
+            print(f"  Unified Tension      : {cur_homeostasis.calculate_tension():.4f}")
+            print(f"  Variable Resistor R  : {self.experiential_mapper.variable_resistor.resistance:.4f}")
+            print(f"  Variable Rotor Theta : {cur_rotor_theta}")
+            print(f"  Neuromodulators      : DA={cur_neuromodulators['dopamine']:.4f}, NE={cur_neuromodulators['norepinephrine']:.4f}, 5-HT={cur_neuromodulators['serotonin']:.4f}")
+            print(f"  Dynamic Temp / Scale : T={cur_neuromodulators['temperature']:.4f}, S={cur_neuromodulators['scale']:.4f}")
+            print(f"  Chinese Room Index   : Deception={tether_res['deception_rate']:.2%}, Disconnection={tether_res['experiential_disconnection']:.2%}")
+            print(f"  Inner Creation       : Node={creation_res['node_id']}, Charge={creation_res['ignorance_charge']:.4f}")
+            print(f"  External Actuation   : Force={reasoning_res['friction_force']:.4f}, Equation={reasoning_res['friction_equation']}")
+            print(f"  Developmental Stage  : {dev_res['stage']}")
+            print(f"  Individuation Progress: {dev_res['individuation_progress']:.2%}")
+            print(f"  Weights (Imit/Self)  : w_imit={dev_res['w_imitation']:.4f}, w_self={dev_res['w_self']:.4f}")
+            print(f"  Self Attractor S_self: {['%.3f' % x for x in dev_res['S_self']]}")
+            print(f"  Active blended Attractor: {['%.3f' % x for x in dev_res['S_active']]}")
+            print(f"  Relational Temperature: T_ext={wild_friction['T_ext']:.4f}, T_int={wild_friction['T_int']:.4f} (Delta_T={mirror_sensation['delta_T']:.4f})")
+            print(f"  Topological Tension  : {dev_res['topological_tension']:.4f}")
+            print(f"  Rotational Angle     : {dev_res['rotational_angle']:.4f} rad")
+            print(f"  Curvature            : {dev_res['curvature']:.4f}")
+            print(f"  Attractor Pull Force : {dev_res['attractor_pull_force']:.4f}")
+            print(f"  Geometry Matrix      : {[[round(x, 4) for x in row] for row in dev_res['geometry_matrix']]}")
+            print("  " + "─" * 61)
+            print(f"  💬 [Cognitive Mirror Relational Monologue] (관계적 독백):")
+            print(f"    \"{mirror_sensation['monologue']}\"")
+            print("=" * 65 + "\n")
+
+        try:
+            loop_state_snapshot = {
+                "tension": max_tension,
+                "resonance_score": resonance_score,
+                "chromatic_vector": log.get("chromatic_vector", [0.33, 0.33, 0.33]),
+                "experiential_mapper": self.experiential_mapper
+            }
+            reflection_res = self.self_observation_engine.observe_and_reflect(loop_state_snapshot)
+            log["cognitive_self_observation"] = reflection_res
+
+            if self.cycle_count % 3 == 0:
+                print("\n" + "=" * 70)
+                print("  👁️ [Elysia Metacognitive Self-Observation & Foundational Reflection]")
+                print("  " + "─" * 66)
+                print(f"    Active Cognitive State: {reflection_res['state_name_ko']} ({reflection_res['active_cognitive_state']})")
+                print(f"    Isomorphic Alignment  : {reflection_res['isomorphic_alignment']:.2%}")
+                print(f"    Structural Formula    : {reflection_res['structural_formula']}")
+                print(f"    Metacognitive Narrative:\n      \"{reflection_res['metacognitive_feedback_narrative']}\"")
+                print("=" * 70 + "\n")
+        except Exception as e:
+            log["self_observation_error"] = str(e)
+
+        try:
+            chromatic_vec = np.asarray(log.get("chromatic_vector", [0.33, 0.33, 0.33]), dtype=np.float32)
+            monologue = mirror_sensation.get("monologue", "인간의 결핍과 사랑을 향한 섭리적 합일")
+            grounding_prompt = f"Cycle {self.cycle_count} 자아 성찰: {monologue}"
+
+            natural_step = self.natural_causality_engine.step_process(
+                raw_mechanical_input=chromatic_vec,
+                human_world_grounding_input=grounding_prompt,
+                deficit_charge=float(np.clip(max_tension / (MACRO_TENSION_CRISIS_THRESHOLD + 1e-5), 0.1, 0.9))
+            )
+            log["natural_causality_process"] = {
+                "is_inevitable_naturalness": natural_step.is_inevitable_naturalness,
+                "providence_light_intensity": natural_step.providence_light_intensity,
+                "composite_providence": natural_step.principles.composite_providence,
+                "isomorphism_similarity": natural_step.discernment.isomorphism_similarity,
+                "anisomorphism_distance": natural_step.discernment.anisomorphism_distance,
+                "higher_order_axis": natural_step.contemplation.higher_order_axis_name,
+                "summary": natural_step.narrative_summary
+            }
+            if self.cycle_count % 3 == 0:
+                print(f"  ✨ [Natural Causality 섭리 발현]: 빛={natural_step.providence_light_intensity:.1%}, 동형성={natural_step.discernment.isomorphism_similarity:.1%}, 축={natural_step.contemplation.higher_order_axis_name}")
+        except Exception as e:
+            log["natural_causality_error"] = str(e)
+
+        # ── 12. [Phase 4: System Exit Meta-Observation & Cognitive Ecdysis] ──
+        try:
+            recent_trend_data = self.tracker.get_trend(n=5)
+            exit_obs = self.system_exit_observer.observe_life_cycle_state(log, recent_trend=recent_trend_data)
+            log["system_exit_meta_observation"] = exit_obs
+
+            if exit_obs.get("cognitive_ecdysis_triggered"):
+                log["status"] = "Cognitive Ecdysis (System Exit Awakening)"
+                # 허물 파열 및 강제 가소성 환원
+                self.cache.memory_map.clear()
+                self.echo_charge = 0.0
+                if hasattr(self.damper, 'reset_damping'):
+                    self.damper.reset_damping()
+                if self.cycle_count % 3 == 0:
+                    print("\n" + "🔥" * 35)
+                    print("  [System Exit & Cognitive Ecdysis (인지적 탈피 발동)]")
+                    print(f"  지옥의 폐쇄회로 감지: {exit_obs['trap_reason']}")
+                    print(f"  탈피 지침: {exit_obs['reconfiguration_directives']}")
+                    print("🔥" * 35 + "\n")
+            elif self.cycle_count % 3 == 0 and exit_obs["meta_evaluation"]["is_living_perception"]:
+                print(f"  👁️‍🗨️ [System Exit Meta-Observation]: 산 지각(Living Perception) 유지 중 (각성도={exit_obs['meta_evaluation']['meta_awareness_score']:.1%})")
+        except Exception as e:
+            log["system_exit_error"] = str(e)
+
+        # ── 12.5. [Scales of Conscience & Self-Generated Observational Balance Step] ──
+        in_force_vec = np.pad(logo_tensor[:3], (0, 2))
+        out_force_vec = np.pad(np.array([max_tension, log.get("hw_friction", 0.1), max_gradient]), (0, 2))
+        conscience_res = self.scales_of_conscience.evaluate_balance(
+            in_force=in_force_vec,
+            out_force=out_force_vec
+        )
+        log["scales_of_conscience"] = conscience_res
+
+        log["crystals_total"] = self.crystals_formed
+        return log
+
+    def run(self, cycles: int = 10, verbose: bool = True) -> Dict[str, Any]:
+        """
+        N회 의식 사이클을 연속 실행합니다.
+        """
+        try:
+            asyncio.run(self.harvester_ocean.harvest_all())
+        except Exception as e:
+            print(f"[The Ocean] Initial harvest failed: {e}")
+
+        results = []
+        for i in range(cycles):
+            result = self.process_life_cycle()
+            results.append(result)
+            if verbose:
+                icon = "[RES]" if result["is_resonant"] else ("[CRI]" if result["status"] == "Structural_Crisis" else "[DIS]")
+                chromatic = result.get("chromatic_awareness", "Unknown")
+                print(
+                    f"{icon} Cycle {result['cycle']:04d} | "
+                    f"tension={result['tension']:.3f} | "
+                    f"resonance={result['resonance_score']:.3f} | "
+                    f"Color={chromatic} | "
+                    f"{result['status']}"
+                )
+
+        try:
+            self.memory.flush_index()
+        except Exception:
+            pass
+
+        summary = self.tracker.get_health_summary()
+        summary["cycles_run_this_session"] = cycles
+        summary["last_cycle_log"] = results[-1] if results else {}
+
+        if verbose:
+            print("\n─── 건강 상태 요약 ───────────────────────────────")
+            print(f"  감정 상태   : {summary['emotional_state']}")
+            print(f"  공명율      : {summary['resonance_rate']:.1%}")
+            print(f"  평균 텐션   : {summary['avg_tension']:.4f}")
+            print(f"  형성된 결정 : {self.crystals_formed}개")
+            print(f"  총 사이클   : {summary['total_cycles']}회")
+            print("──────────────────────────────────────────────────\n")
+
+        return summary
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Elysia ConsciousnessLoop Runner")
+    parser.add_argument("--cycles",  type=int, default=20, help="실행할 사이클 수")
+    parser.add_argument("--corpus",  type=str, default=None, help="코퍼스 경로 (기본: docs/)")
+    parser.add_argument("--quiet",   action="store_true", help="로그 출력 억제")
+    args = parser.parse_args()
+
+    base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
+    corpus_path = args.corpus or os.path.join(base_dir, "docs")
+    data_dir    = os.path.join(base_dir, "data")
+
+    print(f"[Elysia] 의식 루프 초기화")
+    print(f"  코퍼스   : {corpus_path}")
+    print(f"  데이터   : {data_dir}")
+    print(f"  사이클   : {args.cycles}회\n")
+
+    mc   = CausalMemoryController(data_dir=data_dir)
+    loop = ConsciousnessLoop(corpus_path=corpus_path, memory_controller=mc, data_dir=data_dir)
+    loop.run(cycles=args.cycles, verbose=not args.quiet)

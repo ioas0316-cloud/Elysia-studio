@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "elysia-causal-engine"
+version = "0.2.0"
+description = "Continuous Causal Field, Geometric Algebra Rotor, and Differentiable Physics-Cognition Engine"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+torch = ["torch>=2.1"]
+scientific = ["scipy>=1.10", "matplotlib>=3.7"]
+mva = ["fastapi>=0.110", "uvicorn>=0.27", "pydantic>=2.0"]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["L1_causal_field", "."]
+include = ["core*", "modules*", "spinoffs*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["L1_causal_field", "."]
+testpaths = ["tests/python"]

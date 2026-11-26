@@ -1,0 +1,16 @@
+{
+  "name": "elysia-causal-engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Elysia Scale-Rotor Causal Field & Cognitive CAD MVA Server",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "node --check server.js && node --check L0_substrate/mva/static/digital_twin_rpg.js && node --check L0_substrate/mva/static/unified_rotor_studio.js && node --check L0_substrate/mva/static/phenomenon_anatomy.js && node --check L0_substrate/mva/static/open_cuda_rotor.js && node --check L0_substrate/mva/static/weaving.js && node --check L0_substrate/mva/static/cognitive_core.js && node --check L0_substrate/mva/static/elysia_self_reclamation.js && node --check L0_substrate/mva/static/topology.js",
+    "lint": "node --check server.js && node --check L0_substrate/mva/static/digital_twin_rpg.js && node --check L0_substrate/mva/static/unified_rotor_studio.js && node --check L0_substrate/mva/static/phenomenon_anatomy.js && node --check L0_substrate/mva/static/open_cuda_rotor.js && node --check L0_substrate/mva/static/weaving.js && node --check L0_substrate/mva/static/cognitive_core.js && node --check L0_substrate/mva/static/elysia_self_reclamation.js && node --check L0_substrate/mva/static/topology.js",
+    "verify": "npm run lint && npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

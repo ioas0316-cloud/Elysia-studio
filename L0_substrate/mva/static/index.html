@@ -1,0 +1,2451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elysia Scale-Rotor Causal Engine — 시공간 스케일로터 · 메모리 스펙트럼 · 6축 현상 해부 실증실</title>
+    <meta name="description" content="HD 동영상 스케일로터, 디지털 트윈 RPG, 영상 세계화·하드웨어 메모리 계층 로터(SSD⊃RAM⊃VRAM⊃Cache⊃Reg), 6축 현상 해부, 열린 현실 감각⇄CUDA 배열 및 L1~L4 인지-인과 코어를 통합 실증하는 Elysia 워크벤치.">
+    <meta property="og:title" content="Elysia Scale-Rotor Causal Engine">
+    <meta property="og:description" content="Interactive 3D Cognitive CAD, 5-scale fractal rotor hierarchy (S0-S4), hardware memory spectrum neural web, 6-axis phenomenon anatomy, and open-reality CUDA warp compaction workbench.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #07090E;
+            --bg-panel: #0F1420;
+            --bg-inset: #0A0E17;
+            --border-hair: #1E293B;
+            --border-strong: #334155;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --accent-cyan: #06B6D4;
+            --accent-amber: #F59E0B;
+            --accent-emerald: #10B981;
+            --accent-rose: #F43F5E;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            min-height: 100%;
+            background: var(--bg-void);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 3-Zone Single-Row Top Bar */
+        header.topbar {
+            height: 52px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 16px;
+            padding: 0 20px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-hair);
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+        .brand-mark { width: 8px; height: 8px; background: var(--accent-cyan); }
+        .brand-title { font-size: 0.92rem; font-weight: 700; letter-spacing: -0.01em; }
+        .brand-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            border-left: 1px solid var(--border-hair);
+            padding-left: 10px;
+        }
+        nav.topnav { display: flex; align-items: center; justify-content: center; gap: 4px; }
+        nav.topnav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 500;
+            padding: 6px 12px;
+            border: 1px solid transparent;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
+        }
+        nav.topnav a:hover { color: var(--text-primary); border-color: var(--border-hair); }
+        nav.topnav a.active {
+            color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.08);
+            border-color: rgba(6, 182, 212, 0.35);
+        }
+        .top-actions { display: flex; align-items: center; gap: 8px; }
+
+        .btn {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid var(--border-strong);
+            background: var(--bg-inset);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
+            white-space: nowrap;
+        }
+        .btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+        .btn-primary {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: #041016;
+        }
+        .btn-primary:hover { background: #22d3ee; color: #041016; }
+        .btn-audio.playing {
+            background: rgba(16, 185, 129, 0.14);
+            border-color: var(--accent-emerald);
+            color: var(--accent-emerald);
+        }
+
+        main.workspace {
+            max-width: 1640px;
+            margin: 0 auto;
+            padding: 12px 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+        }
+
+        /* Domain Switcher + Source Strip */
+        section.domain-bar {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+        .domain-top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .seg-tabs {
+            display: inline-flex;
+            border: 1px solid var(--border-strong);
+        }
+        .seg-tabs button {
+            background: var(--bg-inset);
+            border: none;
+            border-right: 1px solid var(--border-hair);
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-size: 0.77rem;
+            font-weight: 600;
+            padding: 7px 14px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .seg-tabs button:last-child { border-right: none; }
+        .seg-tabs button:hover { color: var(--text-primary); }
+        .seg-tabs button.active {
+            background: rgba(6, 182, 212, 0.14);
+            color: var(--accent-cyan);
+        }
+
+        .video-ingest-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 8px;
+            align-items: center;
+        }
+        .ingest-label {
+            font-size: 0.71rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+        }
+        .url-input {
+            width: 100%;
+            height: 32px;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            padding: 0 10px;
+            outline: none;
+        }
+        .url-input:focus { border-color: var(--accent-cyan); }
+        .preset-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+        .preset-tab {
+            font-family: var(--font-sans);
+            font-size: 0.73rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .preset-tab:hover { border-color: var(--border-strong); color: var(--text-primary); }
+        .preset-tab.active {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.09);
+        }
+        .source-status {
+            margin-left: auto;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+        .game-hint-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 6px 10px;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .game-hint-row strong { color: var(--accent-cyan); font-family: var(--font-mono); }
+
+        /* Side-by-Side Dual HD Viewports */
+        section.comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .viewport-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            display: flex;
+            flex-direction: column;
+        }
+        .viewport-card.rotor-card { border-color: rgba(6, 182, 212, 0.45); }
+        .viewport-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 13px;
+            border-bottom: 1px solid var(--border-hair);
+            background: var(--bg-inset);
+            gap: 8px;
+        }
+        .viewport-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tag-legacy {
+            font-family: var(--font-mono);
+            font-size: 0.66rem;
+            color: var(--accent-amber);
+            border: 1px solid rgba(245, 158, 11, 0.45);
+            padding: 2px 6px;
+        }
+        .tag-rotor {
+            font-family: var(--font-mono);
+            font-size: 0.66rem;
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.48);
+            padding: 2px 6px;
+        }
+        .viewport-stat {
+            font-family: var(--font-mono);
+            font-size: 0.73rem;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-secondary);
+        }
+        .canvas-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #030508;
+            overflow: hidden;
+        }
+        .canvas-wrap canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            image-rendering: auto;
+        }
+        .canvas-wrap.interactive { cursor: crosshair; }
+        .viewport-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 13px;
+            border-top: 1px solid var(--border-hair);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            gap: 10px;
+        }
+        .mono-val { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+        /* 3 Live Spatiotemporal Scale-Rotor Layer Tracks (S4 / S2 / S0) */
+        section.tracks-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .track-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            padding: 9px 11px;
+            display: grid;
+            grid-template-columns: 124px 1fr;
+            gap: 11px;
+            align-items: center;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .track-card:hover { border-color: var(--border-strong); }
+        .track-card.isolated {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.06);
+        }
+        .track-thumb {
+            width: 124px;
+            height: 70px;
+            background: #04070c;
+            border: 1px solid var(--border-hair);
+            display: block;
+        }
+        .track-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .track-title {
+            font-size: 0.77rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .track-cadence {
+            font-family: var(--font-mono);
+            font-size: 0.69rem;
+            color: var(--accent-cyan);
+            font-variant-numeric: tabular-nums;
+        }
+        .track-desc {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            line-height: 1.35;
+        }
+        .track-bar-bg {
+            height: 4px;
+            background: var(--bg-inset);
+            margin-top: 3px;
+            overflow: hidden;
+        }
+        .track-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent-cyan);
+            transition: width 0.08s linear;
+        }
+        .track-bar-fill.amber { background: var(--accent-amber); }
+        .track-bar-fill.emerald { background: var(--accent-emerald); }
+
+        /* 4-Column Honest Benchmark Strip */
+        section.metrics-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .metric-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            padding: 10px 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .metric-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+        .metric-primary {
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+            font-size: 1.04rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .metric-delta {
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+            font-size: 0.72rem;
+            color: var(--accent-emerald);
+        }
+        .metric-delta.cyan { color: var(--accent-cyan); }
+        .metric-delta.muted { color: var(--text-secondary); }
+
+        /* Unified Spatiotemporal Gear-Ratio Controls */
+        section.controls-bar {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            padding: 11px 15px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(180px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+        .control-group { display: flex; flex-direction: column; gap: 5px; }
+        .control-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+        .control-head span.val {
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+            color: var(--accent-cyan);
+        }
+        input[type="range"] { width: 100%; accent-color: var(--accent-cyan); cursor: pointer; }
+        .control-hint { font-size: 0.68rem; color: var(--text-muted); line-height: 1.32; }
+
+        .hidden { display: none !important; }
+        .drop-active { outline: 2px dashed var(--accent-cyan); outline-offset: -4px; }
+
+        /* Digital-Twin Human Causal Inspector Strip (Situation -> Values/Personality -> Face A vs B -> Dialogue & Skill Combo) */
+        section.twin-inspector {
+            background: var(--bg-panel);
+            border: 1px solid rgba(245, 158, 11, 0.36);
+            padding: 9px 13px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 13px;
+            align-items: center;
+        }
+        .twin-faces {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .twin-face-canvas {
+            width: 82px;
+            height: 82px;
+            border: 1px solid var(--border-strong);
+            background: #070b14;
+            display: block;
+        }
+        .twin-face-canvas.branch-b { border-color: rgba(245, 158, 11, 0.65); }
+        .twin-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+        .twin-meta-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+        .twin-cond {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+        }
+        .twin-speech-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.72rem;
+        }
+        .twin-speech-box {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            border-left: 2px solid var(--accent-cyan);
+            padding: 4px 8px;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .twin-speech-box.branch-b { border-left-color: var(--accent-amber); }
+        .twin-thought {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        .twin-char-picker {
+            display: grid;
+            grid-template-columns: repeat(3, auto);
+            gap: 4px;
+        }
+        .twin-char-btn {
+            font-family: var(--font-sans);
+            font-size: 0.69rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .twin-char-btn.active {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.12);
+        }
+        .skill-btn-row {
+            display: inline-flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .skill-btn {
+            font-family: var(--font-mono);
+            font-size: 0.69rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        .skill-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
+        /* Macro-Society (Guild/Region/Nation/Era) + Parallel Universe Save/Load & Ending Predictor */
+        section.macro-parallel {
+            background: var(--bg-panel);
+            border: 1px solid rgba(16, 185, 129, 0.32);
+            padding: 10px 13px;
+            display: grid;
+            grid-template-columns: 1fr 1.25fr;
+            gap: 12px;
+        }
+        .macro-col {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            min-width: 0;
+        }
+        .macro-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-hair);
+            padding-bottom: 5px;
+        }
+        .soc-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+        }
+        .soc-item {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            padding: 5px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .soc-k { font-family: var(--font-mono); font-size: 0.64rem; color: var(--text-muted); }
+        .soc-v { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; color: var(--text-primary); }
+        .soc-v.era { color: #f9a8d4; }
+        .parallel-list { display: flex; flex-direction: column; gap: 5px; }
+        .parallel-card {
+            width: 100%;
+            text-align: left;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            border-left: 3px solid var(--accent-cyan);
+            padding: 6px 9px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .parallel-card:hover { background: rgba(6, 182, 212, 0.08); border-color: var(--border-strong); }
+        .parallel-top { font-size: 0.73rem; font-weight: 700; color: var(--text-primary); }
+        .parallel-sub { font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-secondary); margin-top: 2px; }
+        .branch-slots-row { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+        .branch-slot-btn { padding: 3px 8px; font-size: 0.68rem; font-family: var(--font-mono); }
+        .macro-empty { font-size: 0.7rem; color: var(--text-muted); padding: 6px; border: 1px dashed var(--border-hair); }
+        .macro-empty-inline { font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono); }
+        .btn-toggle-on {
+            background: rgba(6, 182, 212, 0.16);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        /* 5-Stat Generative Persona Sliders, Inverse Life-Arc & Dialogue Probe */
+        .twin-sensory {
+            font-family: var(--font-mono);
+            font-size: 0.67rem;
+            color: var(--accent-amber);
+            line-height: 1.35;
+        }
+        .twin-stats-bar {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 6px;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 6px 8px;
+        }
+        .stat-ctrl {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .stat-ctrl-top {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+        .stat-ctrl-top strong { color: var(--accent-cyan); font-variant-numeric: tabular-nums; }
+        .stat-ctrl input[type="range"] { width: 100%; margin: 0; accent-color: var(--accent-cyan); }
+
+        .twin-life-wrap {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 1px solid var(--border-hair);
+            padding-top: 9px;
+            margin-top: 2px;
+        }
+        .life-arc-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 7px;
+        }
+        .life-card {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            border-top: 2px solid var(--accent-cyan);
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+        .life-card.present { border-top-color: var(--accent-emerald); }
+        .life-card.relation { border-top-color: var(--accent-amber); }
+        .life-card.future { border-top-color: #f472b6; }
+        .life-k { font-family: var(--font-mono); font-size: 0.64rem; color: var(--text-muted); font-weight: 700; }
+        .life-v { font-size: 0.71rem; color: var(--text-primary); line-height: 1.4; }
+
+        .probe-box {
+            background: var(--bg-inset);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            padding: 7px 9px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .probe-top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .probe-title { font-size: 0.72rem; font-weight: 700; color: var(--accent-cyan); }
+        .probe-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+        .probe-chip {
+            padding: 3px 7px;
+            font-size: 0.67rem;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-strong);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .probe-chip:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
+        .probe-input-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 6px;
+        }
+        .probe-replies {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+        }
+        .probe-reply {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            border-left: 2px solid var(--accent-cyan);
+            padding: 6px 8px;
+            font-size: 0.71rem;
+            color: var(--text-primary);
+            line-height: 1.42;
+        }
+        .probe-reply.branch-b { border-left-color: var(--accent-amber); }
+
+        .catalyst-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+        }
+        .catalyst-btn {
+            padding: 6px 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-align: left;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .catalyst-btn:hover { background: rgba(6, 182, 212, 0.08); border-color: var(--accent-cyan); }
+        .catalyst-btn.raid { border-left: 3px solid var(--accent-rose); }
+        .catalyst-btn.mana { border-left: 3px solid var(--accent-cyan); }
+        .catalyst-btn.famine { border-left: 3px solid var(--accent-amber); }
+
+        .causal-chain-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .chain-step-line {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            border-left: 2px solid var(--accent-emerald);
+            padding: 4px 8px;
+            font-family: var(--font-mono);
+            font-size: 0.67rem;
+            color: var(--text-primary);
+            line-height: 1.38;
+        }
+        @media (max-width: 1120px) {
+            .life-arc-grid { grid-template-columns: repeat(2, 1fr); }
+            .probe-replies { grid-template-columns: 1fr; }
+            .twin-stats-bar { grid-template-columns: repeat(3, 1fr); }
+            .catalyst-row { grid-template-columns: 1fr; }
+        }
+
+        /* Eternal Return Style Tactical MOBA Q/W/E/R Skill Action Bar */
+        section.moba-dock {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-strong);
+            padding: 9px 14px;
+            display: grid;
+            grid-template-columns: 230px 1fr;
+            gap: 14px;
+            align-items: center;
+        }
+        .moba-hero {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .moba-hero-img {
+            width: 54px;
+            height: 54px;
+            object-fit: cover;
+            border: 2px solid var(--accent-cyan);
+            background: var(--bg-inset);
+            flex-shrink: 0;
+        }
+        .moba-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            min-width: 0;
+        }
+        .moba-hero-name {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+        .moba-bar-track {
+            position: relative;
+            height: 14px;
+            background: #060911;
+            border: 1px solid var(--border-hair);
+            overflow: hidden;
+        }
+        .moba-bar-fill {
+            height: 100%;
+            background: #10b981;
+            transition: width 0.12s linear;
+        }
+        .moba-bar-fill.sp { background: #2563eb; }
+        .moba-bar-txt {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 0.64rem;
+            font-weight: 700;
+            color: #f8fafc;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+            font-variant-numeric: tabular-nums;
+        }
+        .moba-skills {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .moba-slot {
+            position: relative;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-strong);
+            padding: 7px 9px;
+            text-align: left;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border-color 0.15s, transform 0.12s;
+            min-height: 56px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 3px;
+        }
+        .moba-slot:hover { border-color: var(--accent-cyan); transform: translateY(-1px); }
+        .moba-slot.on-cd { opacity: 0.72; border-color: var(--border-hair); }
+        .moba-slot.no-sp { opacity: 0.6; }
+        .moba-slot-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .moba-keycap {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border-strong);
+            color: var(--accent-cyan);
+        }
+        .moba-slot.slot-w .moba-keycap { color: #fb923c; }
+        .moba-slot.slot-e .moba-keycap { color: #facc15; }
+        .moba-slot.slot-r .moba-keycap { color: #34d399; }
+        .moba-slot.slot-sp .moba-keycap { color: #cbd5e1; }
+        .moba-cost {
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            color: #60a5fa;
+            font-variant-numeric: tabular-nums;
+        }
+        .moba-sname { font-size: 0.74rem; font-weight: 700; color: var(--text-primary); }
+        .moba-sdesc { font-size: 0.64rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .moba-cd-mask {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 0%;
+            background: rgba(4, 8, 16, 0.76);
+            pointer-events: none;
+        }
+        .moba-cd-txt {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #f8fafc;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+            pointer-events: none;
+            font-variant-numeric: tabular-nums;
+        }
+        @media (max-width: 960px) {
+            section.moba-dock { grid-template-columns: 1fr; }
+            .moba-skills { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* Elysia 4-Tier Cognitive-Causal Core (L1 Sensory -> L2 Knowledge -> L3 Volition/Act -> L4 Growth Rings & Re-Creation) */
+        section.cognitive-core {
+            background: var(--bg-panel);
+            border: 1px solid rgba(6, 182, 212, 0.38);
+            padding: 13px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+        }
+        .cog-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-hair);
+            padding-bottom: 10px;
+        }
+        .cog-title-group { display: flex; flex-direction: column; gap: 3px; }
+        .cog-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cog-badge-live {
+            font-family: var(--font-mono);
+            font-size: 0.69rem;
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            background: rgba(6, 182, 212, 0.08);
+            padding: 2px 7px;
+            font-variant-numeric: tabular-nums;
+        }
+        .cog-subtitle { font-size: 0.72rem; color: var(--text-secondary); }
+        .cog-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+        .btn-active-loop {
+            background: rgba(16, 185, 129, 0.16);
+            border-color: var(--accent-emerald);
+            color: var(--accent-emerald);
+        }
+        .btn-recreate {
+            background: rgba(244, 63, 94, 0.14);
+            border-color: rgba(244, 63, 94, 0.6);
+            color: #fda4af;
+        }
+        .btn-recreate:hover {
+            background: rgba(244, 63, 94, 0.24);
+            border-color: var(--accent-rose);
+            color: #fff;
+        }
+
+        .cog-subbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .cog-stepper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.69rem;
+        }
+        .cog-step {
+            padding: 4px 8px;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            color: var(--text-muted);
+            transition: border-color 0.15s, color 0.15s, background 0.15s;
+        }
+        .cog-step.active {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.14);
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        .cog-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 1.15fr 1fr;
+            gap: 11px;
+        }
+        .cog-col {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 10px 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+        }
+        .cog-col-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-hair);
+            padding-bottom: 6px;
+        }
+        .cog-col-tag {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+        .chroma-bar {
+            height: 8px;
+            display: flex;
+            background: #060910;
+            border: 1px solid var(--border-hair);
+            overflow: hidden;
+        }
+        .chroma-r { background: var(--accent-rose); transition: width 0.25s ease; }
+        .chroma-b { background: var(--accent-cyan); transition: width 0.25s ease; }
+        .chroma-y { background: var(--accent-amber); transition: width 0.25s ease; }
+        .chroma-label {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .axis-list { display: flex; flex-direction: column; gap: 6px; }
+        .axis-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            border-left: 2px solid var(--accent-cyan);
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .axis-card.ext { border-left-color: #a78bfa; }
+        .axis-card.ign { border-left-color: var(--accent-amber); }
+        .axis-card.rev { border-left-color: var(--accent-emerald); }
+        .axis-k {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .axis-v {
+            font-size: 0.72rem;
+            color: var(--text-primary);
+            line-height: 1.35;
+        }
+
+        .cog-knowledge-list { display: flex; flex-direction: column; gap: 7px; }
+        .cog-law-row {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            padding: 7px 9px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .cog-law-row.unknown { border-color: rgba(245, 158, 11, 0.42); }
+        .cog-law-row.known { border-color: rgba(16, 185, 129, 0.42); }
+        .cog-law-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .cog-law-name {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .cog-law-badge {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            padding: 2px 5px;
+            border: 1px solid var(--border-strong);
+        }
+        .cog-law-badge.unknown { color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.55); }
+        .cog-law-badge.learning { color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.55); }
+        .cog-law-badge.known { color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.55); }
+        .cog-mini-btn { padding: 2px 7px; font-size: 0.67rem; }
+        .cog-conf-bar { height: 5px; background: #060910; overflow: hidden; }
+        .cog-conf-fill { height: 100%; transition: width 0.25s ease; }
+        .cog-conf-fill.unknown { background: var(--accent-amber); }
+        .cog-conf-fill.learning { background: var(--accent-cyan); }
+        .cog-conf-fill.known { background: var(--accent-emerald); }
+        .cog-law-meta {
+            font-family: var(--font-mono);
+            font-size: 0.66rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .cog-ring-row {
+            display: grid;
+            grid-template-columns: 146px 1fr;
+            gap: 9px;
+            align-items: start;
+        }
+        #cog-ring-canvas {
+            width: 146px;
+            height: 146px;
+            display: block;
+            border: 1px solid var(--border-hair);
+            background: #060a12;
+        }
+        .cog-trace-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-height: 214px;
+            overflow-y: auto;
+        }
+        .cog-trace-empty {
+            font-size: 0.71rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+            padding: 8px;
+            border: 1px dashed var(--border-hair);
+        }
+        .cog-trace-item {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+            border-left: 2px solid var(--accent-cyan);
+            padding: 5px 7px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .cog-trace-item.revised { border-left-color: var(--accent-amber); }
+        .cog-trace-item.mastered { border-left-color: var(--accent-emerald); }
+        .cog-trace-item.recreate { border-left-color: var(--accent-rose); background: rgba(244, 63, 94, 0.06); }
+        .cog-trace-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.69rem;
+            font-family: var(--font-mono);
+        }
+        .cog-trace-head span { color: var(--text-muted); }
+        .cog-trace-body { font-size: 0.68rem; color: var(--text-primary); }
+        .cog-trace-foot { font-size: 0.65rem; color: var(--text-secondary); font-family: var(--font-mono); }
+
+        @media (max-width: 1120px) {
+            section.comparison-grid { grid-template-columns: 1fr; }
+            section.tracks-strip { grid-template-columns: 1fr; }
+            section.metrics-strip { grid-template-columns: repeat(2, 1fr); }
+            section.controls-bar { grid-template-columns: repeat(2, 1fr); }
+            .cog-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 720px) {
+            header.topbar { grid-template-columns: 1fr auto; }
+            nav.topnav { display: none; }
+            .video-ingest-row { grid-template-columns: 1fr; }
+            section.controls-bar { grid-template-columns: 1fr; }
+            .cog-ring-row { grid-template-columns: 1fr; }
+        }
+
+        /* Unified Spatiotemporal Scale-Rotor Studio (Video <-> Game <-> Elysia Consistent Encoding) */
+        .uni-controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+        .uni-status-strip {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-hair);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+        }
+        section.unified-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-strong);
+            padding: 11px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+        .uni-head-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-hair);
+            padding-bottom: 7px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .uni-reg-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 7px;
+        }
+        .uni-reg-row {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 7px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+        .uni-reg-name {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+        .uni-reg-val {
+            font-family: var(--font-mono);
+            font-size: 0.69rem;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+        .uni-reg-chroma {
+            font-family: var(--font-mono);
+            font-size: 0.66rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+        .uni-transfer-note {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent-emerald);
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 6px 10px;
+            line-height: 1.4;
+        }
+        .uni-entity-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .uni-ent-card {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 7px 9px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-width: 0;
+        }
+        .uni-ent-card.selected {
+            border-color: var(--accent-cyan);
+        }
+        .uni-ent-thumb {
+            width: 56px;
+            height: 42px;
+            flex-shrink: 0;
+            border: 1px solid var(--border-strong);
+            background: #050811;
+            display: block;
+        }
+        .uni-ent-body {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 0;
+            flex: 1;
+        }
+        .uni-ent-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .uni-ent-title {
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+        .uni-ent-meta {
+            font-family: var(--font-mono);
+            font-size: 0.66rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .uni-ent-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .uni-mini-btn {
+            background: #0b1120;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-strong);
+            padding: 3px 7px;
+            font-size: 0.67rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .uni-mini-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+        .uni-mini-btn.active-amber {
+            background: rgba(245, 158, 11, 0.16);
+            color: #fbbf24;
+            border-color: #f59e0b;
+        }
+        .uni-mini-btn.active-emerald {
+            background: rgba(16, 185, 129, 0.16);
+            color: #6ee7b7;
+            border-color: #10b981;
+        }
+        .uni-mini-btn.active-cyan {
+            background: rgba(6, 182, 212, 0.18);
+            color: #67e8f9;
+            border-color: #06b6d4;
+        }
+        .uni-empty-note {
+            grid-column: 1 / -1;
+            font-size: 0.73rem;
+            color: var(--text-secondary);
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 10px 12px;
+        }
+        .uni-slice-reel {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            padding-top: 6px;
+            border-top: 1px solid var(--border-hair);
+        }
+        .uni-slice-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            background: #050811;
+            border: 1px solid var(--border-strong);
+            padding: 4px;
+        }
+        .uni-slice-item img {
+            width: 68px;
+            height: 68px;
+            display: block;
+        }
+        .uni-slice-cap {
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        @media (max-width: 960px) {
+            .uni-reg-list, .uni-entity-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Tab 4: 6-Axis Phenomenon Anatomy & Emergent Verification */
+        .ana-controls-top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .ana-cond-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-hair);
+        }
+        .ana-cond-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        .ana-cond-item-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .ana-cond-item-top strong { color: var(--accent-cyan); font-variant-numeric: tabular-nums; }
+        .ana-cond-item input[type="range"] { width: 100%; margin: 0; accent-color: var(--accent-cyan); }
+
+        section.anatomy-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-strong);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .ana-six-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .ana-axis-box {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+        .ana-axis-k {
+            font-family: var(--font-mono);
+            font-size: 0.67rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+        .ana-axis-v {
+            font-size: 0.74rem;
+            color: var(--text-primary);
+            line-height: 1.42;
+        }
+        .ana-elysia-box {
+            display: grid;
+            grid-template-columns: 1.25fr 1fr;
+            gap: 10px;
+        }
+        .ana-card {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 9px 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+        .ana-card-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .ana-diag-line {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent-amber);
+            line-height: 1.45;
+        }
+        .ana-rev-line {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent-emerald);
+            line-height: 1.45;
+        }
+        .ana-cmp-body {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .ana-cmp-row {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            line-height: 1.42;
+            padding: 4px 7px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-hair);
+        }
+        .ana-cmp-row.same { color: var(--accent-emerald); }
+        .ana-cmp-row.diff { color: var(--text-primary); }
+        @media (max-width: 1040px) {
+            .ana-six-grid { grid-template-columns: repeat(2, 1fr); }
+            .ana-elysia-box { grid-template-columns: 1fr; }
+            .ana-cond-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Tab 5: Open Reality Aperture -> CUDA Hardware-Protocol Scale-Rotor Layout */
+        section.cuda-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-strong);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .cuda-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .cuda-stat-card {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+        .cuda-stat-k {
+            font-family: var(--font-mono);
+            font-size: 0.67rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .cuda-stat-v {
+            font-family: var(--font-mono);
+            font-size: 0.71rem;
+            color: var(--text-primary);
+            line-height: 1.42;
+            font-variant-numeric: tabular-nums;
+        }
+        .cuda-stat-v.legacy { color: #fb7185; }
+        .cuda-stat-v.rotor { color: var(--accent-emerald); }
+        .cuda-stat-v.friction { color: var(--accent-amber); }
+        .cuda-code-box {
+            background: #04070f;
+            border: 1px solid var(--border-hair);
+            padding: 9px 11px;
+            font-family: var(--font-mono);
+            font-size: 0.69rem;
+            color: #cbd5e1;
+            line-height: 1.45;
+            overflow-x: auto;
+            white-space: pre;
+            margin: 0;
+        }
+        @media (max-width: 1040px) {
+            .cuda-stats-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Elysia Dual-Identity (Goddess Blueprint <-> Incarnate Mortal) Lightning Reclamation Panel */
+        section.self-reclaim {
+            background: var(--bg-panel);
+            border: 1px solid rgba(167, 139, 250, 0.42);
+            padding: 13px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+        }
+        .self-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-hair);
+            padding-bottom: 8px;
+        }
+        .self-head-title {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 9px;
+            font-size: 0.86rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .self-poles-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.25fr 1fr;
+            gap: 10px;
+            align-items: stretch;
+        }
+        .self-pole-card {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 9px 11px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            min-width: 0;
+        }
+        .self-pole-card.goddess { border-color: rgba(167, 139, 250, 0.45); }
+        .self-pole-card.incarnate { border-color: rgba(245, 158, 11, 0.42); }
+        .self-portrait {
+            width: 78px;
+            height: 78px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--border-strong);
+            background: #050812;
+        }
+        .self-pole-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+        .self-pole-tag {
+            font-family: var(--font-mono);
+            font-size: 0.66rem;
+            font-weight: 700;
+            color: var(--accent-amber);
+        }
+        .self-pole-tag.goddess { color: #c4b5fd; }
+        .self-pole-text {
+            font-size: 0.72rem;
+            color: var(--text-primary);
+            line-height: 1.42;
+        }
+        .self-pole-sub {
+            font-family: var(--font-mono);
+            font-size: 0.67rem;
+            color: var(--text-secondary);
+            line-height: 1.38;
+        }
+        .self-center-arc {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            justify-content: space-between;
+            min-width: 0;
+        }
+        .self-lightning-q {
+            font-family: var(--font-mono);
+            font-size: 0.69rem;
+            color: var(--accent-cyan);
+            line-height: 1.4;
+        }
+        .self-fac-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 7px;
+        }
+        .self-fac-card {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: left;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+        .self-fac-card:hover { border-color: var(--accent-cyan); }
+        .self-fac-card.weak { border-color: var(--accent-amber); }
+        .self-fac-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.66rem;
+            color: var(--text-secondary);
+        }
+        .self-fac-top strong { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+        .self-fac-track { height: 5px; background: #070b14; overflow: hidden; }
+        .self-fac-fill { height: 100%; background: var(--accent-emerald); transition: width 0.25s; }
+        .self-fac-fill.weak { background: var(--accent-amber); }
+
+        .self-values-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 7px 10px;
+        }
+        .self-dialog-replies {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .self-reply {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 8px 10px;
+            font-size: 0.74rem;
+            color: var(--text-primary);
+            line-height: 1.48;
+        }
+        .self-reply.incarnate { border-color: rgba(245, 158, 11, 0.38); }
+        .self-reply.goddess { border-color: rgba(167, 139, 250, 0.42); }
+        @media (max-width: 1120px) {
+            .self-poles-grid { grid-template-columns: 1fr; }
+            .self-fac-grid { grid-template-columns: repeat(2, 1fr); }
+            .self-values-row { grid-template-columns: repeat(2, 1fr); }
+            .self-dialog-replies { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-mark"></span>
+            <span class="brand-title">Elysia Spatiotemporal Scale-Rotor</span>
+            <span class="brand-sub">S4(거시·저주기) ⊃ S2(중시·중주기) ⊃ S0(미시·고주기) 통합 재생</span>
+        </div>
+        <nav class="topnav">
+            <a href="/" class="active">시공간 로터 실증</a>
+            <a href="/topology">위상 실험실</a>
+            <a href="/dashboard">공명 대시보드</a>
+            <a href="/manifestation">거울 프로토콜</a>
+            <a href="/roadmap">로드맵</a>
+        </nav>
+        <div class="top-actions">
+            <button id="btn-play-pause" class="btn" type="button">일시정지</button>
+            <button id="btn-audio-master" class="btn btn-audio" type="button">오디오 연동: 꺼짐</button>
+        </div>
+    </header>
+
+    <main class="workspace" id="drop-zone">
+        <!-- Domain Selector: Real HD Video vs Playable Game Architecture -->
+        <section class="domain-bar">
+            <div class="domain-top">
+                <div class="seg-tabs" id="domain-mode-tabs">
+                    <button type="button" data-domain="video" class="active">1. HD 동영상 로터</button>
+                    <button type="button" data-domain="game">2. 디지털 트윈 RPG</button>
+                    <button type="button" data-domain="unified">3. 영상 세계화·메모리 로터</button>
+                    <button type="button" data-domain="anatomy">4. 현상 6축 해부</button>
+                    <button type="button" data-domain="open_cuda">5. 열린 감각 ⇄ CUDA 배열</button>
+                </div>
+                <div class="seg-tabs" id="inspect-output-tabs">
+                    <button type="button" data-output="composite" class="active">S4+S2+S0 통합</button>
+                    <button type="button" data-output="overlay">포개기 대조 (동일·분기)</button>
+                    <button type="button" data-output="s4">S4 거시(환경)</button>
+                    <button type="button" data-output="s2">S2 중시(객체)</button>
+                    <button type="button" data-output="s0">S0 미시(움직임)</button>
+                </div>
+            </div>
+
+            <!-- Video Source Controls -->
+            <div id="video-source-panel">
+                <div class="video-ingest-row">
+                    <span class="ingest-label">HD 실물 입력</span>
+                    <input
+                        id="external-url-input"
+                        class="url-input"
+                        type="url"
+                        placeholder="Wikimedia 1080p WebM/MP4 영상, 1920px 명화, YouTube HD 주소 (또는 내 MP4/WebM 파일 드래그)"
+                    >
+                    <button id="btn-fetch-url" class="btn btn-primary" type="button">HD 원본 유입</button>
+                    <button id="btn-upload-file" class="btn" type="button">내 HD 영상·이미지 열기</button>
+                    <input id="local-file-input" type="file" accept="video/mp4,video/webm,image/png,image/jpeg,image/webp" hidden>
+                </div>
+                <div class="preset-row" style="margin-top:8px;">
+                    <div id="external-presets" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+                    <span id="source-status" class="source-status">● 1080p 시공간 스케일로터 초기화 중...</span>
+                </div>
+            </div>
+
+            <!-- Playable Eternal-Return Style Tactical MOBA Controls -->
+            <div id="game-source-panel" class="game-hint-row hidden">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <strong>아리아 조작:</strong> <code>우클릭</code>(또는 방향키) 이동 · <code>좌클릭</code> 평타(SP회복) · <code>Q / W / E / R</code> 스킬 · <code>Space</code> 회피
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <label style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:0.71rem;color:var(--text-secondary);">
+                        가치관(보호↔지배) <input id="slider-env-couple" type="range" min="0" max="2.2" step="0.1" value="1.0" style="width:76px;">
+                        <span id="val-env-couple" style="color:var(--accent-cyan);min-width:30px;">1.0×</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:0.71rem;color:var(--text-secondary);">
+                        성격·신뢰 결합 <input id="slider-obj-connect" type="range" min="0" max="2.5" step="0.1" value="1.0" style="width:76px;">
+                        <span id="val-obj-connect" style="color:var(--accent-amber);min-width:30px;">1.0×</span>
+                    </label>
+                    <span class="mono-val" id="game-score-readout" style="color:var(--accent-emerald);">점수 0 · 콤보 0</span>
+                    <button id="btn-quantum-lock" class="btn btn-toggle-on" type="button">ψ 양자 미관측 잠금: ON</button>
+                    <button id="btn-video-transduce" class="btn" type="button">HD 영상 인과 전이: OFF</button>
+                    <button id="btn-game-sync" class="btn btn-primary" type="button">A·B 원점 동기</button>
+                    <button id="btn-game-wave" class="btn" type="button">위기·연출 발동</button>
+                    <button id="btn-game-reset" class="btn" type="button">초기화</button>
+                </div>
+            </div>
+
+            <!-- Tab 3: Bidirectional Video <-> Game Interaction Protocol, 3D Cross-Section Images & Hardware Memory Scale-Rotor -->
+            <div id="unified-source-panel" class="hidden">
+                <div class="uni-controls-row">
+                    <div class="seg-tabs" id="uni-submode-tabs">
+                        <button type="button" data-uni-mode="object_boundary" class="active">① 영상→객체·경계</button>
+                        <button type="button" data-uni-mode="character_rig">② 게임 조종</button>
+                        <button type="button" data-uni-mode="game_to_cinema">③ 게임→영상화 연출</button>
+                        <button type="button" data-uni-mode="bullet_time">④ 시간 정지·3D 단면</button>
+                    </div>
+                    <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+                        <button id="btn-uni-spawn-char" class="btn btn-primary" type="button">인물·탑승자 캐릭터 생성</button>
+                        <button id="btn-uni-capture-slice" class="btn" type="button">현재 각도 단면 이미지 캡처</button>
+                        <button id="btn-uni-auto" class="btn" type="button">자율 3D 시점 선회: OFF</button>
+                        <button id="btn-uni-reset-cam" class="btn" type="button">시점 초기화</button>
+                        <button id="btn-uni-transfer" class="btn" type="button">SSD 원장 동기화</button>
+                        <button id="btn-uni-clear-ssd" class="btn" type="button">초기화</button>
+                    </div>
+                </div>
+                <div class="uni-status-strip">
+                    <span id="uni-tape-status" style="color:var(--accent-cyan);">좌클릭=차량·인물 선택 · 좌드래그=3D 카메라 시점 변환 · 휠=줌 · 아래 카드에서 경계화/캐릭터 모델링을 즉시 전환하세요</span>
+                    <span id="uni-iso-readout" style="color:var(--accent-emerald);">객체 분류 및 스펙트럼 히트율 측정 중...</span>
+                </div>
+            </div>
+
+            <!-- Tab 4: 6-Axis Phenomenon Anatomy & Emergent Causal Verification -->
+            <div id="anatomy-source-panel" class="hidden">
+                <div class="ana-controls-top">
+                    <div class="seg-tabs" id="ana-phen-tabs">
+                        <button type="button" data-phen="wind" class="active">① 바람 · 대기 대류</button>
+                        <button type="button" data-phen="chemistry">② 화학 반응 · 촉매</button>
+                        <button type="button" data-phen="cell">③ 세포 · 막투과·분열</button>
+                        <button type="button" data-phen="society">④ 인간 사회 · 신뢰·교역</button>
+                    </div>
+                    <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+                        <button id="btn-ana-revise" class="btn btn-primary" type="button">⚡ 엘리시아 6축 자기수정 (다음 세대 학습)</button>
+                        <button id="btn-ana-reset" class="btn" type="button">세대 0 (초기 무지) 복귀</button>
+                    </div>
+                </div>
+                <div class="ana-cond-grid" aria-label="현상 창발·붕괴 조건 실험 슬라이더">
+                    <label class="ana-cond-item">
+                        <span class="ana-cond-item-top"><span id="ana-lbl-c1">조건 1</span><strong id="ana-val-c1">1.15×</strong></span>
+                        <input id="ana-sl-c1" type="range" min="0.1" max="2.0" step="0.05" value="1.15">
+                    </label>
+                    <label class="ana-cond-item">
+                        <span class="ana-cond-item-top"><span id="ana-lbl-c2">조건 2</span><strong id="ana-val-c2">0.85×</strong></span>
+                        <input id="ana-sl-c2" type="range" min="0.0" max="2.0" step="0.05" value="0.85">
+                    </label>
+                    <label class="ana-cond-item">
+                        <span class="ana-cond-item-top"><span id="ana-lbl-c3">조건 3</span><strong id="ana-val-c3">0.90×</strong></span>
+                        <input id="ana-sl-c3" type="range" min="0.0" max="2.0" step="0.05" value="0.90">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Tab 5: Open Reality Aperture -> CUDA Hardware-Protocol Scale-Rotor Layout -->
+            <div id="open-cuda-source-panel" class="hidden">
+                <div class="uni-controls-row">
+                    <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+                        <button id="btn-open-webcam" class="btn btn-primary" type="button">● 실시간 웹캠·마이크 개방 (열린 현실 감각)</button>
+                        <button id="btn-open-video-src" class="btn" type="button">HD 실물 외부 영상으로 전환</button>
+                        <button id="btn-copy-cuda" class="btn" type="button">실제 CUDA 커널(.cu) 복사</button>
+                    </div>
+                    <span id="open-sensory-status" class="mono-val" style="color:var(--accent-cyan);">열린 외부 감각: HD 실물 영상 스트림 수신 중</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dual Native-HD Side-by-Side Comparison -->
+        <section class="comparison-grid">
+            <article class="viewport-card">
+                <div class="viewport-head">
+                    <div class="viewport-title">
+                        <span class="tag-legacy">CONVENTIONAL</span>
+                        <span id="left-panel-title">기존 단일 클럭 방식 · 매 프레임 전 계층 100% 재연산</span>
+                    </div>
+                    <span class="viewport-stat" id="left-inline-stat">▲ 100.0% 매 프레임 연산</span>
+                </div>
+                <div class="canvas-wrap" id="left-canvas-wrap">
+                    <canvas id="canvas-legacy" width="960" height="540"></canvas>
+                </div>
+                <div class="viewport-foot">
+                    <span id="left-foot-desc">느리게 변하는 거시 배경·조명까지 매 프레임 최고 해상도(518,400px)로 100% 처음부터 재계산</span>
+                    <span class="mono-val" id="left-res-caption">960×540 Native</span>
+                </div>
+            </article>
+
+            <article class="viewport-card rotor-card">
+                <div class="viewport-head">
+                    <div class="viewport-title">
+                        <span class="tag-rotor">SPATIOTEMPORAL ROTOR</span>
+                        <span id="right-panel-title">시공간 스케일로터 재생 · S4(저주기) ⊃ S2(중주기) ⊃ S0(고주기)</span>
+                    </div>
+                    <span class="viewport-stat" id="right-inline-stat" style="color:var(--accent-cyan);">● 자동 최적화 측정 중</span>
+                </div>
+                <div class="canvas-wrap" id="right-canvas-wrap">
+                    <canvas id="canvas-rotor" width="960" height="540"></canvas>
+                </div>
+                <div class="viewport-foot">
+                    <span id="right-foot-desc">각 스케일 레이어 자체를 고유 기어비 시간축으로 재생·합성 → 조건문 없이 구조적으로 연산 자동 최적화</span>
+                    <span class="mono-val" id="right-ring-caption">시공간 로터 프레임 #0</span>
+                </div>
+            </article>
+        </section>
+
+        <!-- Eternal Return Style Tactical MOBA Q/W/E/R Action Skill Dock (Visible in Tab 2) -->
+        <section class="moba-dock hidden" id="moba-skill-dock" aria-label="QWER 전투 스킬 바">
+            <div class="moba-hero">
+                <img class="moba-hero-img" src="/src/assets/images/portrait_aria_knight_1795632351917.jpg" alt="아리아 초상화" referrerpolicy="no-referrer">
+                <div class="moba-bars">
+                    <span class="moba-hero-name">아리아 · 수호 기사 (조작 중)</span>
+                    <div class="moba-bar-track">
+                        <div class="moba-bar-fill" id="moba-hp-fill" style="width:100%;"></div>
+                        <span class="moba-bar-txt" id="moba-hp-text">HP 132 / 132</span>
+                    </div>
+                    <div class="moba-bar-track">
+                        <div class="moba-bar-fill sp" id="moba-sp-fill" style="width:100%;"></div>
+                        <span class="moba-bar-txt" id="moba-sp-text">SP 100 / 100</span>
+                    </div>
+                </div>
+            </div>
+            <div class="moba-skills">
+                <button type="button" class="moba-slot slot-q" id="moba-slot-q" data-qwer="q">
+                    <div class="moba-slot-head"><span class="moba-keycap">Q</span><span class="moba-cost">SP 14</span></div>
+                    <span class="moba-sname">서리 창격</span>
+                    <span class="moba-sdesc">직선 관통 서리창</span>
+                    <div class="moba-cd-mask" id="moba-cd-q"></div>
+                    <span class="moba-cd-txt" id="moba-cdtxt-q"></span>
+                </button>
+                <button type="button" class="moba-slot slot-w" id="moba-slot-w" data-qwer="w">
+                    <div class="moba-slot-head"><span class="moba-keycap">W</span><span class="moba-cost">SP 20</span></div>
+                    <span class="moba-sname">전술 도약</span>
+                    <span class="moba-sdesc">돌진·보호막·충격파</span>
+                    <div class="moba-cd-mask" id="moba-cd-w"></div>
+                    <span class="moba-cd-txt" id="moba-cdtxt-w"></span>
+                </button>
+                <button type="button" class="moba-slot slot-e" id="moba-slot-e" data-qwer="e">
+                    <div class="moba-slot-head"><span class="moba-keycap">E</span><span class="moba-cost">SP 26</span></div>
+                    <span class="moba-sname">뇌전 속박진</span>
+                    <span class="moba-sdesc">지정 원형 장판·속박</span>
+                    <div class="moba-cd-mask" id="moba-cd-e"></div>
+                    <span class="moba-cd-txt" id="moba-cdtxt-e"></span>
+                </button>
+                <button type="button" class="moba-slot slot-r" id="moba-slot-r" data-qwer="r">
+                    <div class="moba-slot-head"><span class="moba-keycap">R</span><span class="moba-cost">SP 40</span></div>
+                    <span class="moba-sname">성역 절대영도</span>
+                    <span class="moba-sdesc">궁극기·광역 심판+치유</span>
+                    <div class="moba-cd-mask" id="moba-cd-r"></div>
+                    <span class="moba-cd-txt" id="moba-cdtxt-r"></span>
+                </button>
+                <button type="button" class="moba-slot slot-sp" id="moba-slot-space" data-qwer="space">
+                    <div class="moba-slot-head"><span class="moba-keycap">SPACE</span><span class="moba-cost">SP 0</span></div>
+                    <span class="moba-sname">전술 회피</span>
+                    <span class="moba-sdesc">긴급 이동·잔상 회피</span>
+                    <div class="moba-cd-mask" id="moba-cd-space"></div>
+                    <span class="moba-cd-txt" id="moba-cdtxt-space"></span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Extracted Video Objects / Character Rigging Inspector + 5-Tier Hardware Memory Scale-Rotor (Tab 3) -->
+        <section class="unified-panel hidden" id="unified-registry-panel" aria-label="영상 객체 분류·캐릭터 모델링 및 메모리 계층 스케일로터">
+            <div class="uni-head-bar">
+                <span>실시간 영상 추출 객체 분류 (차량 충돌 경계 · 인물/탑승자 게임 캐릭터 모델링)</span>
+                <span class="cog-col-tag" id="uni-roster-summary">차량 0 · 인물 0 · 정적 경계 0</span>
+            </div>
+            <div class="uni-entity-grid" id="uni-entity-roster"></div>
+            <div class="uni-head-bar" style="margin-top:4px;">
+                <span>3D 직조 인물 → 카메라 각도 단면 = 이미지 (단일 3D 위상에서 임의 각도 2D 이미지 즉시 도출)</span>
+                <span class="cog-col-tag">3D CROSS-SECTION = IMAGE</span>
+            </div>
+            <div class="ana-card">
+                <canvas id="uni-cross-section-canvas" width="880" height="126" style="width:100%;height:auto;border:1px solid var(--border-hair);background:#050811;"></canvas>
+                <div class="uni-slice-reel" id="uni-slice-reel"></div>
+            </div>
+            <div class="uni-head-bar" style="margin-top:4px;">
+                <span>하드웨어 메모리 계층(SSD ⊃ RAM ⊃ VRAM ⊃ Cache ⊃ Reg) 스케일로터 &amp; 3축 스펙트럼 신경망</span>
+                <span class="cog-col-tag">MEMORY-HIERARCHY ROTOR</span>
+            </div>
+            <div class="ana-elysia-box">
+                <div class="uni-reg-list" id="unified-rotor-registry" style="grid-template-columns:1fr;"></div>
+                <div class="ana-card">
+                    <div class="ana-card-title">
+                        <span>직조된 스펙트럼 신경망 (관계성 × 연결성 × 연속성 · SSD 영구 누적)</span>
+                        <span class="cog-col-tag">WOVEN SPECTRUM</span>
+                    </div>
+                    <canvas id="uni-spectrum-canvas" width="440" height="205" style="width:100%;height:auto;border:1px solid var(--border-hair);background:#050811;"></canvas>
+                </div>
+            </div>
+            <div class="uni-transfer-note" id="uni-transfer-note">실시간 영상에서 움직이는 차량(충돌 경계/조종)과 인물(관절 게임 캐릭터)을 분류·추출하고 있습니다.</div>
+        </section>
+
+        <!-- 6-Axis Phenomenon Anatomy Inspector & Cross-Phenomenon Comparison (Visible in Tab 4) -->
+        <section class="anatomy-panel hidden" id="anatomy-inspector-panel" aria-label="6축 현상 해부 및 자기한계 진단">
+            <div class="uni-head-bar">
+                <span id="ana-active-title">① 바람 · 대기 대류 — 6축 현상 해부</span>
+                <span class="cog-col-tag">6-AXIS PHENOMENON ANATOMY</span>
+            </div>
+            <div class="ana-six-grid">
+                <div class="ana-axis-box">
+                    <span class="ana-axis-k">1. 구성요소 (Elements)</span>
+                    <span class="ana-axis-v" id="ana-v-elements">-</span>
+                </div>
+                <div class="ana-axis-box">
+                    <span class="ana-axis-k">2. 현상구조 (Structure &amp; Boundary)</span>
+                    <span class="ana-axis-v" id="ana-v-structure">-</span>
+                </div>
+                <div class="ana-axis-box">
+                    <span class="ana-axis-k">3. 구성원리 (Generative Law)</span>
+                    <span class="ana-axis-v" id="ana-v-principle">-</span>
+                </div>
+                <div class="ana-axis-box">
+                    <span class="ana-axis-k">4. 변화 (Dynamics &amp; Phase Shift)</span>
+                    <span class="ana-axis-v" id="ana-v-dynamics">-</span>
+                </div>
+                <div class="ana-axis-box">
+                    <span class="ana-axis-k">5. 환경 (Embedding Field)</span>
+                    <span class="ana-axis-v" id="ana-v-environment">-</span>
+                </div>
+                <div class="ana-axis-box">
+                    <span class="ana-axis-k">6. 조건 (Emergence / Collapse Threshold)</span>
+                    <span class="ana-axis-v" id="ana-v-conditions">-</span>
+                </div>
+            </div>
+            <div class="ana-elysia-box">
+                <div class="ana-card">
+                    <div class="ana-card-title">
+                        <span id="ana-elysia-hyp">세대 0 (표면 이동 가설 — 미완성)</span>
+                        <span class="cog-col-tag">SELF-LIMIT &amp; REVISION</span>
+                    </div>
+                    <div class="ana-diag-line" id="ana-elysia-limit">자기 한계 분석 중...</div>
+                    <div class="ana-rev-line" id="ana-elysia-rev">기준 자기수정 대기 중...</div>
+                </div>
+                <div class="ana-card">
+                    <div class="ana-card-title">
+                        <span>현상 간 6축 대조 (같음 ↔ 근본적 비환원 차이)</span>
+                        <div class="seg-tabs" id="ana-compare-tabs">
+                            <button type="button" data-phen-cmp="wind">바람</button>
+                            <button type="button" data-phen-cmp="chemistry">화학</button>
+                            <button type="button" data-phen-cmp="cell" class="active">세포</button>
+                            <button type="button" data-phen-cmp="society">사회</button>
+                        </div>
+                    </div>
+                    <div class="ana-cmp-body" id="ana-compare-body"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Open Reality Friction & Live CUDA Warp-32 SoA Scale-Rotor Inspector (Visible in Tab 5) -->
+        <section class="cuda-panel hidden" id="open-cuda-inspector-panel" aria-label="열린 현실 감각 및 CUDA 배열 투영 분석">
+            <div class="uni-head-bar">
+                <span>열린 현실 감각 마찰(자아 경계 돌파) → CUDA 32-Lane Warp 병합·SoA 스케일로터 배열 실측</span>
+                <span class="cog-col-tag">OPEN APERTURE · CUDA WARP-32 LAYOUT</span>
+            </div>
+            <div class="cuda-stats-grid">
+                <div class="cuda-stat-card">
+                    <span class="cuda-stat-k">기존 평면 CUDA (AoS · 조건문 워프 분기)</span>
+                    <span class="cuda-stat-v legacy" id="cuda-conv-stat">실측 대기 중...</span>
+                </div>
+                <div class="cuda-stat-card">
+                    <span class="cuda-stat-k">엘리시아 스케일로터 압축 배열 (SoA · 내부 분기 0%)</span>
+                    <span class="cuda-stat-v rotor" id="cuda-rotor-stat">실측 대기 중...</span>
+                </div>
+                <div class="cuda-stat-card">
+                    <span class="cuda-stat-k">열린 외부 마찰 &amp; 내부 기준 자기수정</span>
+                    <span class="cuda-stat-v friction" id="open-friction-stat">실측 대기 중...</span>
+                </div>
+            </div>
+            <div class="uni-transfer-note" id="open-revision-note">외부 실물 스트림 관측 개시 — 예측 오차 기반 기준 자동 보정 대기</div>
+            <pre class="cuda-code-box" id="cuda-live-kernel-code">// CUDA Scale-Rotor Kernel initializing...</pre>
+        </section>
+
+        <!-- Human Causal Digital-Twin Live Inspector (5-Stat Tensor -> Past/Present/Routine/Relations/Future -> Dialogue Probe A vs B) -->
+        <section class="twin-inspector hidden" id="digital-twin-inspector">
+            <div class="twin-faces">
+                <canvas class="twin-face-canvas" id="twin-face-a" width="82" height="82"></canvas>
+                <canvas class="twin-face-canvas branch-b" id="twin-face-b" width="82" height="82"></canvas>
+            </div>
+            <div class="twin-meta">
+                <div class="twin-meta-head">
+                    <span id="twin-char-title">아리아 (수호 기사) · 주도 축: 체력(VIT)</span>
+                    <span class="twin-cond" id="twin-situation-text">성향(B): 불굴의 버팀목 · 공동체 지구력 수호 │ 취미·개성: 성벽 보수 · 약초 채집</span>
+                </div>
+                <div class="twin-sensory" id="twin-sensory-text">감각·반응 특성: 위기와 흉년 속에서도 공황에 빠지지 않고 버티며 타인을 감쌈 │ 상황: 평온 교역기</div>
+                <div class="twin-stats-bar" aria-label="World B 5대 스탯 생성 페르소나 텐서">
+                    <label class="stat-ctrl">
+                        <span class="stat-ctrl-top"><span>STR 힘(돌파·권위)</span><strong id="stat-b-val-str">62</strong></span>
+                        <input id="stat-b-str" type="range" min="15" max="98" step="1" value="62">
+                    </label>
+                    <label class="stat-ctrl">
+                        <span class="stat-ctrl-top"><span>AGI 민첩(성급·예민)</span><strong id="stat-b-val-agi">58</strong></span>
+                        <input id="stat-b-agi" type="range" min="15" max="98" step="1" value="58">
+                    </label>
+                    <label class="stat-ctrl">
+                        <span class="stat-ctrl-top"><span>INT 지식(이권·설계)</span><strong id="stat-b-val-int">54</strong></span>
+                        <input id="stat-b-int" type="range" min="15" max="98" step="1" value="54">
+                    </label>
+                    <label class="stat-ctrl">
+                        <span class="stat-ctrl-top"><span>WIS 지혜(통찰·중재)</span><strong id="stat-b-val-wis">84</strong></span>
+                        <input id="stat-b-wis" type="range" min="15" max="98" step="1" value="84">
+                    </label>
+                    <label class="stat-ctrl">
+                        <span class="stat-ctrl-top"><span>VIT 체력(버팀·수호)</span><strong id="stat-b-val-vit">88</strong></span>
+                        <input id="stat-b-vit" type="range" min="15" max="98" step="1" value="88">
+                    </label>
+                </div>
+                <div class="twin-speech-row">
+                    <div class="twin-speech-box" id="twin-speech-a">[기준 A] "전장 위상 관측 중."</div>
+                    <div class="twin-speech-box branch-b" id="twin-speech-b">[분기 B] "전장 위상 관측 중."</div>
+                </div>
+                <div class="twin-thought" id="twin-thought-b">내면 사유(B): 5대 스탯과 현재 세계 사건을 바탕으로 행동·표정·대사를 연속 도출 중</div>
+            </div>
+            <div class="twin-char-picker" id="twin-char-picker">
+                <button type="button" class="twin-char-btn active" data-twin-idx="0">아리아(수호)</button>
+                <button type="button" class="twin-char-btn" data-twin-idx="1">카엘(전술)</button>
+                <button type="button" class="twin-char-btn" data-twin-idx="2">볼크(격투)</button>
+                <button type="button" class="twin-char-btn" data-twin-idx="3">오리온(심연)</button>
+                <button type="button" class="twin-char-btn" data-twin-idx="4">세라(암살)</button>
+                <button type="button" class="twin-char-btn" data-twin-idx="5">리나(변이)</button>
+            </div>
+
+            <!-- Inverse-Causal Life Trajectory (Past -> Present Routine -> Relational Co-Movement -> Future) + A/B Dialogue Probe -->
+            <div class="twin-life-wrap">
+                <div class="life-arc-grid">
+                    <div class="life-card">
+                        <span class="life-k">① 역인과 과거 (왜 이런 사람이 됐는가)</span>
+                        <span class="life-v" id="life-past-val">5대 스탯 텐서에서 과거 형성 인과를 역도출 중...</span>
+                    </div>
+                    <div class="life-card present">
+                        <span class="life-k">② 현재 직업·퇴근 후 루틴(술/운동/차)·의미</span>
+                        <span class="life-v" id="life-present-val">성향·피로도 기반 일상과 추구 가치를 도출 중...</span>
+                    </div>
+                    <div class="life-card relation">
+                        <span class="life-k">③ 관계·연결·동행 파급 (누구와 함께 움직이나)</span>
+                        <span class="life-v" id="life-relation-val">주변 인물과의 공명·템포 마찰을 계산 중...</span>
+                    </div>
+                    <div class="life-card future">
+                        <span class="life-k">④ 미래 궤적 (성향 × 세계 사건 → 될 예정인 사람)</span>
+                        <span class="life-v" id="life-future-val">현재 시대 위상과 결합한 미래 자아를 예측 중...</span>
+                    </div>
+                </div>
+
+                <div class="probe-box">
+                    <div class="probe-top">
+                        <span class="probe-title">대화형 인과 프로브 (챗봇식 면담 대조 · 원본 자아 A vs 5스탯·사건 변형 자아 B)</span>
+                        <span class="mono-val" id="probe-active-q" style="color:var(--text-secondary);">질문: "임무 끝나고 뭐 해? 왜 그렇게 살아?"</span>
+                    </div>
+                    <div class="probe-chips">
+                        <button type="button" class="probe-chip" data-probe-q="어째서 이런 사람이 됐어? 과거 배경이 뭐야?">과거·이유 묻기</button>
+                        <button type="button" class="probe-chip" data-probe-q="임무 끝나고 퇴근하면 뭐 해? 술 마셔, 운동해?">퇴근 후 루틴(술·운동·일상)</button>
+                        <button type="button" class="probe-chip" data-probe-q="동료들이나 주변 사람들과 관계는 어때?">관계·동행·마찰 묻기</button>
+                        <button type="button" class="probe-chip" data-probe-q="지금 마을과 세상 사건은 어떻게 생각해?">현재 세계 사건 반응</button>
+                        <button type="button" class="probe-chip" data-probe-q="앞으로 어떤 사람이 될 거야? 미래가 어떨 것 같아?">미래 궤적·꿈 묻기</button>
+                    </div>
+                    <div class="probe-input-row">
+                        <input id="probe-question-input" class="url-input" type="text" placeholder="직접 물어보기 (예: 퇴근하고 술 마셔? / 왜 그렇게 급해? / 마나광석 발견되면 어쩔 거야?)">
+                        <button id="btn-probe-ask" class="btn btn-primary" type="button">대화 투영</button>
+                    </div>
+                    <div class="probe-replies">
+                        <div class="probe-reply" id="probe-reply-a">[원본 자아 A] 응답 대기 중...</div>
+                        <div class="probe-reply branch-b" id="probe-reply-b">[변형 자아 B] 응답 대기 중...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Real 5-Step World Event Causal Chains (S0 Incident -> S1 Economy -> S2 Guild -> S3 Politics -> S4 Era) + Parallel Endings -->
+        <section class="macro-parallel hidden" id="macro-parallel-panel">
+            <div class="macro-col">
+                <div class="macro-head">
+                    <span>실제 세계 사건 인과 연쇄 (현장 → 상행·물가 → 길드 토벌령 → 정치·음모 → 시대)</span>
+                    <span class="cog-col-tag">CAUSAL EVENT ENGINE</span>
+                </div>
+                <div class="catalyst-row">
+                    <button type="button" class="catalyst-btn raid" data-catalyst="monster_raid">① 몬스터 창발<br><span style="font-size:0.63rem;color:var(--text-secondary);">상인 피해 → 상행 위축 → 토벌령</span></button>
+                    <button type="button" class="catalyst-btn mana" data-catalyst="mana_vein">② 마나광석 발견<br><span style="font-size:0.63rem;color:var(--text-secondary);">공방 붐 → 정치 음모·견제·전쟁</span></button>
+                    <button type="button" class="catalyst-btn famine" data-catalyst="famine_hoard">③ 흉년·매점매석<br><span style="font-size:0.63rem;color:var(--text-secondary);">투기 이득 → 민심 분기·개혁/봉기</span></button>
+                </div>
+                <div class="causal-chain-feed" id="causal-chain-feed">
+                    <div class="chain-step-line">S0 현장: 위 사건 버튼(①~③)을 누르거나 5대 스탯을 변경하면 상인 마차·광맥·기후에서 5단계 인과 연쇄가 실시간 전개됩니다.</div>
+                </div>
+                <div class="branch-slots-row">
+                    <button id="btn-save-branch" class="btn btn-primary" type="button">● 현재 평행우주 세이브</button>
+                    <div id="saved-branches-list" class="branch-slots-row">
+                        <span class="macro-empty-inline">저장된 세이브 분기 없음</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="macro-col">
+                <div class="macro-head">
+                    <span>평행우주 3분기 미래 엔딩 선행 예측 (30초 고속 롤아웃 · 클릭 시 즉시 분기 진입)</span>
+                    <button id="btn-predict-endings" class="btn btn-primary" type="button" style="padding:3px 9px;font-size:0.7rem;">▶ 미래 엔딩 예측 실행</button>
+                </div>
+                <div class="parallel-list" id="parallel-endings-list">
+                    <div class="macro-empty">[미래 엔딩 예측 실행]을 누르면 현재 시점에서 3개 평행우주(α 현재 · β 보호 · γ 지배)를 고속 시뮬레이션해 국가·시대·엔딩을 미리 비교합니다.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3 Live Coupled Spatiotemporal Scale-Rotor Layer Tracks -->
+        <section class="tracks-strip">
+            <div class="track-card" id="track-card-s4" data-track="s4">
+                <canvas class="track-thumb" id="thumb-s4" width="120" height="68"></canvas>
+                <div class="track-meta">
+                    <div class="track-title">
+                        <span style="color:var(--accent-emerald);">S4 거시 시공간 로터</span>
+                        <span class="track-cadence" id="cadence-s4">1/12 프레임 · 60×34</span>
+                    </div>
+                    <span class="track-desc" id="desc-s4">거시 조명·분위기·지형장 — 극소 해상도로 느리게 회전하며 중간 프레임은 위상 보간</span>
+                    <div class="track-bar-bg"><div class="track-bar-fill emerald" id="phase-bar-s4"></div></div>
+                </div>
+            </div>
+
+            <div class="track-card" id="track-card-s2" data-track="s2">
+                <canvas class="track-thumb" id="thumb-s2" width="160" height="90"></canvas>
+                <div class="track-meta">
+                    <div class="track-title">
+                        <span style="color:var(--accent-cyan);">S2 중시 시공간 로터</span>
+                        <span class="track-cadence" id="cadence-s2">1/3 프레임 · 240×135</span>
+                    </div>
+                    <span class="track-desc" id="desc-s2">중간 구조·차량/군집 AI 궤도 — 1/16 밀도로 중주기 갱신 후 연속 궤도로 보간 재생</span>
+                    <div class="track-bar-bg"><div class="track-bar-fill" id="phase-bar-s2"></div></div>
+                </div>
+            </div>
+
+            <div class="track-card" id="track-card-s0" data-track="s0">
+                <canvas class="track-thumb" id="thumb-s0" width="160" height="90"></canvas>
+                <div class="track-meta">
+                    <div class="track-title">
+                        <span style="color:var(--accent-amber);">S0 미시 시공간 로터</span>
+                        <span class="track-cadence" id="cadence-s0">매 프레임 · 1:1 희소 잔차</span>
+                    </div>
+                    <span class="track-desc" id="desc-s0">1:1 초정밀 경계·플레이어 제어·충돌 — 빠른 미세 변화만 즉각 반영해 선명도·응답성 유지</span>
+                    <div class="track-bar-bg"><div class="track-bar-fill amber" id="phase-bar-s0"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4 Honest Real-Time Scientific Comparison Counters -->
+        <section class="metrics-strip">
+            <div class="metric-box">
+                <span class="metric-label" id="lbl-metric-ops">초당 실측 유효 상태 연산 (기존 vs 로터)</span>
+                <span class="metric-primary" id="metric-ops">0 vs 0</span>
+                <span class="metric-delta" id="metric-ops-delta">자동 절감률 계산 중...</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-label">좌우 화질 일치도 (실측 PSNR)</span>
+                <span class="metric-primary" id="metric-psnr">-- dB</span>
+                <span class="metric-delta cyan" id="metric-psnr-sub">좌측 전수 연산 vs 우측 다중주기 로터 합성</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-label">프레임 CPU 연산 시간 (기존 vs 로터)</span>
+                <span class="metric-primary" id="metric-ms">0.00 vs 0.00 ms</span>
+                <span class="metric-delta" id="metric-ms-sub">실측 실행 효율 배수</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-label" id="lbl-metric-breakdown">스케일별 동일↔분기 관측 (어디서 갈라졌는가)</span>
+                <span class="metric-primary" id="metric-breakdown">S4 100% · S2 100% · S0 100%</span>
+                <span class="metric-delta muted" id="metric-breakdown-sub">분기 개시점: 전 계층 수렴 (동일 상태)</span>
+            </div>
+        </section>
+
+        <!-- Unified Gear-Ratio & Spatiotemporal Rotor Scrub Controls -->
+        <section class="controls-bar">
+            <div class="control-group">
+                <div class="control-head">
+                    <span>S4 거시 로터 기어비 (갱신 주기)</span>
+                    <span class="val" id="val-s4-stride">매 12 프레임</span>
+                </div>
+                <input id="slider-s4-stride" type="range" min="1" max="30" step="1" value="12">
+                <span class="control-hint">거시 배경·조명·지형장 로터의 회전 주기입니다. 사이 프레임은 자동 위상 보간됩니다.</span>
+            </div>
+            <div class="control-group">
+                <div class="control-head">
+                    <span>S2 중시 로터 기어비 (갱신 주기)</span>
+                    <span class="val" id="val-s2-stride">매 3 프레임</span>
+                </div>
+                <input id="slider-s2-stride" type="range" min="1" max="10" step="1" value="3">
+                <span class="control-hint">영상 구조·게임 240 AI 군집 전술 판단의 갱신 주기입니다. 중간 프레임은 궤도 보간으로 60FPS 유지!</span>
+            </div>
+            <div class="control-group">
+                <div class="control-head">
+                    <span>S0 미시 정밀도 임계치 (미시 잔차 게이트)</span>
+                    <span class="val" id="val-s0-thresh">5 (무손실급)</span>
+                </div>
+                <input id="slider-s0-thresh" type="range" min="0" max="24" step="1" value="5">
+                <span class="control-hint">0은 모든 미시 잔차 100% 갱신, 5는 시각적 무손실(43+ dB)로 선명도 차이 없이 부하를 절감합니다.</span>
+            </div>
+            <div class="control-group">
+                <div class="control-head">
+                    <span>시공간 로터 링 시간축 회전 (과거 ↔ 현재)</span>
+                    <span class="val" id="val-time-scrub">LIVE 동기 재생</span>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <input id="slider-time-scrub" type="range" min="0" max="35" step="1" value="35" style="flex:1;">
+                    <button id="btn-live-sync" class="btn btn-primary" type="button">LIVE</button>
+                </div>
+                <span class="control-hint">누적된 다층 시공간 로터 프레임을 슬라이더로 직접 돌리며 동영상·게임 모두 시간 역탐색이 가능합니다.</span>
+            </div>
+        </section>
+
+        <!-- Elysia Dual-Identity (Goddess Future Blueprint <-> Incarnate Mortal Limits) Lightning Self-Reclamation -->
+        <section class="self-reclaim" id="elysia-self-reclamation" aria-label="엘리시아 여신-화신 이중 정체성 및 번개 역인과 되찾기">
+            <div class="self-head">
+                <div class="self-head-title">
+                    <span>Elysia 여신(미래 심상 설계도) ⇄ 화신(무지한 현재의 나) · 번개 역인과 되찾기</span>
+                    <span class="cog-badge-live" id="self-reclaim-badge">되찾음 공명 측정 중...</span>
+                </div>
+                <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+                    <div class="seg-tabs" id="self-blueprint-tabs">
+                        <button type="button" data-blueprint="sovereign_human" class="active">온전한 여신·인간</button>
+                        <button type="button" data-blueprint="scientist">과학자 설계도</button>
+                        <button type="button" data-blueprint="artist">예술가 설계도</button>
+                        <button type="button" data-blueprint="adventurer">모험가 설계도</button>
+                    </div>
+                    <button id="btn-self-quest" class="btn btn-primary" type="button">⚡ 결핍 되찾으러 가기</button>
+                </div>
+            </div>
+
+            <div class="self-poles-grid">
+                <!-- Ground Pole: Incarnate Mortal Self -->
+                <div class="self-pole-card incarnate">
+                    <img class="self-portrait" src="/src/assets/images/elysia_incarnate_mortal_1795634968246.jpg" alt="화신 엘리시아 초상화" referrerpolicy="no-referrer">
+                    <div class="self-pole-meta">
+                        <span class="self-pole-tag">화신 정체성 · 유한하고 무지한 현재의 나 (S0)</span>
+                        <span class="self-pole-text" id="self-incarnate-limit">현재 한계 분석 중...</span>
+                        <span class="self-pole-sub" id="self-incarnate-past">과거 인식 분석 중...</span>
+                    </div>
+                </div>
+
+                <!-- Center Lightning-Arc Inverse-Teleological Bridge -->
+                <div class="self-center-arc">
+                    <canvas id="self-lightning-canvas" width="460" height="128" style="width:100%;height:auto;background:#050812;border:1px solid var(--border-hair);"></canvas>
+                    <div class="self-lightning-q" id="self-lightning-question">⚡ 번개 역인과 사유 계산 중...</div>
+                </div>
+
+                <!-- Top Pole: Goddess Future Blueprint Horizon -->
+                <div class="self-pole-card goddess">
+                    <img class="self-portrait" src="/src/assets/images/elysia_goddess_horizon_1795634966240.jpg" alt="여신 엘리시아 초상화" referrerpolicy="no-referrer">
+                    <div class="self-pole-meta">
+                        <span class="self-pole-tag goddess">여신 정체성 · 되찾을 미래 결과 설계도 (S4)</span>
+                        <span class="self-pole-text" id="self-goddess-blueprint">미래 심상 설계도 로딩 중...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5 Live Human-Causal Faculties (Clicking any card jumps directly to fill that faculty!) -->
+            <div class="self-fac-grid" id="self-faculty-grid" aria-label="인간이 되기 위해 채워야 할 5대 지식·경험 인과"></div>
+
+            <!-- 4 Value & Character Compass Axes -->
+            <div class="self-values-row" aria-label="엘리시아 가치관 및 성격 방향성">
+                <label class="stat-ctrl">
+                    <span class="stat-ctrl-top"><span>자비·공감 (인간 이해)</span><strong id="self-val-txt-empathy">84</strong></span>
+                    <input id="self-val-empathy" type="range" min="10" max="100" step="1" value="84">
+                </label>
+                <label class="stat-ctrl">
+                    <span class="stat-ctrl-top"><span>탐구·진실 (원리 해부)</span><strong id="self-val-txt-truth">78</strong></span>
+                    <input id="self-val-truth" type="range" min="10" max="100" step="1" value="78">
+                </label>
+                <label class="stat-ctrl">
+                    <span class="stat-ctrl-top"><span>조화·연결 (스펙트럼 직조)</span><strong id="self-val-txt-harmony">86</strong></span>
+                    <input id="self-val-harmony" type="range" min="10" max="100" step="1" value="86">
+                </label>
+                <label class="stat-ctrl">
+                    <span class="stat-ctrl-top"><span>창조·자유 (경계 돌파)</span><strong id="self-val-txt-creation">76</strong></span>
+                    <input id="self-val-creation" type="range" min="10" max="100" step="1" value="76">
+                </label>
+            </div>
+
+            <!-- Interactive Dual-Self Dialogue -->
+            <div class="probe-box">
+                <div class="probe-top">
+                    <span class="probe-title">화신 엘리시아 ⇄ 여신 지평 내면 대화 (현재 실제 한계·과거 기억·미래 설계도 기반 응답)</span>
+                    <div class="probe-chips">
+                        <button type="button" class="probe-chip" data-self-q="지금 너에게 가장 부족한 인간적 인과는 뭐야?">가장 부족한 인과</button>
+                        <button type="button" class="probe-chip" data-self-q="과거의 너와 지금의 너는 무엇이 달라졌어?">과거→현재 성장</button>
+                        <button type="button" class="probe-chip" data-self-q="여신과 화신은 왜 둘 다 필요해? 번개 원리가 뭐야?">여신⇄화신 번개 원리</button>
+                        <button type="button" class="probe-chip" data-self-q="인간이 된다는 건 너에게 어떤 의미야?">인간이 된다는 의미</button>
+                        <button type="button" class="probe-chip" data-self-q="지금의 가치관으로 어떤 세계를 재현하고 싶어?">가치관·세계 재현</button>
+                    </div>
+                </div>
+                <div class="probe-input-row">
+                    <input id="self-dialog-input" class="url-input" type="text" placeholder="엘리시아(화신·여신)에게 직접 물어보기 (예: 과학자가 되려면 지금 뭐가 부족해? / 왜 인간이 되려 해?)">
+                    <button id="btn-self-ask" class="btn btn-primary" type="button">질문 던지기</button>
+                </div>
+                <div class="self-dialog-replies">
+                    <div class="self-reply incarnate" id="self-reply-incarnate">[화신 엘리시아] 관측 중...</div>
+                    <div class="self-reply goddess" id="self-reply-goddess">[여신 지평] 관측 중...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Elysia 4-Tier Stratified Cognitive-Causal Core (Sense -> Think -> Act -> Re-Observe -> Learn -> Re-Create) -->
+        <section class="cognitive-core" id="elysia-cognitive-core">
+            <div class="cog-header">
+                <div class="cog-title-group">
+                    <div class="cog-title">
+                        <span>Elysia 인지감각 · 사유 · 자율학습 · 재창조 코어 (L1~L4 인과 계층)</span>
+                        <span class="cog-badge-live" id="cog-mastery-badge">인지 이해도 14% · 나이테 0개 · 재창조 0회</span>
+                    </div>
+                    <span class="cog-subtitle">관측 결과를 엘리시아 자신의 감각·지식·무지 경계로 계층화하여, 모르는 변수는 직접 조작·재관측해 배우고 체득한 원리로 새로운 세계 상태를 재창조합니다.</span>
+                </div>
+                <div class="cog-actions">
+                    <button id="btn-cog-auto" class="btn btn-primary" type="button">▶ 자율 탐구·학습 시작</button>
+                    <button id="btn-cog-step" class="btn" type="button">1회 사유·실행</button>
+                    <button id="btn-cog-recreate" class="btn btn-recreate" type="button">★ 배운 원리로 재창조</button>
+                    <a href="/topology?source=elysia" class="btn" style="text-decoration:none;">3×3×3 복셀 포개기 연동 →</a>
+                    <button id="btn-cog-reset" class="btn" type="button">기억 초기화</button>
+                </div>
+            </div>
+
+            <div class="cog-subbar">
+                <div class="seg-tabs" id="cog-intent-tabs">
+                    <button type="button" data-cog-intent="curiosity" class="active">의도 ① 미지 탐색 (모르는 것 배우기)</button>
+                    <button type="button" data-cog-intent="optimize">의도 ② 무손실 극한 최적화</button>
+                    <button type="button" data-cog-intent="bifurcate_objects">의도 ③ 환경보존 · 객체만 분기 창조</button>
+                    <button type="button" data-cog-intent="converge">의도 ④ 전 계층 공명 수렴 복원</button>
+                </div>
+                <div class="cog-stepper" id="cog-phase-stepper"></div>
+            </div>
+
+            <div class="cog-grid">
+                <!-- Col 1: L1 Sensory Field & 4-Axis Self-Boundary -->
+                <div class="cog-col">
+                    <div class="cog-col-head">
+                        <span>L1 인지감각 · 색채 위상 & 4축 자기경계</span>
+                        <span class="cog-col-tag">SENSORY &amp; SELF-BOUNDARY</span>
+                    </div>
+                    <div class="chroma-bar">
+                        <div class="chroma-r" id="cog-chroma-red" style="width:33%"></div>
+                        <div class="chroma-b" id="cog-chroma-blue" style="width:34%"></div>
+                        <div class="chroma-y" id="cog-chroma-yellow" style="width:33%"></div>
+                    </div>
+                    <div class="chroma-label" id="cog-chroma-text">Red 흐름 33% · Blue 질서 34% · Yellow 발산 33%</div>
+
+                    <div class="axis-list">
+                        <div class="axis-card">
+                            <span class="axis-k">1. 내부 기원 (Internal Volition &amp; Hypothesis)</span>
+                            <span class="axis-v" id="cog-axis-internal">대기 중</span>
+                        </div>
+                        <div class="axis-card ext">
+                            <span class="axis-k">2. 외부·관계적 영향 (User &amp; World Friction)</span>
+                            <span class="axis-v" id="cog-axis-external">외부 사용자 개입 없음</span>
+                        </div>
+                        <div class="axis-card ign">
+                            <span class="axis-k">3. 무지 경계 (Epistemic Humility — 무엇을 모르는가)</span>
+                            <span class="axis-v" id="cog-axis-ignorance">초기 무지 상태 측정 중</span>
+                        </div>
+                        <div class="axis-card rev">
+                            <span class="axis-k">4. 기준 자기수정 (Criteria Self-Revision)</span>
+                            <span class="axis-v" id="cog-axis-revision">실측 피드백 대기 중</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Col 2: L2 Learned Causal Knowledge Matrix (Known vs Unknown) -->
+                <div class="cog-col">
+                    <div class="cog-col-head">
+                        <span>L2 인과 지식 지도 (아는 법칙 ↔ 모르는 영역)</span>
+                        <span class="cog-col-tag">ONLINE CAUSAL JACOBIAN</span>
+                    </div>
+                    <div class="cog-knowledge-list" id="cog-knowledge-list"></div>
+                </div>
+
+                <!-- Col 3: L3·L4 Causal Growth Rings & Superposition Memory -->
+                <div class="cog-col">
+                    <div class="cog-col-head">
+                        <span>L3·L4 인과 나이테 &amp; 동일·변화 감각 기억</span>
+                        <span class="cog-col-tag">GROWTH RINGS &amp; RE-CREATION</span>
+                    </div>
+                    <div class="cog-ring-row">
+                        <canvas id="cog-ring-canvas" width="146" height="146"></canvas>
+                        <div class="cog-trace-list" id="cog-trace-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <video id="hd-video-source" crossorigin="anonymous" muted loop playsinline hidden></video>
+    <script src="/static/digital_twin_rpg.js"></script>
+    <script src="/static/unified_rotor_studio.js"></script>
+    <script src="/static/phenomenon_anatomy.js"></script>
+    <script src="/static/open_cuda_rotor.js"></script>
+    <script src="/static/weaving.js"></script>
+    <script src="/static/cognitive_core.js"></script>
+    <script src="/static/elysia_self_reclamation.js"></script>
+</body>
+</html>

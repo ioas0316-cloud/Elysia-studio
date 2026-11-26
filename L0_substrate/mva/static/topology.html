@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elysia — 3×3×3 가상메모리 복셀 포개기 · 통신 배열 분기 탐색실</title>
+    <meta name="description" content="CPU L1 캐시·GPU VRAM·RAM·NVMe SSD 메모리 계층을 3×3×3 최소 단위 복셀과 동심 링버퍼로 가상화하고, 두 상태 A·B를 포개어 어디서부터 무엇이 같고 달라지는지 단번에 탐색하는 위상 실험실">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #07090E;
+            --bg-panel: #0F1420;
+            --bg-inset: #0A0E17;
+            --border-hair: #1E293B;
+            --border-strong: #334155;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --accent-cyan: #06B6D4;
+            --accent-amber: #F59E0B;
+            --accent-emerald: #10B981;
+            --accent-rose: #F43F5E;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            height: 100%;
+            background: var(--bg-void);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
+
+        header.topbar {
+            height: 52px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 16px;
+            padding: 0 20px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-hair);
+        }
+        .brand { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+        .brand-mark { width: 8px; height: 8px; background: var(--accent-cyan); }
+        .brand-title { font-size: 0.92rem; font-weight: 700; letter-spacing: -0.01em; }
+        .brand-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            border-left: 1px solid var(--border-hair);
+            padding-left: 10px;
+        }
+        nav.topnav { display: flex; align-items: center; justify-content: center; gap: 4px; }
+        nav.topnav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 500;
+            padding: 6px 12px;
+            border: 1px solid transparent;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
+        }
+        nav.topnav a:hover { color: var(--text-primary); border-color: var(--border-hair); }
+        nav.topnav a.active {
+            color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.08);
+            border-color: rgba(6, 182, 212, 0.35);
+        }
+        .top-actions { display: flex; align-items: center; gap: 8px; }
+
+        .btn {
+            font-family: var(--font-sans);
+            font-size: 0.73rem;
+            font-weight: 600;
+            padding: 6px 10px;
+            border: 1px solid var(--border-strong);
+            background: var(--bg-inset);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: border-color 0.15s, color 0.15s, background 0.15s;
+            white-space: nowrap;
+        }
+        .btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+        .btn.active {
+            background: rgba(6, 182, 212, 0.14);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+        .btn-primary {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: #041016;
+        }
+        .btn-primary:hover { background: #22d3ee; color: #041016; }
+
+        main.workbench {
+            height: calc(100vh - 52px);
+            display: grid;
+            grid-template-columns: 316px 1fr 358px;
+            overflow: hidden;
+        }
+        aside.panel {
+            background: var(--bg-panel);
+            overflow-y: auto;
+            padding: 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+        }
+        aside.panel-left { border-right: 1px solid var(--border-hair); }
+        aside.panel-right { border-left: 1px solid var(--border-hair); }
+
+        .section-block {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            padding-bottom: 11px;
+            border-bottom: 1px solid var(--border-hair);
+        }
+        .section-block:last-child { border-bottom: none; padding-bottom: 0; }
+        .sec-title {
+            font-size: 0.73rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .sec-sub { font-size: 0.69rem; color: var(--text-muted); line-height: 1.38; }
+        .mono-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .seg-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border: 1px solid var(--border-strong);
+        }
+        .seg-row button {
+            background: var(--bg-inset);
+            border: none;
+            border-right: 1px solid var(--border-hair);
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-size: 0.71rem;
+            font-weight: 600;
+            padding: 6px 4px;
+            cursor: pointer;
+        }
+        .seg-row button:last-child { border-right: none; }
+        .seg-row button.active { background: rgba(6, 182, 212, 0.14); color: var(--accent-cyan); }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 5px;
+        }
+        .scenario-grid .btn { text-align: left; padding: 7px 9px; font-size: 0.72rem; }
+        .cut-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+        .cut-grid .btn { text-align: center; padding: 6px; font-size: 0.71rem; }
+        .cut-grid .btn.full-span { grid-column: 1 / -1; }
+
+        .slice-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 4px;
+            align-items: center;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 4px 6px;
+        }
+        .slice-name { font-size: 0.71rem; font-family: var(--font-mono); color: var(--text-secondary); }
+        .rot-btn {
+            font-family: var(--font-mono);
+            font-size: 0.69rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        .rot-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
+        .data-input {
+            width: 100%;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.71rem;
+            padding: 6px 8px;
+            outline: none;
+        }
+        .data-input:focus { border-color: var(--accent-cyan); }
+        input[type="range"] { width: 100%; accent-color: var(--accent-cyan); cursor: pointer; }
+
+        /* Center 3D Superposition Stage */
+        section.stage {
+            position: relative;
+            background: radial-gradient(circle at 50% 45%, #0e1628 0%, #07090e 74%);
+            overflow: hidden;
+        }
+        #three-container { width: 100%; height: 100%; display: block; }
+        .stage-hud-top {
+            position: absolute;
+            top: 12px;
+            left: 14px;
+            right: 14px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .stage-hud-bottom {
+            position: absolute;
+            bottom: 12px;
+            left: 14px;
+            right: 14px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .hud-chip {
+            background: rgba(10, 14, 23, 0.85);
+            border: 1px solid var(--border-hair);
+            padding: 6px 10px;
+            font-family: var(--font-mono);
+            font-size: 0.71rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+        .hud-chip strong { color: var(--accent-cyan); }
+        .hud-chip .diff-hi { color: var(--accent-amber); font-weight: 600; }
+        .hud-chip .same-hi { color: var(--accent-emerald); font-weight: 600; }
+
+        /* Right Panel: Memory Hierarchy Superposition Breakdown + Diff Spectrum + 3x3 A->B Matrix */
+        .tier-list { display: flex; flex-direction: column; gap: 6px; }
+        .tier-card {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 7px 9px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .tier-card.has-diff { border-color: rgba(245, 158, 11, 0.55); }
+        .tier-head {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+        }
+        .tier-bar {
+            height: 6px;
+            background: #162033;
+            display: flex;
+            overflow: hidden;
+        }
+        .tier-bar-same { background: var(--accent-emerald); height: 100%; }
+        .tier-bar-diff { background: var(--accent-amber); height: 100%; }
+        .tier-foot {
+            font-size: 0.67rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .spectrum-wrap {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 7px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        #spectrum-canvas {
+            width: 100%;
+            height: 146px;
+            display: block;
+            background: #04070c;
+            border: 1px solid #162033;
+        }
+
+        .matrix-3x3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .matrix-cell {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 5px 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+        }
+        .matrix-cell.is-diff {
+            border-color: rgba(245, 158, 11, 0.7);
+            background: rgba(245, 158, 11, 0.08);
+        }
+        .matrix-cell.is-same {
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+        .cell-top { display: flex; justify-content: space-between; font-size: 0.64rem; color: var(--text-muted); }
+        .cell-val { font-size: 0.73rem; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cell-diff-tag { font-size: 0.63rem; color: var(--accent-emerald); }
+        .matrix-cell.is-diff .cell-diff-tag { color: var(--accent-amber); }
+
+        @media (max-width: 1180px) {
+            html, body { overflow: auto; }
+            main.workbench { height: auto; grid-template-columns: 1fr; }
+            section.stage { height: 520px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-mark"></span>
+            <span class="brand-title">Elysia 3×3×3 Virtual Memory Voxel Lab</span>
+            <span class="brand-sub">CPU Cache · GPU VRAM · RAM · SSD 포개기 비교 대조</span>
+        </div>
+        <nav class="topnav">
+            <a href="/">시공간 로터 실증</a>
+            <a href="/topology" class="active">위상 실험실</a>
+            <a href="/dashboard">공명 대시보드</a>
+            <a href="/manifestation">거울 프로토콜</a>
+            <a href="/roadmap">로드맵</a>
+        </nav>
+        <div class="top-actions">
+            <button id="btn-sync-ab" class="btn" type="button">A=B 완전 동일화</button>
+            <button id="btn-reset-lab" class="btn btn-primary" type="button">시나리오 초기화</button>
+        </div>
+    </header>
+
+    <main class="workbench">
+        <!-- LEFT PANEL: Superposition Overlay, Virtual Memory Bus Scenarios, Slice Rotation & Morph -->
+        <aside class="panel panel-left">
+            <div class="section-block">
+                <div class="sec-title">
+                    <span>1. A↔B 포개기 대조 (Superposition)</span>
+                    <span class="mono-badge" id="val-superpose">100% 포개기</span>
+                </div>
+                <div class="seg-row" id="superpose-presets">
+                    <button type="button" data-sup="0">나란히 분리</button>
+                    <button type="button" data-sup="50">반겹침</button>
+                    <button type="button" data-sup="100" class="active">단일 포개기</button>
+                </div>
+                <input id="slider-superpose" type="range" min="0" max="100" step="1" value="100">
+                <p class="sec-sub">기준 메모리(A)와 변화·통신 후 메모리(B)를 포개면 <strong>동일 복셀은 투명 유리</strong>로 가라앉고 <strong>달라진 계층·데이터 이동 경로만 즉시 발광</strong>합니다.</p>
+            </div>
+
+            <div class="section-block">
+                <div class="sec-title">
+                    <span>2. 가상메모리 데이터 이동·통신 시나리오</span>
+                </div>
+                <div class="scenario-grid" id="scenario-btns">
+                    <button type="button" class="btn active" data-scen="ssd_to_gpu">① SSD → RAM → GPU 모델 가중치 로드</button>
+                    <button type="button" class="btn" data-scen="gpu_cpu_burst">② GPU VRAM ↔ CPU L1 실시간 프레임 버스트</button>
+                    <button type="button" class="btn" data-scen="ram_cascade">③ 단일 RAM 주소 변이 → 내측 계층 분기 파급</button>
+                    <button type="button" class="btn" data-scen="bus_swap">④ PCIe·메모리 버스 수평 단면 전체 치환</button>
+                    <button type="button" class="btn" data-scen="elysia_cognitive">⑤ 엘리시아 인지·재창조 인과장 (L1~L4 실시간 연동)</button>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:4px;margin-top:2px;">
+                    <input id="input-arr-a" class="data-input" type="text" placeholder="직접 대조할 기준 배열 A 입력 (쉼표/공백 구분)">
+                    <input id="input-arr-b" class="data-input" type="text" placeholder="직접 포갤 비교 배열 B 입력 후 Enter">
+                </div>
+            </div>
+
+            <div class="section-block">
+                <div class="sec-title">
+                    <span>3. 배열 형태 전환 & 단면 절단</span>
+                    <span class="mono-badge" id="val-morph-pct">0% 복셀</span>
+                </div>
+                <div class="seg-row" id="morph-presets">
+                    <button type="button" data-morph="0" class="active">3×3×3 복셀</button>
+                    <button type="button" data-morph="50">동심 링버퍼</button>
+                    <button type="button" data-morph="100">연속 구면장</button>
+                </div>
+                <input id="slider-morph" type="range" min="0" max="100" step="1" value="0">
+
+                <div class="cut-grid" id="cut-mode-btns" style="margin-top:4px;">
+                    <button type="button" class="btn active full-span" data-cut="unified">통합 가상메모리 복셀</button>
+                    <button type="button" class="btn" data-cut="shells">메모리 4계층 쉘 분화</button>
+                    <button type="button" class="btn" data-cut="slice-y">수평 3단면 절단</button>
+                    <button type="button" class="btn" data-cut="slice-x">수직 3단면 절단</button>
+                    <button type="button" class="btn" data-cut="octants">부피 8분화 (L1 노출)</button>
+                </div>
+                <input id="slider-cut-gap" type="range" min="0" max="1" step="0.02" value="0">
+            </div>
+
+            <div class="section-block">
+                <div class="sec-title">
+                    <span>4. 상태 B 단면 회전 (즉시 분기 실험)</span>
+                    <span class="mono-badge" id="val-rot-count">B 회전 0회</span>
+                </div>
+                <div class="slice-row">
+                    <span class="slice-name">수평 상단 Y=+1</span>
+                    <button class="rot-btn" type="button" data-rot="y:1:-1">-90°</button>
+                    <button class="rot-btn" type="button" data-rot="y:1:1">+90°</button>
+                </div>
+                <div class="slice-row">
+                    <span class="slice-name">수평 중앙 Y=0 (L1/VRAM)</span>
+                    <button class="rot-btn" type="button" data-rot="y:0:-1">-90°</button>
+                    <button class="rot-btn" type="button" data-rot="y:0:1">+90°</button>
+                </div>
+                <div class="slice-row">
+                    <span class="slice-name">수직 우측 X=+1</span>
+                    <button class="rot-btn" type="button" data-rot="x:1:-1">-90°</button>
+                    <button class="rot-btn" type="button" data-rot="x:1:1">+90°</button>
+                </div>
+                <div class="slice-row">
+                    <span class="slice-name">깊이 전면 Z=+1</span>
+                    <button class="rot-btn" type="button" data-rot="z:1:-1">-90°</button>
+                    <button class="rot-btn" type="button" data-rot="z:1:1">+90°</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER 3D STAGE -->
+        <section class="stage">
+            <div id="three-container"></div>
+            <div class="stage-hud-top">
+                <div class="hud-chip" id="hud-summary">포개기 진단: <span class="same-hi">동일 0/27</span> · <span class="diff-hi">변화·분기 0/27</span></div>
+                <div class="hud-chip">메모리 계층: <strong>L1(r=0) · VRAM(r=1) · RAM(r=√2) · SSD(r=√3)</strong></div>
+            </div>
+            <div class="stage-hud-bottom">
+                <div class="hud-chip">투명 유리 = A·B 완전 동일 · 주황/적색 발광 = 변화·분기 발생 · 시안 아크 = 계층간 데이터 통신 이동</div>
+                <div class="hud-chip" id="hud-origin-badge">분기 범위: <strong>탐지 중</strong></div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: Instant Memory Tier Diff + Continuous Delta Spectrum + 3x3 A->B Matrix -->
+        <aside class="panel panel-right">
+            <div class="section-block">
+                <div class="sec-title">
+                    <span>어디서부터 어디까지 같고 달라졌는가</span>
+                    <span class="mono-badge" id="val-total-match">동일률 --%</span>
+                </div>
+                <div class="tier-list" id="tier-breakdown-host"></div>
+            </div>
+
+            <div class="section-block">
+                <div class="sec-title">
+                    <span>연속 차이 스펙트럼 단면 ΔS(r, θ, φ)</span>
+                    <span class="mono-badge" id="val-probe-depth">단면 Y = 0.00</span>
+                </div>
+                <div class="spectrum-wrap">
+                    <canvas id="spectrum-canvas" width="310" height="146"></canvas>
+                    <input id="slider-probe-depth" type="range" min="-1" max="1" step="0.02" value="0">
+                </div>
+                <p class="sec-sub">청록색 영역은 A·B 동일 불변 구간, 주황·적색 영역은 데이터 이동·분기가 발생한 연속 스펙트럼 구간입니다.</p>
+            </div>
+
+            <div class="section-block">
+                <div class="sec-title">
+                    <span>활성 3×3 단면 A → B 주소 대조표</span>
+                    <div class="seg-row" id="inspect-layer-tabs" style="width:128px;">
+                        <button type="button" data-inspect-y="1">Y+1</button>
+                        <button type="button" data-inspect-y="0" class="active">Y 0</button>
+                        <button type="button" data-inspect-y="-1">Y-1</button>
+                    </div>
+                </div>
+                <div class="matrix-3x3" id="matrix-3x3-host"></div>
+            </div>
+        </aside>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="/static/topology.js"></script>
+</body>
+</html>
