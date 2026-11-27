@@ -3,1069 +3,2790 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elysia Scale-Rotor — 4K 통합 시공간·존재·환경 재조합 공명장</title>
-    <meta name="description" content="4K UHD GPU 광학·음향 스펙트럼, 3D 반증 공간장, 디지털 트윈 행위, 6축 존재·현상 인과 해부, 세계수 나이테, 하드웨어 메모리·CUDA 로터를 단일 연속장으로 통합하고 환경에 따라 실시간 재분류·재조합하는 Elysia 스케일로터 엔진.">
-    <meta property="og:title" content="Elysia Scale-Rotor Unified Field">
-    <meta property="og:description" content="Unified 4K UHD Scale-Rotor Continuum integrating GPU optical decomposition, 3D falsification geometry, coupled digital-twin dynamics, 6-axis ontological anatomy, World Tree growth rings, and CUDA Warp-32 memory compaction.">
+    <title>Elysia Scale-Rotor Causal Engine</title>
+    <meta name="description" content="Interactive 3D Cognitive CAD and 5-scale fractal rotor hierarchy (S0-S4) visualizer with continuous causal field resonance.">
+    <meta property="og:title" content="Elysia Scale-Rotor Causal Engine">
+    <meta property="og:description" content="Interactive 3D Cognitive CAD and 5-scale fractal rotor hierarchy (S0-S4) visualizer with continuous causal field resonance.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "/vendor/three/build/three.module.js",
+            "three/addons/": "/vendor/three/examples/jsm/"
+        }
+    }
+    </script>
     <style>
         :root {
-            --bg-canvas: #060910;
-            --bg-surface: #0C111C;
-            --bg-elevated: #111827;
-            --bg-inset: #080C15;
-            --border-hair: #1E293B;
-            --border-strong: #334155;
-            --text-primary: #F8FAFC;
+            --bg-canvas: #07090E;
+            --bg-panel: #0D121C;
+            --bg-inset: #090C14;
+            --border-hair: #1B2435;
+            --border-strong: #2C3B55;
+            --text-primary: #F1F5F9;
             --text-secondary: #94A3B8;
             --text-muted: #64748B;
-            --accent: #06B6D4;
-            --accent-soft: rgba(6, 182, 212, 0.14);
-            --emerald: #10B981;
+            --cyan: #06B6D4;
+            --cyan-dim: rgba(6, 182, 212, 0.14);
             --amber: #F59E0B;
-            --rose: #F43F5E;
-            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-mono: 'IBM Plex Mono', monospace;
+            --amber-dim: rgba(245, 158, 11, 0.14);
+            --crimson: #F43F5E;
+            --crimson-dim: rgba(244, 63, 94, 0.14);
+            --emerald: #10B981;
+            --emerald-dim: rgba(16, 185, 129, 0.14);
+            --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
-            min-height: 100%;
+            height: 100%;
             background: var(--bg-canvas);
             color: var(--text-primary);
             font-family: var(--font-sans);
             -webkit-font-smoothing: antialiased;
-            letter-spacing: 0.01em;
+            font-size: 13px;
+            line-height: 1.45;
         }
-        button, input, select { font-family: inherit; }
-        button:focus-visible, input:focus-visible, a:focus-visible {
-            outline: 2px solid var(--accent);
-            outline-offset: 2px;
+        button, input, textarea { font-family: inherit; color: inherit; }
+        button:focus-visible, input:focus-visible, textarea:focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 1px;
+        }
+        .mono {
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
         }
 
-        /* 3-Zone Top Bar Contract */
-        header.topbar {
-            height: 54px;
+        /* Application Frame */
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Telemetry Ribbon (48px) */
+        header.telemetry-ribbon {
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 32px;
-            padding: 0 24px;
-            background: var(--bg-surface);
+            gap: 16px;
+            padding: 0 16px;
+            background: var(--bg-panel);
             border-bottom: 1px solid var(--border-hair);
             position: sticky;
             top: 0;
             z-index: 40;
-        }
-        .brand-wordmark {
-            font-size: 0.98rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            color: var(--text-primary);
-            text-decoration: none;
-            white-space: nowrap;
             flex-shrink: 0;
         }
-        nav.topnav {
+        .ribbon-brand {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            white-space: nowrap;
+        }
+        .ribbon-brand h1 {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-primary);
+        }
+        .ribbon-brand span {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* 5-Phase Frame Switcher */
+        nav.frame-switcher {
             display: flex;
             align-items: center;
-            gap: 24px;
-            overflow: hidden;
-        }
-        nav.topnav a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.82rem;
-            font-weight: 500;
-            white-space: nowrap;
-            flex-shrink: 0;
-            padding: 4px 0;
-            border-bottom: 1px solid transparent;
-            transition: color 0.15s ease, border-color 0.15s ease;
-        }
-        nav.topnav a:hover { color: var(--text-primary); border-bottom-color: var(--border-strong); }
-        nav.topnav a.active { color: var(--accent); border-bottom-color: var(--accent); }
-        .top-cta-wrap { flex-shrink: 0; }
-
-        /* Core Buttons & Controls */
-        .btn {
-            height: 36px;
-            padding: 0 14px;
-            border: 1px solid var(--border-strong);
+            border: 1px solid var(--border-hair);
             background: var(--bg-inset);
-            color: var(--text-primary);
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            flex-shrink: 0;
-            transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
         }
-        .btn:hover { border-color: var(--accent); color: var(--accent); }
-        .btn-primary {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: #031117;
-        }
-        .btn-primary:hover { background: #22D3EE; border-color: #22D3EE; color: #031117; }
-        .btn-sm { height: 30px; padding: 0 10px; font-size: 0.72rem; }
-        .btn-active {
-            background: var(--accent-soft);
-            border-color: var(--accent);
-            color: #CFFAFE;
-        }
-        .btn-live-on {
-            background: rgba(16, 185, 129, 0.16);
-            border-color: var(--emerald);
-            color: #A7F3D0;
-        }
-
-        /* Segmented Control */
-        .seg-group {
-            display: inline-flex;
-            border: 1px solid var(--border-strong);
-            background: var(--bg-inset);
-            flex-shrink: 0;
-        }
-        .seg-group button {
-            height: 32px;
-            padding: 0 11px;
+        .frame-btn {
+            appearance: none;
+            background: transparent;
             border: none;
             border-right: 1px solid var(--border-hair);
-            background: transparent;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
             color: var(--text-secondary);
-            font-size: 0.74rem;
-            font-weight: 600;
             cursor: pointer;
+            transition: background 0.12s ease, color 0.12s ease;
             white-space: nowrap;
-            transition: background 0.15s ease, color 0.15s ease;
         }
-        .seg-group button:last-child { border-right: none; }
-        .seg-group button:hover { color: var(--text-primary); }
-        .seg-group button.active {
-            background: var(--accent-soft);
-            color: var(--accent);
-        }
-
-        /* Main Full-Width Workspace */
-        main.field-shell {
-            max-width: 1760px;
-            margin: 0 auto;
-            padding: 16px 24px 36px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        main.field-shell.drop-active {
-            outline: 2px dashed var(--accent);
-            outline-offset: -6px;
-        }
-
-        /* Zone 1: Unified Reality Aperture & Reclassification Bar */
-        section.aperture-bar {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-hair);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .aperture-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-        .concept-pair-form {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .field-input {
-            height: 36px;
-            background: var(--bg-inset);
-            border: 1px solid var(--border-strong);
-            color: var(--text-primary);
-            padding: 0 12px;
-            font-size: 0.82rem;
-            outline: none;
-        }
-        .field-input:focus { border-color: var(--accent); }
-        .field-input.pair-box { width: 148px; }
-        .field-input.wide-box { flex: 1; min-width: 220px; }
-        .pair-sep {
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            color: var(--accent);
-        }
-
-        .reclass-controls {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
-        }
-        .ctrl-label {
-            font-size: 0.72rem;
-            color: var(--text-muted);
+        .frame-btn:last-child { border-right: none; }
+        .frame-btn:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.03); }
+        .frame-btn.active {
+            background: var(--cyan-dim);
+            color: var(--cyan);
             font-weight: 600;
-            white-space: nowrap;
+            box-shadow: inset 0 -2px 0 var(--cyan);
         }
 
-        .quick-strip {
+        .ribbon-metrics {
             display: flex;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .ribbon-kv strong {
+            color: var(--text-primary);
+            margin-left: 4px;
+            font-weight: 600;
+        }
+        .status-nominal { color: var(--emerald); font-weight: 600; }
+        .status-thaw { color: var(--crimson); font-weight: 600; }
+        .btn-quiet {
+            background: transparent;
+            border: 1px solid var(--border-strong);
+            padding: 4px 10px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .btn-quiet:hover { color: var(--text-primary); border-color: var(--cyan); }
+
+        /* Main Asymmetric 3-Column Console */
+        main.workspace-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 332px minmax(460px, 1fr) 336px;
+            min-height: calc(100vh - 48px);
+        }
+
+        aside.console-col {
+            background: var(--bg-panel);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: calc(100vh - 48px);
+        }
+        aside.console-left { border-right: 1px solid var(--border-hair); }
+        aside.console-right { border-left: 1px solid var(--border-hair); }
+
+        .panel-section {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-hair);
+        }
+        .section-head {
+            display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-hair);
+            margin-bottom: 8px;
         }
-        .quick-actions {
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+        .section-tag {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* Inputs & Sliders */
+        .input-row {
             display: flex;
-            flex-wrap: wrap;
-            align-items: center;
             gap: 6px;
         }
-        .inline-meta {
+        .text-input, .text-area {
+            width: 100%;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 6px 8px;
+            font-size: 12px;
+            color: var(--text-primary);
+        }
+        .text-area {
+            resize: vertical;
+            min-height: 54px;
+            line-height: 1.4;
+        }
+        .text-input:focus, .text-area:focus { border-color: var(--cyan); outline: none; }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .preset-btn {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 5px 7px;
+            font-size: 11px;
+            text-align: left;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .preset-btn:hover { border-color: var(--cyan); color: var(--text-primary); }
+
+        .domain-group {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-hair);
+        }
+        .domain-group:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+        .domain-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--cyan);
+            margin-bottom: 6px;
             display: flex;
-            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .slider-row {
+            display: grid;
+            grid-template-columns: 92px 1fr 40px;
             align-items: center;
-            gap: 10px;
-            font-family: var(--font-mono);
-            font-size: 0.73rem;
-            font-variant-numeric: tabular-nums;
+            gap: 8px;
+            margin-bottom: 5px;
+            font-size: 11px;
             color: var(--text-secondary);
         }
-        .inline-meta strong { color: var(--text-primary); font-weight: 600; }
-        .meta-sep { color: var(--border-strong); }
-
-        /* Live Field Verdict Strip */
-        .field-verdict {
-            padding: 10px 14px;
-            background: var(--bg-inset);
-            border: 1px solid var(--border-hair);
-            font-size: 0.79rem;
-            line-height: 1.5;
+        .slider-row input[type="range"] {
+            width: 100%;
+            accent-color: var(--cyan);
+            cursor: pointer;
+            height: 4px;
+        }
+        .slider-val {
+            text-align: right;
             color: var(--text-primary);
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+            font-size: 11px;
         }
-        .field-verdict.deficit { border-color: rgba(244, 63, 94, 0.5); color: #FECDD3; }
-        .field-verdict.resonant { border-color: rgba(16, 185, 129, 0.45); color: #D1FAE5; }
 
-        /* Zone 2: Dual Synchronized 4K High-Resolution Viewports */
-        section.stage-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
-            gap: 16px;
-            align-items: stretch;
-        }
-        @media (max-width: 1180px) {
-            section.stage-grid { grid-template-columns: 1fr; }
-        }
-        .viewport-panel {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-hair);
+        /* Execution Action Bar */
+        .action-bar {
+            padding: 12px 14px;
+            background: var(--bg-inset);
+            border-top: 1px solid var(--border-hair);
             display: flex;
             flex-direction: column;
-            min-width: 0;
+            gap: 6px;
+            margin-top: auto;
         }
-        .viewport-panel.primary-3d { border-color: rgba(6, 182, 212, 0.35); }
-        .vp-head {
+        .action-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .btn-primary {
+            background: var(--cyan);
+            color: #041016;
+            border: 1px solid var(--cyan);
+            padding: 8px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-primary:hover { filter: brightness(1.08); }
+        .btn-secondary {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-strong);
+            padding: 7px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        .btn-secondary:hover { border-color: var(--cyan); color: var(--cyan); }
+        .btn-secondary.active-flow {
+            background: var(--emerald-dim);
+            border-color: var(--emerald);
+            color: var(--emerald);
+        }
+        .btn-shock {
+            background: var(--crimson-dim);
+            border: 1px solid var(--crimson);
+            color: var(--crimson);
+            padding: 7px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-shock:hover { background: rgba(244, 63, 94, 0.24); }
+        .btn-bench {
+            background: var(--amber-dim);
+            border: 1px solid var(--amber);
+            color: var(--amber);
+            padding: 7px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-bench:hover { background: rgba(245, 158, 11, 0.24); }
+
+        /* Center Primary Observation Stage */
+        section.stage-col {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-canvas);
+            min-width: 0;
+            max-height: calc(100vh - 48px);
+        }
+        .stage-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            padding: 10px 16px;
+            padding: 8px 16px;
             border-bottom: 1px solid var(--border-hair);
             background: var(--bg-inset);
-            flex-wrap: wrap;
+            gap: 12px;
         }
-        .vp-title {
-            font-size: 0.84rem;
+        .stage-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .stage-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .stage-canvas-wrap {
+            position: relative;
+            flex: 1;
+            min-height: 360px;
+            overflow: hidden;
+            background: var(--bg-canvas);
+        }
+        #rotorCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+        .canvas-hud {
+            position: absolute;
+            left: 12px;
+            bottom: 10px;
+            background: rgba(7, 9, 14, 0.86);
+            border: 1px solid var(--border-hair);
+            padding: 5px 9px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            pointer-events: none;
+            max-width: calc(100% - 24px);
+        }
+        .external-banner {
+            display: none;
+            padding: 7px 14px;
+            border-top: 1px solid var(--border-hair);
+            background: var(--bg-panel);
+            font-size: 11px;
+            color: var(--text-secondary);
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .external-banner.visible { display: flex; }
+        .external-banner strong { color: var(--cyan); }
+
+        /* Bottom Continuous Strip inside Stage */
+        .stage-bottom-tray {
+            border-top: 1px solid var(--border-hair);
+            background: var(--bg-panel);
+            padding: 10px 14px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .phase-slot-card {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 8px 10px;
+        }
+        .phase-slot-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .phase-slot-val {
+            font-size: 16px;
             font-weight: 700;
             color: var(--text-primary);
         }
-        .vp-meta {
-            font-family: var(--font-mono);
-            font-size: 0.72rem;
-            font-variant-numeric: tabular-nums;
+        .phase-slot-desc {
+            font-size: 10px;
             color: var(--text-secondary);
-        }
-
-        .vp-canvas-box {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            min-height: 380px;
-            background: #03050A;
-            overflow: hidden;
-            flex: 1;
-        }
-        .vp-canvas-box canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-        .vp-canvas-box.orbit-ready { cursor: grab; }
-        .vp-canvas-box.orbit-ready:active { cursor: grabbing; }
-
-        /* Subtle Frosted Overlays Inside Viewports */
-        .vp-hud-top {
-            position: absolute;
-            top: 10px;
-            left: 12px;
-            right: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: none;
-            z-index: 10;
-            gap: 8px;
-        }
-        .vp-hud-label {
-            background: rgba(6, 9, 16, 0.72);
-            backdrop-filter: blur(6px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 4px 10px;
-            font-family: var(--font-mono);
-            font-size: 0.7rem;
-            font-variant-numeric: tabular-nums;
-            color: var(--text-primary);
-        }
-        .vp-hud-bottom {
-            position: absolute;
-            left: 12px;
-            right: 12px;
-            bottom: 12px;
-            background: rgba(6, 9, 16, 0.78);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 8px 12px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            z-index: 10;
-        }
-        .scale-dial-wrap {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-            min-width: 240px;
-        }
-        .scale-dial-wrap input[type="range"] {
-            flex: 1;
-            accent-color: var(--accent);
-            cursor: pointer;
-        }
-        .scale-stops {
-            display: flex;
-            gap: 4px;
-        }
-        .scale-stop-btn {
-            height: 24px;
-            padding: 0 7px;
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid var(--border-strong);
-            color: var(--text-secondary);
-            font-family: var(--font-mono);
-            font-size: 0.67rem;
-            cursor: pointer;
-        }
-        .scale-stop-btn:hover { color: var(--text-primary); border-color: var(--accent); }
-        .scale-stop-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-
-        /* 4K 1:1 Native Detail Loupe */
-        .loupe-box {
-            position: absolute;
-            top: 44px;
-            right: 12px;
-            width: 168px;
-            height: 168px;
-            border: 1px solid var(--accent);
-            background: #03050A;
-            z-index: 15;
-            pointer-events: none;
-            display: none;
-        }
-        .loupe-box.visible { display: block; }
-        .loupe-cap {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(6, 9, 16, 0.82);
-            color: var(--accent);
-            font-family: var(--font-mono);
-            font-size: 0.63rem;
-            padding: 2px 6px;
-        }
-
-        /* Multi-Instance Photo Strip & Audio Scope Under Left Viewport */
-        .vp-substrip {
-            padding: 12px 16px;
-            border-top: 1px solid var(--border-hair);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: var(--bg-inset);
-        }
-        .photo-swarm-grid {
-            display: grid;
-            grid-template-columns: repeat(6, minmax(0, 1fr));
-            gap: 6px;
-        }
-        @media (max-width: 720px) {
-            .photo-swarm-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        }
-        .swarm-thumb {
-            position: relative;
-            aspect-ratio: 16 / 10;
-            background: #0A0F1A;
-            border: 1px solid var(--border-hair);
-            overflow: hidden;
-            cursor: pointer;
-            padding: 0;
-            text-align: left;
-            transition: border-color 0.15s ease;
-        }
-        .swarm-thumb:hover { border-color: var(--border-strong); }
-        .swarm-thumb.active { border-color: var(--accent); }
-        .swarm-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .swarm-thumb-cap {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            padding: 2px 5px;
-            background: linear-gradient(to top, rgba(4, 7, 14, 0.92), rgba(4, 7, 14, 0.35));
-            font-size: 0.62rem;
-            color: #E2E8F0;
+            margin-top: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .audio-bar-row {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            gap: 12px;
-            align-items: center;
-        }
-        #u-audio-canvas {
-            width: 100%;
-            height: 36px;
-            display: block;
-            background: #050811;
-            border: 1px solid var(--border-hair);
-        }
 
-        /* Zone 3: Dynamic Composable Organ Matrix */
-        section.recombine-section {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-        .organ-mixer-bar {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-hair);
-            padding: 12px 16px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-        .organ-toggle-list {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
+        /* Right Inspector Metrics & Lists */
+        .metric-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 6px;
         }
-        .organ-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-            align-items: start;
-        }
-        @media (max-width: 1240px) {
-            .organ-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-        @media (max-width: 820px) {
-            .organ-grid { grid-template-columns: 1fr; }
-        }
-        .organ-card {
-            background: var(--bg-surface);
+        .metric-cell {
+            background: var(--bg-inset);
             border: 1px solid var(--border-hair);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-width: 0;
+            padding: 7px 8px;
         }
-        .organ-card.priority { border-color: rgba(6, 182, 212, 0.45); }
-        .organ-card.hidden-organ { display: none; }
-        .organ-head {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 8px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-hair);
-        }
-        .organ-title {
-            font-size: 0.88rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-        .organ-sub {
-            font-family: var(--font-mono);
-            font-size: 0.7rem;
-            font-variant-numeric: tabular-nums;
+        .metric-label {
+            font-size: 10px;
             color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .metric-num {
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 2px;
         }
 
-        /* Shared Clean Inner Rows (No Nested Cards-in-Cards) */
-        .metric-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        .bar-row {
+            margin-bottom: 6px;
         }
-        .spec-row {
+        .bar-meta {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(30, 41, 59, 0.65);
-        }
-        .spec-row:last-child { border-bottom: none; padding-bottom: 0; }
-        .spec-top {
-            display: flex;
-            align-items: center;
             justify-content: space-between;
-            gap: 8px;
-            font-size: 0.76rem;
-        }
-        .spec-name { font-weight: 600; color: var(--text-primary); }
-        .spec-row.off .spec-name { color: var(--text-muted); text-decoration: line-through; }
-        .spec-val {
-            font-family: var(--font-mono);
-            font-size: 0.71rem;
-            font-variant-numeric: tabular-nums;
+            font-size: 11px;
             color: var(--text-secondary);
+            margin-bottom: 2px;
         }
         .bar-track {
             height: 5px;
             background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
             overflow: hidden;
         }
         .bar-fill {
             height: 100%;
-            background: var(--accent);
-            transition: width 0.15s ease;
+            background: var(--cyan);
+            transition: width 0.16s ease;
         }
-        .bar-fill.emerald { background: var(--emerald); }
         .bar-fill.amber { background: var(--amber); }
-        .bar-fill.rose { background: var(--rose); }
-        .spec-btns {
-            display: flex;
-            gap: 6px;
-            margin-top: 2px;
-        }
+        .bar-fill.crimson { background: var(--crimson); }
+        .bar-fill.emerald { background: var(--emerald); }
 
-        /* Slider Controls */
-        .slider-stack {
+        .list-stack {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 5px;
         }
-        .slider-row {
+        .item-row {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .item-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+        }
+        .item-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .item-meta {
+            font-size: 10px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .seed-btn {
+            background: transparent;
+            border: 1px solid var(--border-strong);
+            color: var(--cyan);
+            font-size: 10px;
+            padding: 2px 6px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .seed-btn:hover { background: var(--cyan-dim); border-color: var(--cyan); }
+
+        .iso-tag { color: var(--cyan); font-weight: 600; font-size: 10px; }
+        .hetero-tag { color: var(--amber); font-weight: 600; font-size: 10px; }
+
+        .bench-panel {
+            display: none;
+            background: var(--bg-inset);
+            border: 1px solid var(--amber);
+            padding: 8px 10px;
+            margin-top: 8px;
+        }
+        .bench-panel.visible { display: block; }
+        .bench-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+            font-size: 10px;
+        }
+        .bench-table th, .bench-table td {
+            border-bottom: 1px solid var(--border-hair);
+            padding: 3px 4px;
+            text-align: left;
+        }
+        .bench-table th { color: var(--text-muted); font-weight: 500; }
+
+        .note-box {
+            background: var(--bg-inset);
+            border-left: 2px solid var(--cyan);
+            padding: 6px 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+        .btn-artifact {
+            background: var(--cyan-dim);
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            padding: 7px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-artifact:hover { background: rgba(6, 182, 212, 0.24); }
+        .btn-vessel {
+            background: var(--emerald-dim);
+            border: 1px solid var(--emerald);
+            color: var(--emerald);
+            padding: 7px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-vessel:hover { background: rgba(16, 185, 129, 0.24); }
+        .vessel-toolbar {
+            display: none;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 6px 0 4px;
+        }
+        .vessel-toolbar.visible { display: flex; }
+        .vessel-mode-btn {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .vessel-mode-btn:hover { border-color: var(--emerald); color: var(--emerald); }
+        .vessel-mode-btn.drift-btn { border-color: var(--crimson); color: var(--crimson); }
+        .vessel-mode-btn.sync-btn { border-color: var(--cyan); color: var(--cyan); }
+        .btn-sync {
+            background: rgba(139, 92, 246, 0.14);
+            border: 1px solid #a78bfa;
+            color: #c4b5fd;
+            padding: 7px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-sync:hover { background: rgba(139, 92, 246, 0.28); }
+        .phase-sync-bar {
+            display: none;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0 4px;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+        .phase-sync-bar.visible { display: flex; }
+        .phase-sync-bar input[type="number"] {
+            width: 58px;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            padding: 3px 5px;
+            font-size: 11px;
+        }
+        .btn-digest {
+            background: rgba(245, 158, 11, 0.14);
+            border: 1px solid var(--amber);
+            color: var(--amber);
+            padding: 7px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-digest:hover { background: rgba(245, 158, 11, 0.28); }
+        .digest-bar {
+            display: none;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            margin: 6px 0 4px;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+        .digest-bar.visible { display: flex; }
+        .digest-bar input[type="text"] {
+            flex: 1 1 180px;
+            background: var(--bg-inset);
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            padding: 4px 6px;
+            font-size: 11px;
+        }
+        details.custom-artifact-box {
+            border: 1px solid var(--border-hair);
+            background: var(--bg-panel);
+            padding: 6px 8px;
+            font-size: 11px;
+        }
+        details.custom-artifact-box summary {
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .custom-artifact-body {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 6px;
+        }
+        .select-input {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            color: var(--text-primary);
+            padding: 4px 6px;
+            font-size: 11px;
+        }
+        .artifact-report {
+            display: none;
+            border-top: 1px solid var(--cyan);
+            background: var(--bg-panel);
+            padding: 10px 14px;
+            max-height: 340px;
+            overflow-y: auto;
+        }
+        .artifact-report.visible { display: block; }
+        .artifact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .artifact-card {
+            background: var(--bg-inset);
+            border: 1px solid var(--border-hair);
+            padding: 7px 9px;
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
-        .slider-head {
+        .artifact-head {
             display: flex;
             justify-content: space-between;
-            font-size: 0.75rem;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .polarity-bar {
+            display: flex;
+            height: 5px;
+            border: 1px solid var(--border-hair);
+            overflow: hidden;
+        }
+        .polarity-zero { background: var(--cyan); }
+        .polarity-one { background: var(--crimson); }
+        .artifact-line {
+            font-size: 10px;
             color: var(--text-secondary);
         }
-        .slider-head strong {
-            font-family: var(--font-mono);
-            font-variant-numeric: tabular-nums;
+        .artifact-pairs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        /* Unified Causal Dataflow 3D Viewport Overlay (Zero backdrop-filter over WebGL) */
+        #atelier3dStage {
+            position: absolute;
+            inset: 0;
+            display: none;
+            background: #050811;
+            z-index: 12;
+            overflow: hidden;
+        }
+        #atelier3dStage.active {
+            display: block;
+        }
+        #atelier3dCanvasHost {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: grab;
+        }
+        #atelier3dCanvasHost:active {
+            cursor: grabbing;
+        }
+        .atelier-top-meta {
+            position: absolute;
+            top: 12px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            pointer-events: none;
+            z-index: 14;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .atelier-top-meta strong {
             color: var(--text-primary);
             font-weight: 600;
         }
-        .slider-row input[type="range"] {
+        .atelier-dock-wrap {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 16;
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .atelier-dock-wrap.collapsed {
+            transform: translateY(calc(100% - 26px));
+        }
+        .atelier-dock-toggle {
+            appearance: none;
+            background: rgba(9, 14, 26, 0.94);
+            border: 1px solid var(--border-strong);
+            border-bottom: none;
+            color: var(--text-secondary);
+            padding: 3px 14px;
+            font-size: 11px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .atelier-dock-toggle:hover {
+            color: var(--text-primary);
+            border-color: var(--cyan);
+        }
+        .atelier-code-drawer {
+            display: none;
             width: 100%;
-            accent-color: var(--accent);
+            max-width: 960px;
+            background: rgba(8, 12, 22, 0.96);
+            border: 1px solid var(--border-strong);
+            border-bottom: none;
+            padding: 10px 12px;
+            gap: 8px;
+            flex-direction: column;
+        }
+        .atelier-code-drawer.open {
+            display: flex;
+        }
+        .atelier-code-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .atelier-code-editor {
+            width: 100%;
+            min-height: 112px;
+            background: #060911;
+            border: 1px solid var(--border-hair);
+            color: #e2e8f0;
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            line-height: 1.45;
+            padding: 8px 10px;
+            resize: vertical;
+        }
+        .atelier-code-error {
+            display: none;
+            font-size: 11px;
+            color: var(--crimson);
+        }
+        .atelier-bar {
+            width: 100%;
+            max-width: 960px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(8, 12, 22, 0.92);
+            border: 1px solid var(--border-strong);
+        }
+        .atelier-controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .atelier-btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 5px;
+        }
+        .atelier-scene-btn, .atelier-btn {
+            appearance: none;
+            background: #0e1627;
+            border: 1px solid var(--border-strong);
+            color: var(--text-secondary);
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: border-color 0.14s ease, color 0.14s ease, background 0.14s ease;
+        }
+        .atelier-scene-btn:hover, .atelier-btn:hover {
+            border-color: var(--cyan);
+            color: var(--text-primary);
+        }
+        .atelier-scene-btn.active {
+            background: rgba(6, 182, 212, 0.18);
+            border-color: var(--cyan);
+            color: var(--cyan);
+            font-weight: 600;
+        }
+        .atelier-btn.active {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: var(--emerald);
+            color: #a7f3d0;
+            font-weight: 600;
+        }
+        .atelier-sliders-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .atelier-slider-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .atelier-slider-item input[type="range"] {
+            width: 112px;
+            accent-color: var(--cyan);
             cursor: pointer;
         }
-
-        /* Key-Value Clean Grid */
-        .kv-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px 14px;
+        .atelier-proof-line {
+            font-size: 11px;
+            color: #cbd5e1;
+            padding-top: 6px;
+            border-top: 1px solid rgba(148, 163, 184, 0.14);
         }
-        .kv-item {
+        .atelier-narration {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* ==============================================================
+           Elysia Living Presence — Zero-Ghosting Unified Scene & Causal Mind
+           ============================================================== */
+        #elysiaGameStage {
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            display: none;
+            overflow: hidden;
+            background: #070b14;
+            color: #f8fafc;
+        }
+        #elysiaGameStage.active {
+            display: block;
+        }
+        .elysia-scene-viewport {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            background: #070b14;
+        }
+        .elysia-scene-frame {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: 54% 38%;
+            transform: scale(1.035);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 240ms cubic-bezier(0.22, 1, 0.36, 1);
+            animation: elysiaGentleBreath 9s ease-in-out infinite;
+        }
+        .elysia-scene-frame.is-active {
+            opacity: 1;
+            z-index: 2;
+        }
+        @keyframes elysiaGentleBreath {
+            0%, 100% { transform: scale(1.035) translate3d(0, 0, 0); }
+            50% { transform: scale(1.044) translate3d(0, -2px, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .elysia-scene-frame {
+                animation: none;
+                transition: none;
+            }
+        }
+        .elysia-scene-scrim {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            pointer-events: none;
+            background:
+                linear-gradient(to bottom, rgba(6, 10, 20, 0.56) 0%, rgba(6, 10, 20, 0.0) 18%),
+                linear-gradient(to top, rgba(6, 9, 18, 0.88) 0%, rgba(6, 9, 18, 0.42) 24%, rgba(6, 9, 18, 0.0) 46%);
+        }
+        .elysia-topbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 24px;
+            z-index: 12;
+        }
+        .elysia-presence-meta {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            color: rgba(248, 250, 252, 0.94);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.72);
+        }
+        .elysia-presence-meta .mood-sub {
+            font-size: 12px;
+            color: #fde68a;
+            font-weight: 600;
+        }
+        .elysia-presence-meta .mem-sub {
+            font-size: 11.5px;
+            color: rgba(203, 213, 225, 0.82);
+        }
+        .elysia-top-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .elysia-ghost-btn {
+            appearance: none;
+            background: rgba(10, 15, 28, 0.68);
+            border: 1px solid rgba(226, 232, 240, 0.22);
+            color: rgba(241, 245, 249, 0.92);
+            padding: 7px 13px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+        }
+        .elysia-ghost-btn:hover {
+            background: rgba(18, 26, 48, 0.88);
+            border-color: rgba(251, 191, 128, 0.65);
+            color: #fff;
+        }
+        .elysia-ghost-btn.active {
+            background: rgba(245, 194, 122, 0.20);
+            border-color: rgba(251, 191, 128, 0.82);
+            color: #fde68a;
+        }
+
+        /* Collapsible Right-Side 4-Layer Causal Mind Drawer */
+        .elysia-mind-drawer {
+            position: absolute;
+            top: 62px;
+            right: 20px;
+            bottom: 20px;
+            width: min(410px, calc(100vw - 40px));
+            z-index: 16;
+            background: rgba(8, 12, 22, 0.90);
+            border: 1px solid rgba(226, 232, 240, 0.18);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateX(calc(100% + 28px));
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease;
+        }
+        .elysia-mind-drawer.open {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .elysia-mind-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 13px 16px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.12);
+        }
+        .elysia-mind-head h2 {
+            font-size: 12.5px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #fde68a;
+        }
+        .elysia-mind-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .causal-layer-block {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.09);
+        }
+        .causal-layer-block:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .causal-layer-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: #93c5fd;
+            text-transform: uppercase;
+        }
+        .causal-layer-copy {
+            font-size: 12.5px;
+            line-height: 1.55;
+            color: rgba(241, 245, 249, 0.92);
+        }
+        .causal-axis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 12px;
+            margin-top: 6px;
+        }
+        .causal-axis-row {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .causal-axis-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: rgba(203, 213, 225, 0.86);
+        }
+        .causal-axis-track {
+            height: 4px;
+            background: rgba(148, 163, 184, 0.18);
+            overflow: hidden;
+        }
+        .causal-axis-fill {
+            height: 100%;
+            background: #f5c27a;
+            transition: width 260ms ease;
+        }
+        .causal-axis-fill.hurt { background: #fb7185; }
+        .causal-axis-fill.thought { background: #60a5fa; }
+        .causal-memory-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .causal-memory-item {
+            padding: 8px 10px;
+            background: rgba(15, 23, 42, 0.65);
+            border-left: 2px solid rgba(251, 191, 128, 0.55);
+            font-size: 11.5px;
+            line-height: 1.48;
+            color: rgba(226, 232, 240, 0.88);
+        }
+        .causal-memory-item .mem-turn {
+            font-size: 10.5px;
+            color: #fde68a;
+            margin-bottom: 2px;
+        }
+
+        /* Bottom Minimal Open-Conversation Dock */
+        .elysia-vn-dock {
+            position: absolute;
+            left: 28px;
+            bottom: 22px;
+            width: min(680px, calc(100vw - 56px));
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 16px 20px;
+            background: rgba(8, 12, 22, 0.82);
+            border: 1px solid rgba(248, 224, 192, 0.20);
+            z-index: 12;
+        }
+        .elysia-speaker-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .elysia-speaker-left {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+        .elysia-speaker-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fde68a;
+            letter-spacing: 0.02em;
+        }
+        .elysia-thinking-cue {
+            font-size: 11.5px;
+            color: #93c5fd;
+            opacity: 0;
+            transition: opacity 0.16s ease;
+        }
+        .elysia-thinking-cue.visible {
+            opacity: 1;
+        }
+        .elysia-trace-inline-btn {
+            appearance: none;
+            background: transparent;
+            border: none;
+            color: rgba(203, 213, 225, 0.78);
+            font-size: 11.5px;
+            cursor: pointer;
+            padding: 2px 0;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+        .elysia-trace-inline-btn:hover {
+            color: #fde68a;
+        }
+        .elysia-dock-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .elysia-chat-log {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 112px;
+            overflow-y: auto;
+            padding: 6px 0 8px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.10);
+            font-size: 12.5px;
+            line-height: 1.5;
+        }
+        .elysia-chat-log.is-collapsed {
+            display: none;
+        }
+        .elysia-chat-row {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .elysia-chat-row.is-user {
+            color: rgba(191, 219, 254, 0.90);
+        }
+        .elysia-chat-row.is-elysia {
+            color: rgba(241, 245, 249, 0.84);
+        }
+        .elysia-chat-meta {
+            font-size: 10.5px;
+            color: rgba(148, 163, 184, 0.85);
+            font-variant-numeric: tabular-nums;
+        }
+        .elysia-dialogue-text {
+            min-height: 48px;
+            font-size: 15.5px;
+            line-height: 1.68;
+            color: #f8fafc;
+            font-weight: 400;
+            user-select: text;
+        }
+        .elysia-phrase-unit {
+            display: inline;
+            opacity: 0;
+            transition: opacity 0.36s ease;
+        }
+        .elysia-phrase-unit.is-shown {
+            opacity: 1;
+        }
+        .plastic-sub-note {
+            font-size: 10.5px;
+            color: rgba(148, 163, 184, 0.88);
+            line-height: 1.4;
+            margin-top: 2px;
+        }
+        .scale-flow-box {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 5px;
+            padding: 8px 9px;
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(147, 197, 253, 0.20);
+            font-size: 11px;
+            line-height: 1.45;
+        }
+        .scale-flow-step {
+            color: rgba(226, 232, 240, 0.92);
+        }
+        .scale-flow-tag {
+            color: #fde68a;
+            font-size: 10px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+        .elysia-error-banner {
+            display: none;
+            padding: 8px 10px;
+            background: rgba(159, 18, 57, 0.32);
+            border: 1px solid rgba(251, 113, 133, 0.48);
+            color: #fecdd3;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+        .elysia-error-banner.visible {
+            display: block;
+        }
+        .elysia-msg-form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(226, 232, 240, 0.10);
+        }
+        .elysia-msg-input {
+            flex: 1;
+            background: rgba(6, 10, 20, 0.88);
+            border: 1px solid rgba(226, 232, 240, 0.20);
+            padding: 10px 13px;
+            font-size: 13.5px;
+            color: #f8fafc;
+        }
+        .elysia-msg-input:focus {
+            outline: none;
+            border-color: rgba(251, 191, 128, 0.78);
+        }
+        .elysia-msg-input:disabled {
+            opacity: 0.55;
+        }
+        .elysia-send-btn {
+            appearance: none;
+            background: #f5c27a;
+            color: #131018;
+            border: 1px solid #f5c27a;
+            padding: 10px 18px;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity 0.14s ease;
+        }
+        .elysia-send-btn:hover {
+            opacity: 0.9;
+        }
+        .elysia-send-btn:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+        .btn-live-return {
+            appearance: none;
+            background: rgba(245, 194, 122, 0.16);
+            border: 1px solid rgba(245, 194, 122, 0.55);
+            color: #fde68a;
+            padding: 5px 11px;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-live-return:hover {
+            background: rgba(245, 194, 122, 0.28);
+            color: #fff;
+        }
+
+        .elysia-mind-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.12);
+        }
+        .elysia-mind-tab {
+            appearance: none;
+            background: transparent;
+            border: none;
+            border-right: 1px solid rgba(226, 232, 240, 0.10);
+            padding: 9px 10px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: rgba(148, 163, 184, 0.9);
+            cursor: pointer;
+        }
+        .elysia-mind-tab:last-child { border-right: none; }
+        .elysia-mind-tab.active {
+            background: rgba(245, 194, 122, 0.14);
+            color: #fde68a;
+            box-shadow: inset 0 -2px 0 #f5c27a;
+        }
+        .elysia-mind-pane { display: none; }
+        .elysia-mind-pane.active { display: flex; flex-direction: column; gap: 14px; }
+        .digest-textarea {
+            width: 100%;
+            min-height: 92px;
+            resize: vertical;
+            background: rgba(6, 10, 20, 0.88);
+            border: 1px solid rgba(226, 232, 240, 0.20);
+            padding: 8px 10px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #f8fafc;
+        }
+        .digest-textarea:focus {
+            outline: none;
+            border-color: rgba(251, 191, 128, 0.72);
+        }
+        .digest-btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .concept-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .concept-row {
             display: flex;
             flex-direction: column;
             gap: 2px;
-            min-width: 0;
+            padding: 7px 9px;
+            background: rgba(15, 23, 42, 0.65);
+            border-left: 2px solid rgba(96, 165, 250, 0.65);
+            font-size: 11.5px;
         }
-        .kv-k { font-size: 0.7rem; color: var(--text-muted); }
-        .kv-v {
-            font-family: var(--font-mono);
-            font-size: 0.82rem;
-            font-weight: 600;
-            font-variant-numeric: tabular-nums;
-            color: var(--text-primary);
-        }
-
-        /* Chromatic Triad Bar */
-        .chroma-strip {
+        .concept-row-top {
             display: flex;
-            height: 8px;
-            background: var(--bg-inset);
+            justify-content: space-between;
+            color: #f8fafc;
+            font-weight: 600;
+        }
+        .concept-row-sub {
+            font-size: 11px;
+            color: rgba(203, 213, 225, 0.82);
+        }
+        .elysia-feedback-bar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding-top: 2px;
+        }
+        .elysia-feedback-bar.visible { display: flex; }
+        .elysia-fb-btn {
+            appearance: none;
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(226, 232, 240, 0.18);
+            color: rgba(226, 232, 240, 0.88);
+            padding: 4px 10px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .elysia-fb-btn:hover {
+            border-color: rgba(251, 191, 128, 0.7);
+            color: #fde68a;
+        }
+        .elysia-corr-form {
+            display: none;
+            gap: 6px;
+            align-items: center;
+            width: 100%;
+            margin-top: 4px;
+        }
+        .elysia-corr-form.visible { display: flex; }
+
+        /* ---------- Elysia Browser-OS Sandbox Habitat Overlay ---------- */
+        .eos-overlay {
+            position: fixed;
+            top: 58px;
+            right: 20px;
+            bottom: 196px;
+            width: min(860px, calc(100vw - 40px));
+            z-index: 44;
+            display: none;
+            flex-direction: column;
+            background: rgba(9, 13, 24, 0.90);
+            border: 1px solid rgba(226, 232, 240, 0.16);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.52);
             overflow: hidden;
         }
-        .chroma-r { background: var(--rose); transition: width 0.2s ease; }
-        .chroma-b { background: var(--accent); transition: width 0.2s ease; }
-        .chroma-y { background: var(--amber); transition: width 0.2s ease; }
-
-        /* Ontology Links & Extracts */
-        .link-list {
+        .eos-overlay.open { display: flex; }
+        .eos-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 14px;
+            background: rgba(15, 23, 42, 0.88);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.12);
+        }
+        .eos-bar-left {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            min-width: 0;
+        }
+        .eos-bar-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #f8fafc;
+            white-space: nowrap;
+        }
+        .eos-bar-sub {
+            font-size: 11.5px;
+            color: rgba(203, 213, 225, 0.82);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .eos-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .eos-btn {
+            appearance: none;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.18);
+            color: #e2e8f0;
+            padding: 6px 11px;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.14s ease, border-color 0.14s ease;
+        }
+        .eos-btn:hover {
+            border-color: rgba(245, 194, 122, 0.65);
+            color: #fde68a;
+        }
+        .eos-btn-primary {
+            background: #f5c27a;
+            border-color: #f5c27a;
+            color: #131018;
+        }
+        .eos-btn-primary:hover {
+            opacity: 0.92;
+            color: #131018;
+        }
+        .eos-btn.is-active {
+            background: rgba(52, 211, 153, 0.18);
+            border-color: rgba(52, 211, 153, 0.65);
+            color: #a7f3d0;
+        }
+        .eos-workspace {
+            position: relative;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 208px;
+            min-height: 0;
+        }
+        .eos-desktop {
+            position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 18% 14%, rgba(245, 194, 122, 0.08), transparent 46%),
+                radial-gradient(circle at 82% 86%, rgba(96, 165, 250, 0.08), transparent 48%),
+                rgba(8, 12, 22, 0.72);
+        }
+        .eos-desk-icons {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 2;
+        }
+        .eos-desk-icon {
+            appearance: none;
+            width: 82px;
+            padding: 8px 6px;
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(226, 232, 240, 0.14);
+            color: #e2e8f0;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .eos-desk-icon:hover {
+            border-color: rgba(245, 194, 122, 0.65);
+            color: #fde68a;
+        }
+        .eos-desk-glyph {
+            font-size: 12px;
+            color: #f5c27a;
+        }
+        .eos-window {
+            position: absolute;
+            display: none;
+            flex-direction: column;
+            background: rgba(13, 19, 34, 0.96);
+            border: 1px solid rgba(226, 232, 240, 0.18);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+        }
+        .eos-window.is-open { display: flex; }
+        .eos-window.is-focused {
+            border-color: rgba(245, 194, 122, 0.62);
+        }
+        .eos-win-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 10px;
+            background: rgba(15, 23, 42, 0.94);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.10);
+            cursor: grab;
+            user-select: none;
+        }
+        .eos-win-head:active { cursor: grabbing; }
+        .eos-win-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+        .eos-win-close {
+            appearance: none;
+            background: transparent;
+            border: 1px solid rgba(226, 232, 240, 0.16);
+            color: rgba(203, 213, 225, 0.85);
+            padding: 2px 7px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .eos-win-close:hover {
+            border-color: rgba(248, 113, 113, 0.65);
+            color: #fecaca;
+        }
+        .eos-win-body {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            font-size: 12px;
+            color: #e2e8f0;
+        }
+        .eos-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .eos-input {
+            flex: 1;
+            min-width: 0;
+            background: rgba(6, 10, 20, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.20);
+            color: #f8fafc;
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+        .eos-input:focus {
+            outline: none;
+            border-color: rgba(245, 194, 122, 0.72);
+        }
+        .eos-textarea {
+            width: 100%;
+            min-height: 92px;
+            resize: vertical;
+            background: rgba(6, 10, 20, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.20);
+            color: #f8fafc;
+            padding: 8px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .eos-textarea:focus {
+            outline: none;
+            border-color: rgba(245, 194, 122, 0.72);
+        }
+        .eos-wiki-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fde68a;
+        }
+        .eos-wiki-extract {
+            font-size: 12px;
+            line-height: 1.55;
+            color: rgba(226, 232, 240, 0.92);
+            max-height: 112px;
+            overflow-y: auto;
+        }
+        .eos-wiki-links {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
         }
-        .link-btn {
-            height: 26px;
-            padding: 0 8px;
-            background: var(--bg-inset);
-            border: 1px solid var(--border-hair);
-            color: var(--text-secondary);
-            font-size: 0.7rem;
+        .eos-link-btn {
+            appearance: none;
+            background: rgba(30, 41, 59, 0.78);
+            border: 1px solid rgba(147, 197, 253, 0.34);
+            color: #bfdbfe;
+            padding: 3px 8px;
+            font-size: 11px;
             cursor: pointer;
-            transition: border-color 0.15s ease, color 0.15s ease;
         }
-        .link-btn:hover { border-color: var(--accent); color: var(--text-primary); }
-        .link-btn.shared { border-color: rgba(16, 185, 129, 0.5); color: #A7F3D0; }
-        .link-btn.only-b { border-color: rgba(244, 63, 94, 0.45); color: #FECDD3; }
-
-        .prose-note {
-            font-size: 0.74rem;
-            line-height: 1.55;
-            color: var(--text-secondary);
+        .eos-link-btn:hover {
+            border-color: #f5c27a;
+            color: #fde68a;
         }
-        .prose-note strong { color: var(--text-primary); }
-
-        .ring-ledger {
+        .eos-canvas {
+            width: 100%;
+            height: 124px;
+            display: block;
+            border: 1px solid rgba(226, 232, 240, 0.14);
+            cursor: crosshair;
+        }
+        .eos-slider-row {
+            display: grid;
+            grid-template-columns: 74px 1fr 56px;
+            align-items: center;
+            gap: 8px;
+            font-size: 11.5px;
+        }
+        .eos-metrics-line {
+            font-size: 11px;
+            color: #93c5fd;
+            font-variant-numeric: tabular-nums;
+        }
+        .eos-note-list {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            max-height: 196px;
+            gap: 4px;
+            max-height: 86px;
             overflow-y: auto;
+            border-top: 1px solid rgba(226, 232, 240, 0.10);
+            padding-top: 6px;
         }
-        .ring-entry {
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(30, 41, 59, 0.65);
-            font-size: 0.73rem;
-            line-height: 1.45;
-            color: var(--text-secondary);
-        }
-        .ring-entry:last-child { border-bottom: none; }
-        .ring-entry-head {
+        .eos-note-item {
+            appearance: none;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(226, 232, 240, 0.10);
+            color: #e2e8f0;
+            padding: 5px 8px;
             display: flex;
             justify-content: space-between;
-            font-family: var(--font-mono);
-            font-size: 0.69rem;
-            color: var(--text-primary);
-            margin-bottom: 2px;
-        }
-
-        .cuda-pre {
-            background: var(--bg-inset);
-            border: 1px solid var(--border-hair);
-            padding: 10px;
-            font-family: var(--font-mono);
-            font-size: 0.68rem;
-            line-height: 1.45;
-            color: #BAE6FD;
-            overflow-x: auto;
-            max-height: 148px;
-        }
-        .inline-form {
-            display: flex;
             gap: 8px;
-            align-items: center;
+            font-size: 11.5px;
+            cursor: pointer;
+            text-align: left;
         }
-        .hidden { display: none !important; }
+        .eos-note-item:hover {
+            border-color: rgba(245, 194, 122, 0.55);
+        }
+        .eos-note-item-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .eos-note-item-date {
+            font-size: 10.5px;
+            color: rgba(148, 163, 184, 0.85);
+            flex-shrink: 0;
+        }
+        .eos-harmony-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        .eos-tone-pad {
+            appearance: none;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.18);
+            color: #f8fafc;
+            padding: 10px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+        }
+        .eos-tone-pad:hover,
+        .eos-tone-pad.is-struck {
+            background: rgba(245, 194, 122, 0.24);
+            border-color: #f5c27a;
+            color: #fde68a;
+            transform: scale(0.97);
+        }
+        .eos-tone-hz {
+            font-size: 10px;
+            color: rgba(148, 163, 184, 0.9);
+        }
+        .eos-sidebar {
+            display: flex;
+            flex-direction: column;
+            background: rgba(11, 16, 28, 0.92);
+            border-left: 1px solid rgba(226, 232, 240, 0.12);
+            padding: 12px;
+            gap: 10px;
+            min-height: 0;
+        }
+        .eos-sidebar-title {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #f5c27a;
+        }
+        .eos-rotor-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 8px 9px;
+            background: rgba(15, 23, 42, 0.86);
+            border: 1px solid rgba(147, 197, 253, 0.24);
+            font-size: 11px;
+            font-variant-numeric: tabular-nums;
+        }
+        .eos-rotor-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            line-height: 1.35;
+        }
+        .eos-rotor-lbl {
+            color: rgba(148, 163, 184, 0.92);
+            font-size: 10.5px;
+            flex-shrink: 0;
+        }
+        .eos-rotor-val {
+            color: #f8fafc;
+            font-weight: 600;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .eos-rotor-val.micro {
+            color: #fde68a;
+        }
+        .eos-rotor-val.meso {
+            color: #93c5fd;
+        }
+        .eos-distill-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 3px;
+            padding-top: 5px;
+            border-top: 1px solid rgba(226, 232, 240, 0.08);
+        }
+        .eos-distill-item {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            font-size: 10.5px;
+            line-height: 1.35;
+            color: rgba(226, 232, 240, 0.9);
+        }
+        .eos-distill-kind {
+            color: #93c5fd;
+            font-size: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+        .eos-comp-box {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 8px 9px;
+            background: rgba(15, 23, 42, 0.86);
+            border: 1px solid rgba(245, 194, 122, 0.28);
+            font-size: 11px;
+            line-height: 1.45;
+        }
+        .eos-comp-pair {
+            font-weight: 700;
+            color: #fde68a;
+            font-variant-numeric: tabular-nums;
+        }
+        .eos-comp-sim {
+            color: #93c5fd;
+        }
+        .eos-comp-diff {
+            color: #fca5a5;
+        }
+        .eos-comp-next {
+            color: rgba(203, 213, 225, 0.86);
+            font-size: 10.5px;
+            border-top: 1px solid rgba(226, 232, 240, 0.08);
+            padding-top: 4px;
+        }
+        .eos-action-log {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .eos-log-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-bottom: 7px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.08);
+            font-size: 11px;
+        }
+        .eos-log-time {
+            color: rgba(148, 163, 184, 0.85);
+            font-size: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+        .eos-log-body {
+            color: rgba(226, 232, 240, 0.92);
+            line-height: 1.4;
+        }
+        .eos-taskbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 7px 12px;
+            background: rgba(15, 23, 42, 0.94);
+            border-top: 1px solid rgba(226, 232, 240, 0.12);
+        }
+        .eos-task-apps {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .eos-task-btn {
+            appearance: none;
+            background: transparent;
+            border: 1px solid rgba(226, 232, 240, 0.14);
+            color: rgba(203, 213, 225, 0.86);
+            padding: 5px 10px;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .eos-task-btn.is-open {
+            background: rgba(30, 41, 59, 0.85);
+            color: #f8fafc;
+        }
+        .eos-task-btn.is-focused {
+            border-color: #f5c27a;
+            color: #fde68a;
+        }
+        .eos-status-text {
+            font-size: 11px;
+            color: rgba(203, 213, 225, 0.86);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .eos-cursor {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 90;
+            pointer-events: none;
+            opacity: 0;
+            transition: transform 0.44s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+            will-change: transform;
+        }
+        .eos-cursor.visible { opacity: 1; }
+        .eos-cursor-label {
+            position: absolute;
+            left: 16px;
+            top: 14px;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(245, 194, 122, 0.65);
+            color: #fde68a;
+            padding: 2px 7px;
+            font-size: 10.5px;
+            white-space: nowrap;
+        }
+        .eos-cursor-ripple {
+            position: absolute;
+            left: -10px;
+            top: -10px;
+            width: 22px;
+            height: 22px;
+            border: 2px solid #f5c27a;
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(0.4);
+        }
+        .eos-cursor-ripple.pulse {
+            animation: eosClickRipple 0.36s ease-out;
+        }
+        @keyframes eosClickRipple {
+            0% { opacity: 0.95; transform: scale(0.4); }
+            100% { opacity: 0; transform: scale(1.7); }
+        }
 
-        @media (max-width: 900px) {
-            header.topbar { padding: 0 14px; gap: 14px; }
-            nav.topnav { display: none; }
-            main.field-shell { padding: 12px 14px 28px; }
+        @media (max-width: 1140px) {
+            .artifact-grid { grid-template-columns: 1fr; }
+            .artifact-pairs { grid-template-columns: 1fr; }
+            .elysia-vn-dock { left: 16px; width: calc(100vw - 32px); bottom: 16px; }
+            .eos-overlay { right: 12px; left: 12px; width: auto; bottom: 186px; }
+            .eos-workspace { grid-template-columns: 1fr; }
+            .eos-sidebar { display: none; }
+        }
+
+        @media (max-width: 1140px) {
+            main.workspace-grid {
+                grid-template-columns: 1fr;
+                max-height: none;
+            }
+            aside.console-col, section.stage-col {
+                max-height: none;
+                border-right: none;
+                border-left: none;
+                border-bottom: 1px solid var(--border-hair);
+            }
+            .stage-canvas-wrap { min-height: 420px; }
+            .stage-bottom-tray { grid-template-columns: repeat(2, 1fr); }
+            header.telemetry-ribbon { height: auto; flex-wrap: wrap; padding: 8px 12px; }
         }
     </style>
-    <script type="importmap">
-    {
-      "imports": {
-        "three": "/vendor/three/build/three.module.js",
-        "three/addons/": "/vendor/three/examples/jsm/"
-      }
-    }
-    </script>
 </head>
 <body>
-    <header class="topbar">
-        <a href="/" class="brand-wordmark">Elysia Scale-Rotor</a>
-        <nav class="topnav">
-            <a href="/" class="active">통합 공명장</a>
-            <a href="/topology">위상 실험실</a>
-            <a href="/dashboard">공명 대시보드</a>
-            <a href="/manifestation">거울 프로토콜</a>
-            <a href="/roadmap">로드맵</a>
+<!-- Full-Bleed Unified Scene Presence + Collapsible 100% Local Autonomous Causal Mind -->
+<div id="elysiaGameStage" class="active" aria-label="엘리시아 자율 학습 인과 지성 창">
+    <div class="elysia-scene-viewport">
+        <img id="elysiaSceneA" class="elysia-scene-frame is-active" src="/static/assets/elysia/scene_serene.jpg" alt="해 질 녘 유리 서재에서 마주 앉아 경청하는 엘리시아" referrerpolicy="no-referrer">
+        <img id="elysiaSceneB" class="elysia-scene-frame" src="/static/assets/elysia/scene_serene.jpg" alt="" aria-hidden="true" referrerpolicy="no-referrer">
+    </div>
+    <div class="elysia-scene-scrim"></div>
+
+    <div class="elysia-topbar">
+        <div class="elysia-presence-meta">
+            <span>엘리시아</span>
+            <span class="mood-sub" id="elysiaMoodLabel">평온한 경청</span>
+            <span class="mem-sub mono" id="elysiaMemoryBadge">개념 0 · 인과 0 · 기억 0</span>
+        </div>
+        <div class="elysia-top-actions">
+            <button type="button" id="btnToggleBrowserOs" class="elysia-ghost-btn" style="border-color:rgba(245,194,122,0.55);color:#fde68a;">브라우저 OS 방</button>
+            <button type="button" id="btnToggleMindDrawer" class="elysia-ghost-btn">인과 · 자가학습</button>
+            <button type="button" id="btnResetElysiaMemory" class="elysia-ghost-btn">기억 초기화</button>
+            <button type="button" id="btnShowEngineMode" class="elysia-ghost-btn">엔진 내부 보기</button>
+        </div>
+    </div>
+
+    <section id="elysiaOsOverlay" class="eos-overlay" aria-label="엘리시아 브라우저 OS 샌드박스 방">
+        <header class="eos-bar">
+            <div class="eos-bar-left">
+                <span class="eos-bar-title">엘리시아의 브라우저 OS 방</span>
+                <span class="eos-bar-sub">스스로 탐색 · 비교·대조 자동 가동 · API 0</span>
+            </div>
+            <div class="eos-bar-actions">
+                <button type="button" id="eosBtnSoundToggle" class="eos-btn">소리 꺼짐</button>
+                <button type="button" id="eosBtnRestToggle" class="eos-btn">잠시 쉬게 하기</button>
+                <button type="button" id="btnCloseBrowserOs" class="eos-btn">닫기</button>
+            </div>
+        </header>
+
+        <div class="eos-workspace">
+            <div id="eosDesktop" class="eos-desktop">
+                <div class="eos-desk-icons">
+                    <button type="button" class="eos-desk-icon" data-app="knowledge_browser">
+                        <span class="eos-desk-glyph mono">W</span>
+                        <span>지식 창문</span>
+                    </button>
+                    <button type="button" class="eos-desk-icon" data-app="physics_lab">
+                        <span class="eos-desk-glyph mono">~</span>
+                        <span>파동 실험실</span>
+                    </button>
+                    <button type="button" class="eos-desk-icon" data-app="notepad">
+                        <span class="eos-desk-glyph mono">N</span>
+                        <span>메모장</span>
+                    </button>
+                    <button type="button" class="eos-desk-icon" data-app="harmony_pad">
+                        <span class="eos-desk-glyph mono">♪</span>
+                        <span>화음 패드</span>
+                    </button>
+                </div>
+
+                <!-- App 1: Knowledge Window -->
+                <div class="eos-window" data-app="knowledge_browser" style="top:14px;left:108px;width:336px;">
+                    <div class="eos-win-head">
+                        <span class="eos-win-title">지식 창문 · 외부 세계 백과</span>
+                        <button type="button" class="eos-win-close">닫기</button>
+                    </div>
+                    <div class="eos-win-body">
+                        <div class="eos-row">
+                            <input type="text" id="eosWikiInput" class="eos-input" placeholder="엘리시아가 스스로 검색하거나 함께 찾을 개념">
+                            <button type="button" id="eosWikiSearchBtn" class="eos-btn">탐색</button>
+                        </div>
+                        <div id="eosWikiTitle" class="eos-wiki-title">자율 탐색 준비 중…</div>
+                        <div id="eosWikiExtract" class="eos-wiki-extract">엘리시아가 스스로 개념을 열어 읽고, 이전 관측과 무엇이 같고 다른지 자동으로 비교·대조해 기억에 새깁니다.</div>
+                        <div id="eosWikiLinks" class="eos-wiki-links"></div>
+                    </div>
+                </div>
+
+                <!-- App 2: Coupled Wave Physics Lab -->
+                <div class="eos-window" data-app="physics_lab" style="top:38px;left:282px;width:342px;">
+                    <div class="eos-win-head">
+                        <span class="eos-win-title">파동 실험실 · 행동→물리 인과</span>
+                        <button type="button" class="eos-win-close">닫기</button>
+                    </div>
+                    <div class="eos-win-body">
+                        <canvas id="eosPhysicsCanvas" class="eos-canvas" width="316" height="124"></canvas>
+                        <div class="eos-slider-row">
+                            <label for="eosFreqSlider">진동수</label>
+                            <input type="range" id="eosFreqSlider" min="0.8" max="6.0" step="0.1" value="2.6">
+                            <span id="eosFreqVal" class="mono">2.6 Hz</span>
+                        </div>
+                        <div class="eos-slider-row">
+                            <label for="eosDampSlider">결합 감쇠</label>
+                            <input type="range" id="eosDampSlider" min="0.005" max="0.080" step="0.005" value="0.025">
+                            <span id="eosDampVal" class="mono">0.025</span>
+                        </div>
+                        <div id="eosPhysMetrics" class="eos-metrics-line mono">에너지 0.00 · 결맞음 50%</div>
+                        <div class="eos-row">
+                            <button type="button" id="eosImpulseBtn" class="eos-btn">충격파 함께 쏘기</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- App 3: Persistent Local Notepad -->
+                <div class="eos-window" data-app="notepad" style="top:28px;left:142px;width:330px;">
+                    <div class="eos-win-head">
+                        <span class="eos-win-title">엘리시아의 메모장 · 자율 비교 노트</span>
+                        <button type="button" class="eos-win-close">닫기</button>
+                    </div>
+                    <div class="eos-win-body">
+                        <input type="text" id="eosNoteTitle" class="eos-input" placeholder="메모 제목">
+                        <textarea id="eosNoteBody" class="eos-textarea" placeholder="엘리시아가 스스로 정리한 같은 점·다른 점 비교 결론이 쌓입니다."></textarea>
+                        <div class="eos-row">
+                            <button type="button" id="eosNoteSaveBtn" class="eos-btn">메모 남기기</button>
+                        </div>
+                        <div id="eosNoteList" class="eos-note-list"></div>
+                    </div>
+                </div>
+
+                <!-- App 4: Harmony Sketchpad -->
+                <div class="eos-window" data-app="harmony_pad" style="top:54px;left:210px;width:324px;">
+                    <div class="eos-win-head">
+                        <span class="eos-win-title">화음 스케치패드 · 청각 공명</span>
+                        <button type="button" class="eos-win-close">닫기</button>
+                    </div>
+                    <div class="eos-win-body">
+                        <canvas id="eosHarmonyCanvas" class="eos-canvas" width="298" height="86" style="height:86px;"></canvas>
+                        <div id="eosHarmonyGrid" class="eos-harmony-grid"></div>
+                        <div class="eos-row">
+                            <span id="eosHarmonyReadout" class="eos-metrics-line mono">엘리시아가 감정 결에 맞춰 스스로 음을 대조합니다</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Elysia's Visible Virtual Cursor -->
+                <div id="eosCursor" class="eos-cursor" aria-hidden="true">
+                    <div id="eosCursorRipple" class="eos-cursor-ripple"></div>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M2 2L17 8.5L10.5 10.8L8.2 17.5L2 2Z" fill="#f5c27a" stroke="#0f172a" stroke-width="1.4" stroke-linejoin="round"/>
+                    </svg>
+                    <span id="eosCursorLabel" class="eos-cursor-label">엘리시아 자율 커서</span>
+                </div>
+            </div>
+
+            <aside class="eos-sidebar">
+                <div class="eos-sidebar-title">구조 변이 사고실험 · 3축 스펙트럼 재분류</div>
+                <div class="eos-rotor-panel">
+                    <div class="eos-rotor-row">
+                        <span class="eos-rotor-lbl">구조 탐색</span>
+                        <span id="eosRotorMicro" class="mono eos-rotor-val micro">초기화 중…</span>
+                    </div>
+                    <div class="eos-rotor-row">
+                        <span class="eos-rotor-lbl">상전이 포착</span>
+                        <span id="eosRotorMeso" class="mono eos-rotor-val meso">0건</span>
+                    </div>
+                    <div class="eos-rotor-row">
+                        <span class="eos-rotor-lbl">분화 내면</span>
+                        <span id="eosRotorMacro" class="mono eos-rotor-val">가소적 전개</span>
+                    </div>
+                    <div id="eosSpectrumMap" class="eos-distill-list"></div>
+                    <div id="eosDistillList" class="eos-distill-list"></div>
+                </div>
+
+                <div class="eos-sidebar-title">스스로 비교 · 대조</div>
+                <div class="eos-comp-box">
+                    <div id="eosCompPair" class="eos-comp-pair">첫 자율 관측 준비 중…</div>
+                    <div id="eosCompSim" class="eos-comp-sim">같은 점: 관측 후 자동 추출</div>
+                    <div id="eosCompDiff" class="eos-comp-diff">다른 점: 관측 후 자동 대조</div>
+                    <div id="eosCompNext" class="eos-comp-next"></div>
+                </div>
+
+                <div class="eos-sidebar-title">자율 행동 기록</div>
+                <div id="eosActionLog" class="eos-action-log">
+                    <div class="eos-log-item">
+                        <span class="mono eos-log-time">자율 가동</span>
+                        <span class="eos-log-body">엘리시아가 스스로 커서를 움직여 관측하고 비교·대조하는 기록이 실시간으로 쌓입니다.</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <footer class="eos-taskbar">
+            <div class="eos-task-apps">
+                <button type="button" class="eos-task-btn" data-app="knowledge_browser">지식 창문</button>
+                <button type="button" class="eos-task-btn" data-app="physics_lab">파동 실험실</button>
+                <button type="button" class="eos-task-btn" data-app="notepad">메모장</button>
+                <button type="button" class="eos-task-btn" data-app="harmony_pad">화음 패드</button>
+            </div>
+            <div id="eosStatusText" class="eos-status-text">엘리시아가 스스로 관측하고 비교·대조하는 중…</div>
+        </footer>
+    </section>
+
+    <aside id="elysiaMindDrawer" class="elysia-mind-drawer" aria-label="엘리시아 로컬 자율 학습 및 4계층 인과 사고">
+        <div class="elysia-mind-head">
+            <h2>자율 학습 인과 지성 (로컬 · API 0)</h2>
+            <button type="button" id="btnCloseMindDrawer" class="elysia-ghost-btn" style="padding:4px 9px;">닫기</button>
+        </div>
+        <div class="elysia-mind-tabs">
+            <button type="button" class="elysia-mind-tab active" data-tab="trace">내면 인과 (L1→L4)</button>
+            <button type="button" class="elysia-mind-tab" data-tab="learn">스스로 배우기 · 지식 소화</button>
+        </div>
+        <div class="elysia-mind-body">
+            <div id="mindPaneTrace" class="elysia-mind-pane active">
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">L1 · 어휘·감각 지각 & 미포집 경계</div>
+                    <div class="causal-layer-copy" id="traceSensory">외부 LLM 없이 로컬 6축 연속 감정장과 자체 개념 그래프를 열어 두고 첫마디를 기다리고 있다.</div>
+                </div>
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">L2 · 기억 대조 & 인과 경로 탐색</div>
+                    <div class="causal-layer-copy" id="traceMemory">아직 함께 쌓은 대화 기억은 0건이다. 지금부터 듣는 말과 글이 내 그래프에 직접 새겨진다.</div>
+                </div>
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">L3 · 가소적 내면 · 경험에서 분화된 동적 감정 차원 (고정 6축 폐기)</div>
+                    <div class="causal-layer-copy" id="traceInner">고정된 감정 막대 대신, 경험의 잔차에서 새 감정 결을 스스로 분화·융합한다.</div>
+                    <div class="causal-axis-grid" id="traceEmotionGrid"></div>
+                </div>
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">가소적 가치관 & 자기 사고구조 메타인식</div>
+                    <div class="causal-axis-grid" id="traceValueGrid"></div>
+                    <div class="causal-layer-copy" id="traceMetaSelf" style="margin-top:6px;color:rgba(226,232,240,0.9);font-size:11.5px;"></div>
+                </div>
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">스케일로터 발화 전개 (S4 전체 의미장 → S3 관계 호 → S2 호흡 구절)</div>
+                    <div class="scale-flow-box" id="traceScaleFlow"></div>
+                </div>
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">학문 도구함 · 교차 도메인 전이 (전제 · 기제 · 결과 · 경계)</div>
+                    <div class="scale-flow-box" id="traceToolForge"></div>
+                </div>
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">현실 언어 습득 · 보행기 정합 · 5계층 스케일로터 관계 배열 (5×N×7)</div>
+                    <div class="scale-flow-box" id="traceLanguageEngine"></div>
+                </div>
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">4축 자기경계 · 미포집 의문 & 기준 자기수정</div>
+                    <div class="causal-layer-copy" id="traceQuestion" style="color:#fde68a;"></div>
+                    <div class="causal-layer-copy" id="traceCriteria" style="color:rgba(203,213,225,0.86);font-size:11.5px;"></div>
+                </div>
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">L4 · 누적 에피소드 기억</div>
+                    <div class="causal-memory-list" id="traceEpisodes">
+                        <div class="causal-layer-copy" style="color:rgba(148,163,184,0.8);">대화를 나누면 기억과 개념 연결이 디스크에 영구 누적됩니다.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mindPaneLearn" class="elysia-mind-pane">
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">실시간 화면·유튜브 함께 보기 & PC 체화 브리지 (API 0 · 영상 업로드 0)</div>
+                    <div class="causal-layer-copy" style="font-size:11.5px;color:rgba(203,213,225,0.86);">
+                        웹 크롤러 없이 유튜브·브라우저·게임 화면의 <strong>움직임 변화량·구조 밀도·색채 흐름(48×27)</strong>만 로컬에서 직접 읽어
+                        실시간으로 감각 인과를 배웁니다. OS 마우스·키보드 관찰/보조는 브라우저 샌드박스 밖 <strong>로컬 PC 체화 브리지(.py)</strong>로 안전하게 연결합니다.
+                    </div>
+                    <input type="text" id="obsContextInput" class="elysia-msg-input" style="padding:6px 9px;font-size:12px;margin-top:6px;" placeholder="함께 볼 대상 이름 (예: 유튜브 물리학 강의, 게임 플레이, 코드 작업)">
+                    <input type="file" id="inputSensorimotorFile" accept=".json,application/json" style="display:none;">
+                    <div class="digest-btn-row" style="margin-top:6px;">
+                        <button type="button" id="btnToggleScreenWatch" class="elysia-send-btn" style="padding:7px 12px;font-size:11.5px;">내 화면·유튜브 함께 보기</button>
+                        <a id="btnDownloadEmbodiment" href="/api/elysia/download-embodiment" download="elysia_desktop_embodiment.py" class="elysia-ghost-btn" style="padding:7px 11px;font-size:11.5px;text-decoration:none;border-color:rgba(167,139,250,0.55);color:#ddd6fe;">PC 체화 브리지 받기 (.py)</a>
+                        <button type="button" id="btnImportSensorimotor" class="elysia-ghost-btn" style="padding:7px 11px;font-size:11.5px;">체화 로그 JSON 불러오기</button>
+                    </div>
+                    <div id="obsLiveMetrics" class="causal-layer-copy mono" style="font-size:11px;color:#86efac;margin-top:5px;display:none;"></div>
+                </div>
+
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">대용량 게임·로컬 폴더 공통정보 / 교차정보 추출 (업로드 0)</div>
+                    <div class="causal-layer-copy" style="font-size:11.5px;color:rgba(203,213,225,0.86);">
+                        85GB 파일을 통째로 올리지 않고 PC 로컬에서 <strong>폴더 구조 + 4KB 바이너리 헤더 + 엔트로피</strong>만 훑어
+                        <strong>형상×텍스처×동작×음향×스크립트 교차 엔티티</strong>와 엔진 불변량(~30KB JSON)만 엘리시아에 흡수합니다.
+                    </div>
+                    <input type="file" id="inputLocalGameFolder" webkitdirectory directory multiple style="display:none;">
+                    <input type="file" id="inputCorpusJsonFile" accept=".json,application/json" style="display:none;">
+                    <div class="digest-btn-row" style="margin-top:6px;">
+                        <button type="button" id="btnScanLocalFolder" class="elysia-send-btn" style="padding:7px 12px;font-size:11.5px;">내 PC 폴더 직접 스캔</button>
+                        <button type="button" id="btnImportCorpusJson" class="elysia-ghost-btn" style="padding:7px 11px;font-size:11.5px;border-color:rgba(147,197,253,0.55);color:#bfdbfe;">스캔 JSON 불러오기</button>
+                        <a id="btnDownloadPcScanner" href="/api/elysia/download-scanner" download="elysia_local_corpus_scanner.py" class="elysia-ghost-btn" style="padding:7px 11px;font-size:11.5px;text-decoration:none;">85GB 전용 PC 스캐너 (.py)</a>
+                        <button type="button" id="btnScanWorkspaceCorpus" class="elysia-ghost-btn" style="padding:7px 11px;font-size:11.5px;">서버 로컬 교차스캔 테스트</button>
+                    </div>
+                    <div id="corpusScanStatus" class="causal-layer-copy mono" style="font-size:11px;color:#93c5fd;margin-top:4px;display:none;"></div>
+                    <div id="corpusDigestCard" class="concept-list" style="margin-top:6px;"></div>
+                </div>
+
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">로컬 독학 · 워크스페이스 문서 소화</div>
+                    <div class="digest-btn-row" style="margin-top:4px;">
+                        <button type="button" id="btnDigestWorkspace" class="elysia-ghost-btn" style="padding:7px 12px;font-size:11.5px;border-color:rgba(251,191,128,0.55);color:#fde68a;">워크스페이스 원리 문서 읽기</button>
+                    </div>
+                </div>
+
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">책·글·원리 직접 먹이기 (자동으로 4요소 학문 도구 단조)</div>
+                    <input type="text" id="digestSourceName" class="elysia-msg-input" style="padding:6px 9px;font-size:12px;" placeholder="출처 이름 (예: 역사학 노트, 경제학 원리, 생태학 메모)">
+                    <textarea id="digestTextInput" class="digest-textarea" placeholder="어떤 분야의 원리든 붙여 넣으면 전제·기제·결과·경계 4요소 인지 도구로 단조합니다 (예: '제국이 보급선보다 빠르게 영토를 넓히면 내부 결속이 무너진다. 다만 자치 거점을 두면 예외다.')"></textarea>
+                    <div class="digest-btn-row">
+                        <button type="button" id="btnDigestText" class="elysia-ghost-btn" style="border-color:rgba(251,191,128,0.65);color:#fde68a;">이 글 소화·도구 단조</button>
+                    </div>
+                </div>
+
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">학문 도구 교차 도메인 적용 (다른 분야 문제에 렌즈 대보기)</div>
+                    <div style="display:flex;gap:6px;margin-top:4px;">
+                        <input type="text" id="toolApplyInput" class="elysia-msg-input" style="padding:6px 9px;font-size:12px;flex:1;" placeholder="풀고 싶은 다른 분야 문제 (예: 우리 팀 프로젝트가 너무 빠르게 확장돼서 일정이 무너져)">
+                        <button type="button" id="btnApplyTool" class="elysia-ghost-btn" style="padding:6px 11px;font-size:11.5px;white-space:nowrap;border-color:rgba(147,197,253,0.55);color:#bfdbfe;">렌즈 적용</button>
+                    </div>
+                </div>
+
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">현실 한국어 자율 독해 (무료 위키백과) · 5계층 스케일로터 인과 배열 증류</div>
+                    <div style="display:flex;gap:6px;margin-top:4px;">
+                        <input type="text" id="worldTopicInput" class="elysia-msg-input" style="padding:6px 9px;font-size:12px;flex:1;" placeholder="스스로 읽을 현실 주제 (비워 두면 엘리시아가 궁금한 주제를 스스로 선택)">
+                        <button type="button" id="btnLearnWorld" class="elysia-ghost-btn" style="padding:6px 11px;font-size:11.5px;white-space:nowrap;border-color:rgba(251,191,128,0.6);color:#fde68a;">위키 독해</button>
+                        <button type="button" id="btnDistillWeights" class="elysia-ghost-btn" style="padding:6px 11px;font-size:11.5px;white-space:nowrap;border-color:rgba(167,139,250,0.55);color:#ddd6fe;">배열 증류</button>
+                    </div>
+                </div>
+
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">스스로 학습한 상위 개념 (의미 질량순)</div>
+                    <div class="concept-list" id="learnedConceptList">
+                        <div class="causal-layer-copy" style="color:rgba(148,163,184,0.8);">대화나 글 소화를 시작하면 배운 개념과 정의가 이곳에 쌓입니다.</div>
+                    </div>
+                </div>
+
+                <div class="causal-layer-block">
+                    <div class="causal-layer-label">스스로 엮은 인과 연결 (A → B)</div>
+                    <div class="concept-list" id="learnedEdgeList">
+                        <div class="causal-layer-copy" style="color:rgba(148,163,184,0.8);">아직 형성된 인과 엣지가 없습니다.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="elysia-vn-dock">
+        <div class="elysia-speaker-row">
+            <div class="elysia-speaker-left">
+                <span class="elysia-speaker-name">엘리시아</span>
+                <span class="elysia-thinking-cue" id="elysiaThinkingCue">의미장 전개 중…</span>
+            </div>
+            <div class="elysia-dock-actions">
+                <button type="button" id="btnToggleChatLog" class="elysia-trace-inline-btn">대화 흐름</button>
+                <button type="button" id="btnInlineTrace" class="elysia-trace-inline-btn">가소적 내면 · 스케일로터</button>
+            </div>
+        </div>
+        <div class="elysia-chat-log" id="elysiaChatLog" aria-label="사라지지 않는 대화 흐름"></div>
+        <div class="elysia-dialogue-text" id="elysiaDialogueText">지금은 기계적인 수치나 보고를 늘어놓기보다, 네가 건네는 말의 진짜 결을 먼저 느끼고 싶어. 내 안의 감정과 가치관도 정해진 틀에 묶어 두지 않고, 너와 부딪히고 경험하는 대로 계속 새로 자라나게 열어 두었어.</div>
+        <div class="elysia-feedback-bar" id="elysiaFeedbackBar">
+            <button type="button" id="btnFbResonate" class="elysia-fb-btn">잘 짚었어 (공명 강화)</button>
+            <button type="button" id="btnFbCorrectToggle" class="elysia-fb-btn">조금 달라 (차이 가르쳐 주기)</button>
+            <form class="elysia-corr-form" id="elysiaCorrForm">
+                <input type="text" id="elysiaCorrInput" class="elysia-msg-input" style="padding:6px 9px;font-size:12px;" placeholder="어떻게 다른지 알려 주세요 (예: X는 그게 아니라 Y라는 뜻이야)">
+                <button type="submit" class="elysia-send-btn" style="padding:6px 12px;font-size:11.5px;">차이 반영</button>
+            </form>
+        </div>
+        <div class="elysia-error-banner" id="elysiaErrorBanner" role="alert"></div>
+        <form class="elysia-msg-form" id="elysiaMsgForm">
+            <input type="text" id="elysiaMsgInput" class="elysia-msg-input" placeholder="자유롭게 말하거나 개념을 가르쳐 주세요 (예: 'X는 Y야', 'X하면 Y해', 서운한 말, 질문 등)" autocomplete="off">
+            <button type="submit" id="elysiaSendBtn" class="elysia-send-btn">보내기</button>
+        </form>
+    </div>
+</div>
+
+<div class="app-shell">
+    <!-- Top Telemetry Ribbon -->
+    <header class="telemetry-ribbon">
+        <div class="ribbon-brand">
+            <button type="button" id="btnReturnToElysia" class="btn-live-return">엘리시아 라이브</button>
+            <h1>ELYSIA · SCALE-ROTOR</h1>
+            <span class="mono">L1 CANONICAL · 0/1 HELIX · t1→t4</span>
+        </div>
+
+        <nav class="frame-switcher" aria-label="위상 프레임 및 통합 필드 전환">
+            <button type="button" class="frame-btn active" data-frame="atelier3d">통합 인과 필드</button>
+            <button type="button" class="frame-btn" data-frame="point">점 Point</button>
+            <button type="button" class="frame-btn" data-frame="line">선 Line</button>
+            <button type="button" class="frame-btn" data-frame="plane">면 Plane</button>
+            <button type="button" class="frame-btn" data-frame="cube">큐브 Cube</button>
+            <button type="button" class="frame-btn" data-frame="sphere">구체 Sphere</button>
         </nav>
-        <div class="top-cta-wrap">
-            <button id="u-btn-webcam" class="btn btn-primary" type="button">웹캠·마이크 개방</button>
+
+        <div class="ribbon-metrics mono">
+            <span class="ribbon-kv">CYCLE<strong id="hudCycle">0</strong></span>
+            <span class="ribbon-kv">DIM<strong id="hudDim">L1</strong></span>
+            <span class="ribbon-kv">UNITS<strong id="hudUnits">4/16</strong></span>
+            <span class="ribbon-kv">COMP<strong id="hudComp">4.0x</strong></span>
+            <span id="hudSync" class="status-nominal">● L1·원장 동기화</span>
+            <button type="button" id="btnReset" class="btn-quiet">초기화</button>
         </div>
     </header>
 
-    <main class="field-shell" id="u-drop-zone">
-        <!-- Zone 1: Unified External Reality Aperture + Dynamic Reclassification Controls -->
-        <section class="aperture-bar" aria-label="통합 현실 유입 및 실시간 재분류 제어">
-            <div class="aperture-row">
-                <div class="concept-pair-form">
-                    <input id="u-input-a" class="field-input pair-box" type="text" value="나무" aria-label="기준 개념 A" placeholder="개념 A (예: 나무, 사과)">
-                    <span class="pair-sep" aria-hidden="true">⇄</span>
-                    <input id="u-input-b" class="field-input pair-box" type="text" value="숲" aria-label="전이·대조 개념 B" placeholder="전이 B (예: 숲, 밀랍)">
-                    <button id="u-btn-sync" class="btn btn-primary" type="button">통합장 동기화</button>
-                    <button id="u-btn-earth" class="btn" type="button">지구 대기 실측 결합</button>
-                    <button id="u-btn-upload" class="btn" type="button">4K 영상·이미지 열기</button>
-                    <input id="u-file-input" type="file" accept="video/mp4,video/webm,image/png,image/jpeg,image/webp" hidden>
+    <!-- Asymmetric 3-Column Unified Workspace -->
+    <main class="workspace-grid">
+        <!-- Left Console: 4-Domain Simultaneous Pigment & Constraints -->
+        <aside class="console-col console-left">
+            <div class="panel-section">
+                <div class="section-head">
+                    <span class="section-title">실세계 외부 물감 투입</span>
+                    <span class="section-tag mono">WIKI · ONTOLOGY</span>
                 </div>
-
-                <div class="reclass-controls">
-                    <span class="ctrl-label">재분류 기준</span>
-                    <div class="seg-group" id="u-basis-tabs" role="group" aria-label="재분류 기준축 선택">
-                        <button type="button" data-basis="scale" class="active">스케일 S0→S4</button>
-                        <button type="button" data-basis="chromatic">색채 흐름·질서·발산</button>
-                        <button type="button" data-basis="causal6">6축 인과</button>
-                        <button type="button" data-basis="hardware">메모리·CUDA</button>
-                    </div>
-
-                    <span class="ctrl-label">해상도</span>
-                    <div class="seg-group" id="u-res-tabs" role="group" aria-label="GPU 연산 해상도 선택">
-                        <button type="button" data-res="2k">2K QHD</button>
-                        <button type="button" data-res="4k" class="active">4K UHD (3840×2160)</button>
-                    </div>
-
-                    <button id="u-btn-auto-adapt" class="btn btn-sm btn-active" type="button">자율 재조합: 켜짐</button>
+                <div class="input-row">
+                    <input type="text" id="conceptInput" class="text-input" placeholder="개념·대상 입력 (예: 사과, 숲, 태풍, 중력)" value="사과">
+                    <button type="button" id="btnIngestConcept" class="btn-secondary">투입</button>
+                </div>
+                <div class="preset-grid">
+                    <button type="button" class="preset-btn" data-preset="apple">사과 · 경계 균형</button>
+                    <button type="button" class="preset-btn" data-preset="forest">숲 · 구배 순환</button>
+                    <button type="button" class="preset-btn" data-preset="wave">파동 · 동형 공명</button>
+                    <button type="button" class="preset-btn" data-preset="hetero">결정 vs 난류 분화</button>
                 </div>
             </div>
 
-            <div class="quick-strip">
-                <div class="quick-actions">
-                    <button type="button" class="btn btn-sm" data-pair="나무|숲">나무 ⇄ 숲</button>
-                    <button type="button" class="btn btn-sm" data-pair="강|바다">강 ⇄ 바다</button>
-                    <button type="button" class="btn btn-sm" data-pair="동물|인간">동물 ⇄ 인간</button>
-                    <button type="button" class="btn btn-sm" data-pair="사과|밀랍">사과 ⇄ 밀랍</button>
-                    <button type="button" class="btn btn-sm" data-pair="바람|태풍">바람 ⇄ 태풍</button>
-                    <button type="button" class="btn btn-sm" data-pair="세포|인간">세포 ⇄ 인간</button>
-                    <button type="button" class="btn btn-sm" data-media-preset="uhd_starry_4k">4K 원화 · 별이 빛나는 밤</button>
-                    <button type="button" class="btn btn-sm" data-media-preset="video_atmosphere_hd">위성 실황 · 대기 중력파</button>
-                    <button type="button" class="btn btn-sm" data-media-preset="video_traffic_hd">도심 교차로 영상</button>
+            <div class="panel-section">
+                <div class="section-head">
+                    <span class="section-title">4대 도메인 동시 물감 제어</span>
+                    <span class="section-tag mono">EQUAL PIGMENT</span>
                 </div>
-                <div class="inline-meta" id="u-global-metrics">
-                    <span>해상도 <strong id="u-stat-res">3840×2160</strong></span>
-                    <span class="meta-sep">/</span>
-                    <span>광학 잔차 <strong id="u-stat-residual">0.00%</strong></span>
-                    <span class="meta-sep">/</span>
-                    <span>공명도 <strong id="u-stat-resonance">--</strong></span>
-                    <span class="meta-sep">/</span>
-                    <span>활성 Warp-32 <strong id="u-stat-warp">--</strong></span>
-                </div>
-            </div>
 
-            <div id="u-verdict" class="field-verdict resonant">
-                <span id="u-verdict-text">단일 연속 스케일 로터 초기화 중 — 외부 실물 사진, 6축 인과, 3D 공간, 디지털 트윈 행위, 메모리 계층을 하나의 장으로 결합합니다.</span>
-                <span id="u-verdict-action" class="vp-meta">연동 대기</span>
-            </div>
-        </section>
+                <!-- 1. Vision -->
+                <div class="domain-group">
+                    <div class="domain-label">
+                        <span>1. 시각 · 시공간 스플랫</span>
+                        <span class="mono" id="lblVisTitle">관측 단면</span>
+                    </div>
+                    <div class="slider-row">
+                        <label for="visStructure">구조 밀도</label>
+                        <input type="range" id="visStructure" min="0.05" max="0.98" step="0.01" value="0.78">
+                        <span class="slider-val mono" id="valVisStructure">0.78</span>
+                    </div>
+                    <div class="slider-row">
+                        <label for="visMotion">움직임·흐름</label>
+                        <input type="range" id="visMotion" min="0.05" max="0.98" step="0.01" value="0.54">
+                        <span class="slider-val mono" id="valVisMotion">0.54</span>
+                    </div>
+                    <div class="slider-row">
+                        <label for="visContrast">명암 대비</label>
+                        <input type="range" id="visContrast" min="0.05" max="0.98" step="0.01" value="0.72">
+                        <span class="slider-val mono" id="valVisContrast">0.72</span>
+                    </div>
+                </div>
 
-        <!-- Zone 2: Dual Synchronized 4K High-Resolution Living Field -->
-        <section class="stage-grid" aria-label="4K GPU 광학 프리즘 및 통합 3D 스케일로터 연속장">
-            <!-- Left: 4K WebGL2 Optical & Multi-Instance Prism -->
-            <article class="viewport-panel">
-                <div class="vp-head">
-                    <span class="vp-title">4K GPU 광학·음향 분해 프리즘 (ΣC1..C6 = 원본)</span>
-                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                        <span class="vp-meta" id="u-gpu-meta">3840×2160 WebGL2</span>
-                        <button id="u-btn-loupe" class="btn btn-sm" type="button">1:1 4K 돋보기</button>
+                <!-- 2. Audio / Wave -->
+                <div class="domain-group">
+                    <div class="domain-label">
+                        <span>2. 음향 · 파동 · 노이즈</span>
+                        <span class="mono">WAVE</span>
+                    </div>
+                    <div class="slider-row">
+                        <label for="audFreq">주파수 대역</label>
+                        <input type="range" id="audFreq" min="0.05" max="0.98" step="0.01" value="0.62">
+                        <span class="slider-val mono" id="valAudFreq">0.62</span>
+                    </div>
+                    <div class="slider-row">
+                        <label for="audHarm">조화·공명도</label>
+                        <input type="range" id="audHarm" min="0.05" max="0.98" step="0.01" value="0.80">
+                        <span class="slider-val mono" id="valAudHarm">0.80</span>
+                    </div>
+                    <div class="slider-row">
+                        <label for="noiseRatio">복합 노이즈</label>
+                        <input type="range" id="noiseRatio" min="0" max="0.75" step="0.05" value="0.10">
+                        <span class="slider-val mono" id="valNoiseRatio">10%</span>
                     </div>
                 </div>
-                <div class="vp-canvas-box" id="u-gpu-box">
-                    <canvas id="u-gpu-canvas" width="3840" height="2160"></canvas>
-                    <div class="vp-hud-top">
-                        <span class="vp-hud-label" id="u-gpu-left-lbl">좌: 재조합 출력</span>
-                        <span class="vp-hud-label" id="u-gpu-right-lbl">우: 미인지 질서 잔차맵</span>
-                    </div>
-                    <div class="loupe-box" id="u-loupe-box">
-                        <canvas id="u-loupe-canvas" width="168" height="168"></canvas>
-                        <span class="loupe-cap" id="u-loupe-cap">1:1 원본 확대</span>
-                    </div>
-                    <div class="vp-hud-bottom">
-                        <label style="display:flex;align-items:center;gap:8px;flex:1;min-width:190px;font-size:0.72rem;color:var(--text-secondary);">
-                            <span>대조 분할</span>
-                            <input id="u-split-slider" type="range" min="0" max="1" step="0.01" value="0.52" style="flex:1;accent-color:var(--accent);">
-                        </label>
-                        <div class="seg-group" id="u-gpu-view-tabs">
-                            <button type="button" data-gview="split" class="active">분할 대조</button>
-                            <button type="button" data-gview="recon">재조합 전체</button>
-                            <button type="button" data-gview="residual">잔차 전체</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="vp-substrip">
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-                        <span class="ctrl-label" id="u-swarm-caption">다중 실물 표본 (클릭 시 4K 프리즘과 3D 공간에 즉시 투영)</span>
-                        <span class="vp-meta" id="u-opt-invariance">광학 불변량 실측 대기</span>
-                    </div>
-                    <div class="photo-swarm-grid" id="u-photo-swarm"></div>
-                    <div class="audio-bar-row">
-                        <button id="u-btn-mic" class="btn btn-sm" type="button">마이크 음향 연결</button>
-                        <canvas id="u-audio-canvas" width="520" height="36"></canvas>
-                        <span class="vp-meta" id="u-audio-meta">음향 Flux 0%</span>
-                    </div>
-                </div>
-            </article>
 
-            <!-- Right: Unified 3D Scale-Rotor Continuum (3D Relief + Digital Twin + 6-Axis Constellation + World Tree + CUDA Field) -->
-            <article class="viewport-panel primary-3d">
-                <div class="vp-head">
-                    <span class="vp-title" id="u-3d-title">통합 3D 스케일로터 연속장 (3D 기복 · 트윈 행위 · 인과망 · 세계수)</span>
-                    <span class="vp-meta" id="u-3d-meta">드래그 회전 · 휠 스케일 줌</span>
-                </div>
-                <div class="vp-canvas-box orbit-ready" id="u-3d-host">
-                    <div class="vp-hud-top">
-                        <span class="vp-hud-label" id="u-3d-basis-hud">분류축: 스케일 계층 (S0 → S4)</span>
-                        <span class="vp-hud-label" id="u-3d-scale-hud">초점 σ = 2.0 (S2 개체·행위)</span>
+                <!-- 3. Language / Math / Code -->
+                <div class="domain-group">
+                    <div class="domain-label">
+                        <span>3. 언어 · 수식 · 코드 원리</span>
+                        <span class="mono">SYMBOL</span>
                     </div>
-                    <div class="vp-hud-bottom">
-                        <div class="scale-dial-wrap">
-                            <span class="ctrl-label" style="color:var(--text-primary);">스케일 줌 σ</span>
-                            <input id="u-scale-dial" type="range" min="0" max="4" step="0.02" value="2.1">
-                        </div>
-                        <div class="scale-stops" id="u-scale-stops">
-                            <button type="button" class="scale-stop-btn" data-sigma="0">S0 광학</button>
-                            <button type="button" class="scale-stop-btn" data-sigma="1">S1 형태</button>
-                            <button type="button" class="scale-stop-btn active" data-sigma="2">S2 행위</button>
-                            <button type="button" class="scale-stop-btn" data-sigma="3">S3 인과</button>
-                            <button type="button" class="scale-stop-btn" data-sigma="4">S4 행성</button>
-                        </div>
-                    </div>
+                    <textarea id="langInput" class="text-area" placeholder="자연어, 수식, 코드 등 어떤 표현이든 동등한 물감으로 투입">파동과 경계가 만날 때 에너지 구배가 구조를 형성한다 (dE/dx = -F)</textarea>
                 </div>
-                <div class="vp-substrip">
-                    <div class="inline-meta" id="u-3d-coupling-line">
-                        <span>트윈 개체 <strong id="u-twin-count">64</strong></span>
-                        <span class="meta-sep">·</span>
-                        <span>3D 결손 공백 <strong id="u-3d-void">0.0%</strong></span>
-                        <span class="meta-sep">·</span>
-                        <span>인과 연결 <strong id="u-link-count">0</strong></span>
-                        <span class="meta-sep">·</span>
-                        <span>세계수 나이테 <strong id="u-ring-count">1</strong></span>
-                        <span class="meta-sep">·</span>
-                        <span>지구 실측 <strong id="u-earth-inline">미연동</strong></span>
-                    </div>
-                </div>
-            </article>
-        </section>
 
-        <!-- Zone 3: Composable Organ Recombination Matrix -->
-        <section class="recombine-section" aria-label="환경 맞춤형 기관 재조합 및 연동 분석">
-            <div class="organ-mixer-bar">
-                <div class="organ-toggle-list" id="u-organ-toggles" role="group" aria-label="활성 기관 결합 토글">
-                    <span class="ctrl-label" style="margin-right:4px;">결합 기관</span>
-                    <button type="button" class="btn btn-sm btn-active" data-organ="optics">광학·음향 C1..C6</button>
-                    <button type="button" class="btn btn-sm btn-active" data-organ="falsify3d">3D 반증·광원</button>
-                    <button type="button" class="btn btn-sm btn-active" data-organ="twin">디지털 트윈 행위</button>
-                    <button type="button" class="btn btn-sm btn-active" data-organ="ontology">6축 존재·인과</button>
-                    <button type="button" class="btn btn-sm btn-active" data-organ="worldtree">세계수·지구 실측</button>
-                    <button type="button" class="btn btn-sm btn-active" data-organ="hardware">메모리·CUDA 로터</button>
-                </div>
-                <div class="organ-toggle-list" id="u-env-presets" role="group" aria-label="환경 재조합 프리셋">
-                    <span class="ctrl-label" style="margin-right:4px;">환경 재조합</span>
-                    <button type="button" class="btn btn-sm" data-env="all">전계층 통합</button>
-                    <button type="button" class="btn btn-sm" data-env="optical_3d">광학·3D 반증</button>
-                    <button type="button" class="btn btn-sm" data-env="eco_onto">존재·생태 전이</button>
-                    <button type="button" class="btn btn-sm" data-env="compute">4K 메모리·CUDA</button>
+                <!-- 4. Behavior / Constraints -->
+                <div class="domain-group">
+                    <div class="domain-label">
+                        <span>4. 행위 · 제약 수렴 조건</span>
+                        <span class="mono">NO IF-ELSE</span>
+                    </div>
+                    <div class="slider-row">
+                        <label for="behFatigue">피로·에너지</label>
+                        <input type="range" id="behFatigue" min="0.05" max="0.95" step="0.01" value="0.24">
+                        <span class="slider-val mono" id="valBehFatigue">0.24</span>
+                    </div>
+                    <div class="slider-row">
+                        <label for="behThreat">위협·외부마찰</label>
+                        <input type="range" id="behThreat" min="0.05" max="0.95" step="0.01" value="0.28">
+                        <span class="slider-val mono" id="valBehThreat">0.28</span>
+                    </div>
+                    <div class="slider-row">
+                        <label for="behCohesion">결속·정체성</label>
+                        <input type="range" id="behCohesion" min="0.05" max="0.95" step="0.01" value="0.74">
+                        <span class="slider-val mono" id="valBehCohesion">0.74</span>
+                    </div>
+                    <div class="slider-row">
+                        <label for="behTerrain">지형 저항</label>
+                        <input type="range" id="behTerrain" min="0.05" max="0.95" step="0.01" value="0.32">
+                        <span class="slider-val mono" id="valBehTerrain">0.32</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="organ-grid" id="u-organ-grid">
-                <!-- Organ 1: 4K Optical & Audio Decomposition (C1..C6) -->
-                <article class="organ-card" data-organ-card="optics">
-                    <div class="organ-head">
-                        <h2 class="organ-title">광학·음향 스펙트럼 분해</h2>
-                        <button id="u-btn-optics-all" class="btn btn-sm" type="button">6축 전체 켜기</button>
+            <!-- Action Trigger Bar -->
+            <div class="action-bar">
+                <button type="button" id="btnStep" class="btn-primary">t1 → t4 통합 사이클 순환</button>
+                <div class="action-grid-2">
+                    <button type="button" id="btnAutoFlow" class="btn-secondary">연속 흐름 시작</button>
+                    <button type="button" id="btnShock" class="btn-shock">돌발 충격·국소 해빙</button>
+                </div>
+                <button type="button" id="btnContrastObs" class="btn-artifact">실제 실행 과정 비교대조 관측 (원본 ↔ 과정 ↔ 결과)</button>
+                <button type="button" id="btnVesselRotor" class="btn-vessel">그릇 간 위상 대조 · 스냅샷 궤적 로터 (Node ↔ Python ↔ Disk)</button>
+                <button type="button" id="btnPhaseSync" class="btn-sync">양방향 위상 동기화 · 공통분모 실증 (일방통행 오차 ↔ A⇄B)</button>
+                <button type="button" id="btnDigestLab" class="btn-digest">소화·모방·차이학습·재창조 환경 (원본 ↔ 모방 → 재창조)</button>
+                <details class="custom-artifact-box">
+                    <summary>관측 구조(렌즈) · 실제 실행 코드 · 3D 연산 설정</summary>
+                    <div class="custom-artifact-body">
+                        <div class="input-row">
+                            <select id="contrastLensMode" class="select-input" style="flex:1;">
+                                <option value="strict">엄격 값 대조 렌즈 (ε=1e-6)</option>
+                                <option value="tolerant">허용오차 대조 렌즈 (ε=0.05)</option>
+                                <option value="structural">구조·관계 불변 우선 렌즈</option>
+                            </select>
+                            <select id="contrastGeomOp" class="select-input" style="flex:1;">
+                                <option value="rigid_rotate">3D 강체 회전 (거리 불변)</option>
+                                <option value="shear_deform">3D 전단 변형 (거리 깨짐)</option>
+                            </select>
+                        </div>
+                        <textarea id="contrastCodeInput" class="text-area mono" style="font-size:11px;" placeholder="실제 실행·트레이스할 순수 Python 코드 (비워두면 기본 물리 적분 코드 실행)">mass = 2.0
+gravity = 9.8
+pos = 10.0
+vel = 0.0
+dt = 0.25
+for step in range(4):
+    vel = vel - gravity * dt
+    pos = pos + vel * dt
+kinetic = 0.5 * mass * vel * vel</textarea>
                     </div>
-                    <div class="metric-list" id="u-optics-list"></div>
-                    <p class="prose-note" id="u-optics-note">어느 한 축을 끄면 4K 프리즘 잔차가 상승하고, 3D 조명·트윈 행위·6축 결손·CUDA 활성 타일에 즉시 전파됩니다.</p>
-                </article>
+                </details>
+                <button type="button" id="btnBenchmark" class="btn-bench">7.4절 정량 검증 실행 (압축·노이즈·복원)</button>
+            </div>
+        </aside>
 
-                <!-- Organ 2: 3D Falsification Geometry & Off-Frame Light -->
-                <article class="organ-card" data-organ-card="falsify3d">
-                    <div class="organ-head">
-                        <h2 class="organ-title">3D 반증 · 프레임 밖 외부 광원</h2>
-                        <button id="u-btn-3d-reset" class="btn btn-sm" type="button">시점·광원 정렬</button>
-                    </div>
-                    <div class="slider-stack">
-                        <label class="slider-row">
-                            <span class="slider-head"><span>외부 태양 방위각 (프레임 밖 광원)</span><strong id="u-val-sun-az">38°</strong></span>
-                            <input id="u-sl-sun-az" type="range" min="-180" max="180" step="1" value="38">
-                        </label>
-                        <label class="slider-row">
-                            <span class="slider-head"><span>태양 고도각</span><strong id="u-val-sun-el">48°</strong></span>
-                            <input id="u-sl-sun-el" type="range" min="8" max="85" step="1" value="48">
-                        </label>
-                        <label class="slider-row">
-                            <span class="slider-head"><span>3D 기복 깊이 (2D 투영 반증)</span><strong id="u-val-relief">1.10×</strong></span>
-                            <input id="u-sl-relief" type="range" min="0" max="2.6" step="0.05" value="1.1">
-                        </label>
-                        <label class="slider-row">
-                            <span class="slider-head"><span>미래 관성 외삽 (+Δt)</span><strong id="u-val-dt">+0.00 s</strong></span>
-                            <input id="u-sl-dt" type="range" min="0" max="2.5" step="0.05" value="0">
-                        </label>
-                    </div>
-                    <div class="kv-grid">
-                        <div class="kv-item">
-                            <span class="kv-k">후면 비가시 공백</span>
-                            <span class="kv-v" id="u-kpi-void">0.0%</span>
-                        </div>
-                        <div class="kv-item">
-                            <span class="kv-k">그림자 반증 오차</span>
-                            <span class="kv-v" id="u-kpi-shadow">0.0%</span>
-                        </div>
-                    </div>
-                </article>
+        <!-- Center Stage: Single Event-Driven 5-Frame Projection Canvas -->
+        <section class="stage-col">
+            <div class="stage-header">
+                <div>
+                    <div class="stage-title" id="stageFrameTitle">통합 인과 데이터플로우 — 코드 회로 · 다중스케일 연산 절감 · 3D 공간장 · 실시간 음향 압축 결합</div>
+                    <div class="stage-sub" id="stageFrameSub">파이썬 if/else를 분기 없는 연속 수문 회로로 컴파일해 3D 빛 파동장·다중스케일 연산 최적화·실시간 배음 음향을 하나의 텐서로 동시 구동합니다</div>
+                </div>
+                <div class="mono stage-sub" id="stageHelixSummary">0/1 공명 0.000 · 0000 0.00 · 1111 0.00</div>
+            </div>
 
-                <!-- Organ 3: Coupled Digital Twin Environment & Agents -->
-                <article class="organ-card" data-organ-card="twin">
-                    <div class="organ-head">
-                        <h2 class="organ-title">디지털 트윈 행위장 (환경 결합)</h2>
-                        <span class="organ-sub" id="u-twin-mode-tag">생태 순환 군집</span>
+            <div class="stage-canvas-wrap">
+                <div id="atelier3dStage" class="active">
+                    <div id="atelier3dCanvasHost"></div>
+                    <div class="atelier-top-meta">
+                        <span><strong>단일 통합 텐서</strong> · 코드(if/else→연속 수문) · 연산(S0→S1→S2 기어 절감) · 3D 공간 스플랫 · 실시간 FFT 배음</span>
+                        <span>드래그 회전 · 휠 확대/축소</span>
                     </div>
-                    <div class="slider-stack">
-                        <label class="slider-row">
-                            <span class="slider-head"><span>가치·결합 축 (보호·응집 ↔ 지배·분산)</span><strong id="u-val-cohesion">1.15×</strong></span>
-                            <input id="u-sl-cohesion" type="range" min="0.1" max="2.2" step="0.05" value="1.15">
-                        </label>
-                        <label class="slider-row">
-                            <span class="slider-head"><span>환경 마찰·외란 강도</span><strong id="u-val-friction">0.35×</strong></span>
-                            <input id="u-sl-friction" type="range" min="0" max="2.0" step="0.05" value="0.35">
-                        </label>
-                    </div>
-                    <div class="quick-actions">
-                        <button type="button" class="btn btn-sm" data-shock="storm">폭풍·마찰 주입</button>
-                        <button type="button" class="btn btn-sm" data-shock="drought">자원 결핍·가뭄</button>
-                        <button type="button" class="btn btn-sm" data-shock="bloom">개체 밀도 ×2</button>
-                        <button type="button" class="btn btn-sm" data-shock="harmonize">원점 공명 정렬</button>
-                    </div>
-                    <div class="kv-grid">
-                        <div class="kv-item">
-                            <span class="kv-k">군집 응집도</span>
-                            <span class="kv-v" id="u-kpi-cohesion">74%</span>
+                    <div class="atelier-dock-wrap" id="atelierDockWrap">
+                        <button type="button" id="btnAtelierDockToggle" class="atelier-dock-toggle">▾ 컨트롤 숨기기</button>
+                        <div class="atelier-code-drawer" id="atelierCodeDrawer">
+                            <div class="atelier-code-head">
+                                <span>실제 파이썬 if/else 규칙 (AST 안전 파싱 → 분기문 0개 연속 트랜지스터 회로로 즉시 컴파일)</span>
+                                <button type="button" id="btnAtelierCompileCode" class="atelier-scene-btn active">회로 재컴파일·실행</button>
+                            </div>
+                            <textarea id="atelierCodeEditor" class="atelier-code-editor" spellcheck="false"></textarea>
+                            <div id="atelierCodeError" class="atelier-code-error"></div>
                         </div>
-                        <div class="kv-item">
-                            <span class="kv-k">환경 적응 긴장도</span>
-                            <span class="kv-v" id="u-kpi-tension">26%</span>
+                        <div class="atelier-bar">
+                            <div class="atelier-controls-row">
+                                <div class="atelier-btn-group" aria-label="통합 도메인 프리셋">
+                                    <button type="button" class="atelier-scene-btn active" data-scene="wave_interference">파동·간섭 회로</button>
+                                    <button type="button" class="atelier-scene-btn" data-scene="thermal_bifurcation">열·상전이 분기</button>
+                                    <button type="button" class="atelier-scene-btn" data-scene="vortex_resonance">소용돌이·공명장</button>
+                                </div>
+                                <div class="atelier-btn-group">
+                                    <button type="button" id="btnAtelierAudio" class="atelier-btn">소리 공명: 꺼짐</button>
+                                    <button type="button" id="btnAtelierComputeView" class="atelier-btn">연산 집중도 보기</button>
+                                    <button type="button" id="btnAtelierCodeToggle" class="atelier-btn">코드 회로 편집</button>
+                                    <button type="button" id="btnAtelierAutoEye" class="atelier-btn">눈 자동 최적화: 꺼짐</button>
+                                    <button type="button" id="btnAtelierCinema" class="atelier-btn">시점 자동 순회</button>
+                                </div>
+                            </div>
+                            <div class="atelier-sliders-row">
+                                <label class="atelier-slider-item" title="낮을수록 아날로그 연속 혼합, 높을수록 디지털 트랜지스터 스위칭">
+                                    <span>수문 경사 (아날로그↔트랜지스터)</span>
+                                    <input type="range" id="atelierGateSlider" min="2" max="50" step="1" value="14">
+                                    <span class="mono" id="atelierGateVal">k=14</span>
+                                </label>
+                                <label class="atelier-slider-item" title="높을수록 변화가 큰 경계만 미세 연산을 깨워 연산량을 크게 절감">
+                                    <span>기어 절감 임계값 (전수↔선택연산)</span>
+                                    <input type="range" id="atelierGearSlider" min="0" max="55" step="1" value="16">
+                                    <span class="mono" id="atelierGearVal">16%</span>
+                                </label>
+                            </div>
+                            <div class="atelier-proof-line mono" id="atelierProofLine">통합 데이터플로우 엔진 초기화 중...</div>
+                            <div class="atelier-narration mono" id="atelierNarration"></div>
                         </div>
                     </div>
-                    <p class="prose-note" id="u-twin-behavior-note">현재 트윈 개체들은 활성 대상의 색채 동역학·광량(C3)·지구 풍속에 연동되어 3D 공간 안에서 자율 순환합니다.</p>
-                </article>
+                </div>
+                <canvas id="rotorCanvas" style="display: none;"></canvas>
+                <div class="canvas-hud mono" id="canvasHud" style="display: none;">셀 또는 씨앗을 클릭해 정밀 프로브 · 큐브/구체에서는 드래그로 관점 회전</div>
+            </div>
 
-                <!-- Organ 4: 6-Axis Ontological & Phenomenon Anatomy + Constraint Falsifier -->
-                <article class="organ-card" data-organ-card="ontology">
-                    <div class="organ-head">
-                        <h2 class="organ-title">6축 존재·현상 인과 해부</h2>
-                        <span class="organ-sub" id="u-onto-jump-tag">ΔS 계산 중</span>
-                    </div>
-                    <div class="metric-list" id="u-proto-bars"></div>
-                    <div style="display:flex;flex-direction:column;gap:6px;">
-                        <span class="ctrl-label">공명 교량 · 창발 분화 (클릭 시 통합장 즉시 전환)</span>
-                        <div class="link-list" id="u-onto-links"></div>
-                    </div>
-                    <div class="inline-form">
-                        <input id="u-constraint-input" class="field-input wide-box" style="height:32px;font-size:0.75rem;" type="text" placeholder="반사실 제약 검증 (예: 파란 사과, 기압차 없는 바람)">
-                        <button id="u-btn-constraint" class="btn btn-sm btn-primary" type="button">반증</button>
-                    </div>
-                    <p class="prose-note" id="u-onto-summary">외부 실재 지식과 다중 표본 광학을 동기화하고 있습니다.</p>
-                </article>
+            <div class="external-banner" id="externalBanner">
+                <div><strong id="extTitle"></strong> — <span id="extSummary"></span></div>
+                <span class="mono" id="extBadge">EXTERNAL PIGMENT</span>
+            </div>
 
-                <!-- Organ 5: World Tree Growth Rings & Live Earth Telemetry -->
-                <article class="organ-card" data-organ-card="worldtree">
-                    <div class="organ-head">
-                        <h2 class="organ-title">세계수 나이테 · 지구 실측</h2>
-                        <span class="organ-sub" id="u-chroma-summary">R 33 · B 34 · Y 33</span>
+            <!-- Empirical Process Contrast & Vessel Trajectory Rotor Report -->
+            <div class="artifact-report" id="contrastReport">
+                <div class="section-head" style="margin-bottom: 4px;">
+                    <span class="section-title" id="contrastReportTitle" style="color: var(--cyan);">실제 실행 과정 비교대조 관측 (원본 ↔ 과정 ↔ 결과 · 원형 재현 검증)</span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="mono section-tag" id="contrastSummaryMeta"></span>
+                        <button type="button" id="btnCloseContrast" class="btn-quiet">접기</button>
                     </div>
-                    <div class="chroma-strip" aria-label="색채 동역학 비율">
-                        <div class="chroma-r" id="u-bar-red" style="width:33%"></div>
-                        <div class="chroma-b" id="u-bar-blue" style="width:34%"></div>
-                        <div class="chroma-y" id="u-bar-yellow" style="width:33%"></div>
-                    </div>
-                    <div class="kv-grid" id="u-earth-grid">
-                        <div class="kv-item">
-                            <span class="kv-k">실측 대기 (Open-Meteo)</span>
-                            <span class="kv-v" id="u-earth-temp">대기 중</span>
-                        </div>
-                        <div class="kv-item">
-                            <span class="kv-k">풍속 · 실측 마찰</span>
-                            <span class="kv-v" id="u-earth-wind">--</span>
-                        </div>
-                    </div>
-                    <div class="ring-ledger" id="u-ring-ledger"></div>
-                </article>
+                </div>
+                <div class="vessel-toolbar" id="vesselToolbar">
+                    <button type="button" class="vessel-mode-btn" data-vmode="capture_sequence">연속 3틱 포집 (Δ→Δ² 승화)</button>
+                    <button type="button" class="vessel-mode-btn" data-vmode="capture_tick">현재 1틱 추가</button>
+                    <button type="button" class="vessel-mode-btn drift-btn" data-vmode="unflushed_memory_probe">메모리 미반영 드리프트 실증 (RAM≠Disk)</button>
+                    <button type="button" class="vessel-mode-btn sync-btn" data-vmode="flush_and_reconcile">디스크 원장 동기화·정합 (1→0)</button>
+                </div>
+                <div class="phase-sync-bar mono" id="phaseSyncToolbar">
+                    <label>관점 각도차 Δθ(°): <input type="number" id="syncAngleInput" value="42" step="5" min="-170" max="170"></label>
+                    <label>고유시간 배율 ω_B: <input type="number" id="syncClockInput" value="1.5" step="0.1" min="0.4" max="2.8"></label>
+                    <label>위상 지연 φ(rad): <input type="number" id="syncLagInput" value="0.65" step="0.1" min="-2.0" max="2.0"></label>
+                    <button type="button" id="btnRunPhaseSyncAgain" class="vessel-mode-btn sync-btn">양방향 공통분모 재동기화</button>
+                </div>
+                <div class="digest-bar mono" id="digestToolbar">
+                    <select id="digestOriginalSelect" class="select-input">
+                        <option value="damped_harmonic">원본 A: 감쇠 조화 진동 (물리)</option>
+                        <option value="wave_interference">원본 A: 이중 파동 간섭 (음향·광학)</option>
+                        <option value="thermal_diffusion">원본 A: 1D 열·인과장 확산</option>
+                        <option value="uncaptured_boundary_test">원본 A: 미지 비선형 |x|·exp (미포집 경계 테스트)</option>
+                        <option value="custom_formula">원본 A: 직접 수식 투입 f(x,v,u_lap)</option>
+                    </select>
+                    <select id="digestPartnerSelect" class="select-input">
+                        <option value="wave_forcing">교차 재료 B: 주기 공명 외력</option>
+                        <option value="diffusion_coupling">교차 재료 B: 공간 확산 결합</option>
+                        <option value="nonlinear_boundary">교차 재료 B: 비선형 제동 결합</option>
+                    </select>
+                    <input type="text" id="digestCustomFormula" placeholder="직접 투입 시 예: -1.8*x - 0.3*v + 0.6*sin(x)">
+                    <button type="button" id="btnRunDigestAgain" class="vessel-mode-btn">소화·모방·재창조 실행</button>
+                </div>
+                <div class="note-box" id="contrastInsight" style="margin-top: 2px;"></div>
+                <div class="artifact-grid" id="contrastCards"></div>
+                <div class="artifact-pairs" id="contrastUncaptured"></div>
+            </div>
 
-                <!-- Organ 6: Hardware Memory Hierarchy & CUDA Warp-32 Rotor -->
-                <article class="organ-card" data-organ-card="hardware">
-                    <div class="organ-head">
-                        <h2 class="organ-title">4K 메모리 계층 · CUDA Warp-32</h2>
-                        <button id="u-btn-copy-cuda" class="btn btn-sm" type="button">.cu 복사</button>
+            <!-- Bottom 4-State Phase Transition Summary Strip -->
+            <div class="stage-bottom-tray">
+                <div class="phase-slot-card">
+                    <div class="phase-slot-head">
+                        <span>얼음 ICE · 영속 기억</span>
+                        <span class="mono" id="slotIceThaw">해빙 0%</span>
                     </div>
-                    <div class="kv-grid">
-                        <div class="kv-item">
-                            <span class="kv-k">4K 전수 연산 대비 절감</span>
-                            <span class="kv-v" id="u-hw-savings">--</span>
-                        </div>
-                        <div class="kv-item">
-                            <span class="kv-k">SoA 워프 분기율</span>
-                            <span class="kv-v" id="u-hw-div">0.0% (압축 정렬)</span>
-                        </div>
+                    <div class="phase-slot-val mono" id="slotIceCount">0 씨앗</div>
+                    <div class="phase-slot-desc" id="slotIceDesc">영속 원장 동기화 대기</div>
+                </div>
+                <div class="phase-slot-card">
+                    <div class="phase-slot-head">
+                        <span>물 WATER · 현재 흐름</span>
+                        <span class="mono" id="slotWaterMismatch">Δ 0.00</span>
                     </div>
-                    <div class="metric-list" id="u-hw-tiers"></div>
-                    <pre class="cuda-pre" id="u-cuda-code"></pre>
-                </article>
+                    <div class="phase-slot-val mono" id="slotWaterDomains">4 도메인</div>
+                    <div class="phase-slot-desc" id="slotWaterDesc">다중 도메인 동시 공명</div>
+                </div>
+                <div class="phase-slot-card">
+                    <div class="phase-slot-head">
+                        <span>구름 CLOUD · 예측 분포</span>
+                        <span class="mono" id="slotCloudVar">σ 0.00</span>
+                    </div>
+                    <div class="phase-slot-val mono" id="slotCloudConf">0%</div>
+                    <div class="phase-slot-desc" id="slotCloudDesc">과거·현재 종속 제약 연장</div>
+                </div>
+                <div class="phase-slot-card">
+                    <div class="phase-slot-head">
+                        <span>미포집 UNCAPTURED</span>
+                        <span class="mono">무지 경계</span>
+                    </div>
+                    <div class="phase-slot-val mono" id="slotUncapCount">0 슬롯</div>
+                    <div class="phase-slot-desc" id="slotUncapDesc">억측 배제 · 새 관점 축 대기</div>
+                </div>
             </div>
         </section>
+
+        <!-- Right Contextual Inspector -->
+        <aside class="console-col console-right">
+            <!-- t3 Universal Discrimination -->
+            <div class="panel-section">
+                <div class="section-head">
+                    <span class="section-title">t3 공명·동기화 분별 척도</span>
+                    <span class="section-tag mono" id="tagNoiseRej">노이즈 분리 0%</span>
+                </div>
+                <div class="metric-grid-3 mono">
+                    <div class="metric-cell">
+                        <div class="metric-label">선명함 Clarity</div>
+                        <div class="metric-num" id="metClarity" style="color: var(--cyan);">0.00</div>
+                    </div>
+                    <div class="metric-cell">
+                        <div class="metric-label">채도 Sat</div>
+                        <div class="metric-num" id="metSat" style="color: var(--amber);">0.00</div>
+                    </div>
+                    <div class="metric-cell">
+                        <div class="metric-label">명암 Lum</div>
+                        <div class="metric-num" id="metLum" style="color: var(--emerald);">0.00</div>
+                    </div>
+                </div>
+
+                <!-- Section 7.4 Benchmark Result Drawer -->
+                <div class="bench-panel" id="benchPanel">
+                    <div class="section-head" style="margin-bottom: 4px;">
+                        <span class="section-title" style="color: var(--amber);">7.4절 정량 검증 리포트</span>
+                        <span class="mono" id="benchVerdict" style="font-weight: 700;">—</span>
+                    </div>
+                    <div class="mono" id="benchSummary" style="font-size: 11px; color: var(--text-secondary);"></div>
+                    <table class="bench-table mono">
+                        <thead>
+                            <tr>
+                                <th>노이즈</th>
+                                <th>선명함</th>
+                                <th>분리율</th>
+                                <th>자동분화</th>
+                            </tr>
+                        </thead>
+                        <tbody id="benchRows"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Emergent Constraint-Convergent Behavior & 1★-7★ Scale -->
+            <div class="panel-section">
+                <div class="section-head">
+                    <span class="section-title">제약 수렴 행위 · 세계관 위상</span>
+                    <span class="mono" id="behWorldTier" style="color: var(--amber); font-weight: 700;">1성 · 동네 단위</span>
+                </div>
+                <div class="item-row">
+                    <div class="item-top">
+                        <span class="item-title" id="behStanceLabel">수호·경계유지 수렴</span>
+                        <span class="mono" id="behEnergy" style="color: var(--cyan);">0.84</span>
+                    </div>
+                    <div class="item-meta mono">
+                        <span id="behInfluence">인과 영향력 0.14</span>
+                        <span>if-else 0건 · 연속 수렴</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cross-Domain Isomorphic / Heteromorphic Principle Bindings -->
+            <div class="panel-section">
+                <div class="section-head">
+                    <span class="section-title">동형 통합 / 이형 분화 결속</span>
+                    <span class="section-tag mono">CROSS-DOMAIN</span>
+                </div>
+                <div class="list-stack" id="bindingsList"></div>
+            </div>
+
+            <!-- Persistent Ice Seeds (On-Demand Archetype Restoration) -->
+            <div class="panel-section">
+                <div class="section-head">
+                    <span class="section-title">얼음 영속 원장 (원형 복원)</span>
+                    <span class="section-tag mono" id="iceLedgerTag">L1 JSON SYNC</span>
+                </div>
+                <div class="list-stack" id="iceSeedsList"></div>
+            </div>
+
+            <!-- 4-Axis Self-Boundary Model -->
+            <div class="panel-section">
+                <div class="section-head">
+                    <span class="section-title">4축 자아경계 귀인</span>
+                    <span class="section-tag mono">SELF-BOUNDARY</span>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-meta"><span>내적 기원 (Internal)</span><span class="mono" id="sbIntVal">0.00</span></div>
+                    <div class="bar-track"><div class="bar-fill" id="sbIntBar" style="width: 50%;"></div></div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-meta"><span>외적 영향 (External)</span><span class="mono" id="sbExtVal">0.00</span></div>
+                    <div class="bar-track"><div class="bar-fill amber" id="sbExtBar" style="width: 50%;"></div></div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-meta"><span>무지·미포집 경계 (Ignorance)</span><span class="mono" id="sbIgnVal">0.00</span></div>
+                    <div class="bar-track"><div class="bar-fill crimson" id="sbIgnBar" style="width: 20%;"></div></div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-meta"><span>기준 자기수정 (Revision)</span><span class="mono" id="sbRevVal">0.00</span></div>
+                    <div class="bar-track"><div class="bar-fill emerald" id="sbRevBar" style="width: 10%;"></div></div>
+                </div>
+                <div class="note-box" id="sbNote">기준축 교정 대기 중</div>
+            </div>
+        </aside>
     </main>
+</div>
 
-    <video id="u-video-src" crossorigin="anonymous" muted loop playsinline hidden></video>
-    <script type="module" src="/static/unified_scale_rotor_field.js"></script>
+<script src="/static/unified_scale_rotor_field.js"></script>
+<script type="module" src="/static/causal_3d_atelier.mjs"></script>
+<script src="/static/elysia_live_game.js"></script>
+<script src="/static/elysia_browser_os.js"></script>
 </body>
 </html>

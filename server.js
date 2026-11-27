@@ -12,6 +12,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const dns = require('node:dns').promises;
 const net = require('node:net');
+const { spawn } = require('node:child_process');
 const { URL } = require('node:url');
 
 const PORT = Number(process.env.PORT || 3000);
@@ -20,6 +21,133 @@ const STATIC_DIR = path.resolve(__dirname, 'L0_substrate', 'mva', 'static');
 const ASSETS_IMG_DIR = path.resolve(__dirname, 'src', 'assets', 'images');
 const THREE_VENDOR_DIR = path.resolve(__dirname, 'node_modules', 'three');
 const ROADMAP_PATH = path.join(STATIC_DIR, 'roadmap.md');
+const L1_SCALE_ROTOR_SCRIPT = path.resolve(__dirname, 'L1_causal_field', 'core', 'orchestration', 'scale_rotor_core.py');
+const L1_ICE_LEDGER_PATH = path.resolve(__dirname, 'L1_causal_field', 'core', 'orchestration', 'ice_ledger_state.json');
+
+// ============================================================================
+// Persistent L1 Python Canonical Scale-Rotor Bridge (NDJSON Stdio Worker)
+// ============================================================================
+class L1ScaleRotorBridge {
+  constructor(scriptPath, ledgerPath) {
+    this.scriptPath = scriptPath;
+    this.ledgerPath = ledgerPath;
+    this.proc = null;
+    this.buffer = '';
+    this.nextId = 1;
+    this.pending = new Map();
+  }
+
+  ensureWorker() {
+    if (this.proc && !this.proc.killed && this.proc.exitCode === null) {
+      return;
+    }
+    this.buffer = '';
+    const child = spawn('python3', [this.scriptPath, '--worker', '--ledger', this.ledgerPath], {
+      cwd: __dirname,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    this.proc = child;
+
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => {
+      this.buffer += chunk;
+      let nlIdx = this.buffer.indexOf('\n');
+      while (nlIdx !== -1) {
+        const line = this.buffer.slice(0, nlIdx).trim();
+        this.buffer = this.buffer.slice(nlIdx + 1);
+        if (line) {
+          try {
+            const msg = JSON.parse(line);
+            const entry = this.pending.get(msg.id);
+            if (entry) {
+              clearTimeout(entry.timer);
+              this.pending.delete(msg.id);
+              if (msg.ok) {
+                entry.resolve(msg.result);
+              } else {
+                entry.reject(new Error(msg.error || 'L1 Python ScaleRotor worker error'));
+              }
+            }
+          } catch (parseErr) {
+            console.error('[L1Bridge] JSON parse error:', parseErr.message);
+          }
+        }
+        nlIdx = this.buffer.indexOf('\n');
+      }
+    });
+
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (errChunk) => {
+      const txt = String(errChunk || '').trim();
+      if (txt) console.error('[L1Bridge stderr]', txt);
+    });
+
+    child.on('exit', (code) => {
+      if (this.proc === child) {
+        this.proc = null;
+      }
+      for (const [reqId, entry] of this.pending.entries()) {
+        clearTimeout(entry.timer);
+        entry.reject(new Error(`L1 Python worker exited (code ${code})`));
+        this.pending.delete(reqId);
+      }
+    });
+  }
+
+  call(action, payload = {}, timeoutMs = 8000) {
+    this.ensureWorker();
+    const id = this.nextId++;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`L1 Python worker timeout on action: ${action}`));
+      }, timeoutMs);
+
+      this.pending.set(id, { resolve, reject, timer });
+      try {
+        this.proc.stdin.write(`${JSON.stringify({ id, action, payload })}\n`);
+      } catch (writeErr) {
+        clearTimeout(timer);
+        this.pending.delete(id);
+        reject(writeErr);
+      }
+    });
+  }
+}
+
+const l1ScaleRotor = new L1ScaleRotorBridge(L1_SCALE_ROTOR_SCRIPT, L1_ICE_LEDGER_PATH);
+l1ScaleRotor.lastSyncedMeta = null;
+l1ScaleRotor.syncMetaFromState = function syncMetaFromState(state) {
+  if (!state || typeof state !== 'object') return;
+  if (typeof state.cycle !== 'number') return;
+  const iceArr = Array.isArray(state.phases?.ice) ? state.phases.ice : [];
+  const wsArr = Array.isArray(state.phases?.water?.spectrum) ? state.phases.water.spectrum : [];
+  this.lastSyncedMeta = {
+    cycle: state.cycle,
+    active_frame: state.active_frame || 'plane',
+    scale_dial: typeof state.scale_dial === 'number' ? state.scale_dial : null,
+    ice_seed_count: iceArr.length,
+    water_spectrum: wsArr.slice(0, 4).map((x) => Number(Number(x).toFixed(4))),
+  };
+};
+let httpRequestsServed = 0;
+
+function buildNodeVesselSnapshot() {
+  const mem = process.memoryUsage();
+  const meta = l1ScaleRotor.lastSyncedMeta;
+  return {
+    cycle: meta ? meta.cycle : null,
+    active_frame: meta ? meta.active_frame : null,
+    scale_dial: Number(engine.scaleDial.toFixed(4)),
+    ice_seed_count: meta ? meta.ice_seed_count : null,
+    water_spectrum: meta ? meta.water_spectrum : [],
+    node_engine_cycle: engine.cycleIndex,
+    http_requests_served: httpRequestsServed,
+    l1_pending_rpcs: l1ScaleRotor.pending.size,
+    memory_heap_used_mb: Number((mem.heapUsed / 1048576).toFixed(2)),
+    memory_rss_mb: Number((mem.rss / 1048576).toFixed(2)),
+  };
+}
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -3240,26 +3368,24 @@ async function distillSceneWithGemini(body) {
 // HTTP Server
 // ============================================================================
 const server = http.createServer(async (req, res) => {
+  httpRequestsServed += 1;
   const parsed = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   const pathname = parsed.pathname;
   const method = (req.method || 'GET').toUpperCase();
 
   try {
-    // --- Page & Static Routes ---
-    if (method === 'GET' && pathname === '/') {
+    // --- Unified Single Phase Observation Plane Routes ---
+    // Legacy routes (/topology, /dashboard, /manifestation, /roadmap) are absorbed
+    // into the single ScaleRotorState workspace pre-focused on their matching Phase Frame.
+    if (
+      method === 'GET' &&
+      (pathname === '/' ||
+        pathname === '/topology' ||
+        pathname === '/dashboard' ||
+        pathname === '/manifestation' ||
+        pathname === '/roadmap')
+    ) {
       return sendFile(res, path.join(STATIC_DIR, 'index.html'));
-    }
-    if (method === 'GET' && pathname === '/topology') {
-      return sendFile(res, path.join(STATIC_DIR, 'topology.html'));
-    }
-    if (method === 'GET' && pathname === '/dashboard') {
-      return sendFile(res, path.join(STATIC_DIR, 'dashboard.html'));
-    }
-    if (method === 'GET' && pathname === '/manifestation') {
-      return sendFile(res, path.join(STATIC_DIR, 'manifestation.html'));
-    }
-    if (method === 'GET' && pathname === '/roadmap') {
-      return sendFile(res, path.join(STATIC_DIR, 'roadmap.html'));
     }
     if (method === 'GET' && pathname.startsWith('/static/')) {
       let rel = '';
@@ -3356,6 +3482,639 @@ const server = http.createServer(async (req, res) => {
     if (method === 'POST' && pathname === '/api/manifold/transform') {
       const body = await readJsonBody(req);
       return sendJson(res, 200, runUniversalManifoldTransform(body));
+    }
+
+    // --- Unified L1 Python Canonical Scale-Rotor & Persistent Ice Ledger APIs ---
+    if (method === 'GET' && pathname === '/api/scale-rotor/state') {
+      const state = await l1ScaleRotor.call('state');
+      l1ScaleRotor.syncMetaFromState(state);
+      return sendJson(res, 200, state);
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/step') {
+      const body = await readJsonBody(req);
+      const state = await l1ScaleRotor.call('step', body || {});
+      l1ScaleRotor.syncMetaFromState(state);
+      if (state && typeof state.scale_dial === 'number') {
+        engine.scaleDial = state.scale_dial;
+      }
+      engine.evolveScaleRotors(0.05);
+      return sendJson(res, 200, state);
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/frame') {
+      const body = await readJsonBody(req);
+      const state = await l1ScaleRotor.call('frame', body || {});
+      l1ScaleRotor.syncMetaFromState(state);
+      return sendJson(res, 200, state);
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/recall-seed') {
+      const body = await readJsonBody(req);
+      const state = await l1ScaleRotor.call('recall_seed', body || {});
+      l1ScaleRotor.syncMetaFromState(state);
+      return sendJson(res, 200, state);
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/benchmark') {
+      const report = await l1ScaleRotor.call('benchmark', {}, 12000);
+      return sendJson(res, 200, report);
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/observe-contrast') {
+      const body = await readJsonBody(req);
+      try {
+        const report = await l1ScaleRotor.call('observe_contrast', body || {}, 15000);
+        if (report && report.rotor_state) {
+          l1ScaleRotor.syncMetaFromState(report.rotor_state);
+        }
+        return sendJson(res, 200, report);
+      } catch (obsErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: obsErr instanceof Error ? obsErr.message : '실행 과정 비교대조 관측 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/observe-external-snapshot') {
+      const body = await readJsonBody(req);
+      try {
+        const report = await l1ScaleRotor.call('observe_external_snapshot', body || {}, 10000);
+        return sendJson(res, 200, report);
+      } catch (snapErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: snapErr instanceof Error ? snapErr.message : '외부 스냅샷 대조 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/observe-vessel-trajectory') {
+      const body = await readJsonBody(req);
+      try {
+        const mode = String(body.mode || 'capture_sequence').trim().toLowerCase();
+        const lens_mode = String(body.lens_mode || 'strict');
+        const epsilon = body.epsilon;
+
+        if (mode === 'capture_sequence') {
+          if (!l1ScaleRotor.lastSyncedMeta) {
+            const initState = await l1ScaleRotor.call('state');
+            l1ScaleRotor.syncMetaFromState(initState);
+          }
+          // Capture baseline t0, then run 2 real live synchronized steps across Node <-> Python <-> Disk
+          await l1ScaleRotor.call('observe_vessel_trajectory', {
+            mode: 'capture_tick',
+            label: 'sync_t0',
+            lens_mode,
+            epsilon,
+            node_vessel: buildNodeVesselSnapshot(),
+          });
+
+          const stepInputs = [
+            {
+              label: 'sync_t1',
+              payload: {
+                vision: { label: '그릇 궤적 틱 1', structure: 0.78, contrast: 0.64, motion: 0.42, coherence: 0.85 },
+                language: { label: '연속 궤적 1', text: '그릇 간 위상 동기화 1차 전이 측정' },
+              },
+            },
+            {
+              label: 'sync_t2',
+              payload: {
+                vision: { label: '그릇 궤적 틱 2', structure: 0.78, contrast: 0.64, motion: 0.42, coherence: 0.85 },
+                language: { label: '연속 궤적 2', text: '그릇 간 위상 동기화 2차 전이 측정' },
+              },
+            },
+          ];
+
+          let finalReport = null;
+          for (const item of stepInputs) {
+            const st = await l1ScaleRotor.call('step', item.payload);
+            l1ScaleRotor.syncMetaFromState(st);
+            if (st && typeof st.scale_dial === 'number') {
+              engine.scaleDial = st.scale_dial;
+            }
+            engine.evolveScaleRotors(0.05);
+            finalReport = await l1ScaleRotor.call('observe_vessel_trajectory', {
+              mode: 'capture_tick',
+              label: item.label,
+              lens_mode,
+              epsilon,
+              node_vessel: buildNodeVesselSnapshot(),
+            });
+          }
+          return sendJson(res, 200, finalReport);
+        }
+
+        if (mode === 'flush_and_reconcile') {
+          const flushedState = await l1ScaleRotor.call('flush_ledger');
+          l1ScaleRotor.syncMetaFromState(flushedState);
+          if (flushedState && typeof flushedState.scale_dial === 'number') {
+            engine.scaleDial = flushedState.scale_dial;
+          }
+          const report = await l1ScaleRotor.call('observe_vessel_trajectory', {
+            mode: 'capture_tick',
+            label: 'flushed_reconciled',
+            lens_mode,
+            epsilon,
+            node_vessel: buildNodeVesselSnapshot(),
+          });
+          return sendJson(res, 200, report);
+        }
+
+        if (mode === 'unflushed_memory_probe') {
+          if (!l1ScaleRotor.lastSyncedMeta) {
+            const initState = await l1ScaleRotor.call('state');
+            l1ScaleRotor.syncMetaFromState(initState);
+          }
+          // Intentionally do NOT update Node's lastSyncedMeta before capturing so real Node vs Python RAM vs Disk divergence is observed!
+          const report = await l1ScaleRotor.call('observe_vessel_trajectory', {
+            mode: 'unflushed_memory_probe',
+            label: 'unflushed_ram_drift',
+            lens_mode,
+            epsilon,
+            node_vessel: buildNodeVesselSnapshot(),
+          });
+          return sendJson(res, 200, report);
+        }
+
+        // capture_tick | inspect_only | clear_trajectory
+        if (!l1ScaleRotor.lastSyncedMeta && mode !== 'clear_trajectory') {
+          const initState = await l1ScaleRotor.call('state');
+          l1ScaleRotor.syncMetaFromState(initState);
+        }
+        const report = await l1ScaleRotor.call('observe_vessel_trajectory', {
+          mode,
+          label: String(body.label || mode),
+          lens_mode,
+          epsilon,
+          node_vessel: buildNodeVesselSnapshot(),
+        });
+        return sendJson(res, 200, report);
+      } catch (vErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: vErr instanceof Error ? vErr.message : '그릇·스냅샷 궤적 로터 관측 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/observe-phase-sync') {
+      const body = await readJsonBody(req);
+      try {
+        if (!l1ScaleRotor.lastSyncedMeta) {
+          const initState = await l1ScaleRotor.call('state');
+          l1ScaleRotor.syncMetaFromState(initState);
+        }
+        const report = await l1ScaleRotor.call(
+          'observe_phase_sync',
+          {
+            angle_b_deg: body.angle_b_deg ?? 42.0,
+            clock_rate_b: body.clock_rate_b ?? 1.5,
+            phase_lag_b: body.phase_lag_b ?? 0.65,
+            lens_a_mode: body.lens_a_mode || 'strict',
+            lens_b_mode: body.lens_b_mode || 'tolerant',
+            node_vessel: buildNodeVesselSnapshot(),
+          },
+          10000
+        );
+        return sendJson(res, 200, report);
+      } catch (psErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: psErr instanceof Error ? psErr.message : '양방향 위상 동기화 관측 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/digest-imitate-recreate') {
+      const body = await readJsonBody(req);
+      try {
+        const report = await l1ScaleRotor.call('digest_imitate_recreate', body || {}, 12000);
+        if (report && report.rotor_state) {
+          l1ScaleRotor.syncMetaFromState(report.rotor_state);
+        }
+        return sendJson(res, 200, report);
+      } catch (dErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: dErr instanceof Error ? dErr.message : '소화·모방·재창조 환경 실행 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/unified-dataflow') {
+      const body = await readJsonBody(req);
+      try {
+        const codeSource = typeof body?.code_source === 'string' ? body.code_source.slice(0, 2000) : undefined;
+        const payload = {
+          preset_id: typeof body?.preset_id === 'string' ? body.preset_id : 'wave_interference',
+          code_source: codeSource,
+          gate_steepness: Number.isFinite(Number(body?.gate_steepness)) ? Number(body.gate_steepness) : 14.0,
+          wake_threshold: Number.isFinite(Number(body?.wake_threshold)) ? Number(body.wake_threshold) : 0.16,
+          audio_harmonics: Number.isFinite(Number(body?.audio_harmonics)) ? Number(body.audio_harmonics) : 6,
+          t_phase: Number.isFinite(Number(body?.t_phase)) ? Number(body.t_phase) : undefined,
+          auto_optimize: Boolean(body?.auto_optimize),
+        };
+        const report = await l1ScaleRotor.call('unified_dataflow', payload, 10000);
+        if (report && report.rotor_state) {
+          l1ScaleRotor.syncMetaFromState(report.rotor_state);
+        }
+        return sendJson(res, 200, report);
+      } catch (dfErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: dfErr instanceof Error ? dfErr.message : '통합 인과 데이터플로우 실행 오류',
+        });
+      }
+    }
+    if (method === 'GET' && pathname === '/api/elysia/state') {
+      const state = await l1ScaleRotor.call('companion_state', {});
+      return sendJson(res, 200, state);
+    }
+    if (method === 'POST' && pathname === '/api/elysia/reset') {
+      const state = await l1ScaleRotor.call('companion_reset', {});
+      return sendJson(res, 200, state);
+    }
+    if (method === 'POST' && pathname === '/api/elysia/interact') {
+      const body = await readJsonBody(req);
+      const message = typeof body?.message === 'string' ? body.message.trim().slice(0, 1200) : '';
+      if (!message) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: '엘리시아에게 건넬 말을 입력해 주세요.',
+        });
+      }
+      try {
+        const report = await l1ScaleRotor.call('companion_converse', { message }, 8000);
+        if (report && report.rotor_state) {
+          l1ScaleRotor.syncMetaFromState(report.rotor_state);
+        }
+        return sendJson(res, 200, report);
+      } catch (cErr) {
+        return sendJson(res, 500, {
+          status: 'error',
+          message:
+            cErr instanceof Error
+              ? `엘리시아 로컬 인과 사고 오류: ${cErr.message}`
+              : '엘리시아 로컬 인과 사고 중 오류가 발생했습니다.',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/elysia/digest') {
+      const body = await readJsonBody(req);
+      try {
+        const payload = {
+          source_name: typeof body?.source_name === 'string' ? body.source_name.trim().slice(0, 60) : '직접 입력한 글',
+          text: typeof body?.text === 'string' ? body.text.slice(0, 6000) : '',
+          read_workspace: Boolean(body?.read_workspace),
+        };
+        const report = await l1ScaleRotor.call('companion_digest', payload, 12000);
+        if (report && report.status === 'error') {
+          return sendJson(res, 400, report);
+        }
+        if (report && report.rotor_state) {
+          l1ScaleRotor.syncMetaFromState(report.rotor_state);
+        }
+        return sendJson(res, 200, report);
+      } catch (dErr) {
+        return sendJson(res, 500, {
+          status: 'error',
+          message: dErr instanceof Error ? dErr.message : '로컬 지식 소화 중 오류가 발생했습니다.',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/elysia/digest-corpus') {
+      const body = await readJsonBody(req);
+      try {
+        const payload = {
+          scan_workspace: Boolean(body?.scan_workspace),
+          digest: body && typeof body.digest === 'object' && body.digest !== null ? body.digest : undefined,
+        };
+        const report = await l1ScaleRotor.call('companion_digest_corpus', payload, 15000);
+        if (report && report.status === 'error') {
+          return sendJson(res, 400, report);
+        }
+        if (report && report.rotor_state) {
+          l1ScaleRotor.syncMetaFromState(report.rotor_state);
+        }
+        return sendJson(res, 200, report);
+      } catch (cErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: cErr instanceof Error ? cErr.message : '로컬 코퍼스 교차정보 흡수 오류',
+        });
+      }
+    }
+    if (method === 'GET' && pathname === '/api/elysia/download-scanner') {
+      try {
+        const out = await l1ScaleRotor.call('companion_scanner_script', {}, 8000);
+        const scriptBody = String(out?.script || '');
+        res.writeHead(200, {
+          'Content-Type': 'text/x-python; charset=utf-8',
+          'Content-Disposition': 'attachment; filename="elysia_local_corpus_scanner.py"',
+          'Cache-Control': 'no-store',
+        });
+        res.end(scriptBody);
+        return;
+      } catch (sErr) {
+        return sendJson(res, 500, {
+          status: 'error',
+          message: sErr instanceof Error ? sErr.message : '스캐너 스크립트 생성 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/elysia/observe-frame') {
+      const body = await readJsonBody(req);
+      try {
+        const rawFrame = body && typeof body.frame === 'object' && body.frame !== null ? body.frame : body || {};
+        const clamp01 = (v, fallback) => {
+          const n = Number(v);
+          if (!Number.isFinite(n)) return fallback;
+          return Math.max(0, Math.min(1, n));
+        };
+        const payload = {
+          frame: {
+            motion_delta: clamp01(rawFrame.motion_delta, 0.0),
+            edge_density: clamp01(rawFrame.edge_density, 0.3),
+            luminance: clamp01(rawFrame.luminance, 0.5),
+            red_flux: clamp01(rawFrame.red_flux, 0.33),
+            blue_order: clamp01(rawFrame.blue_order, 0.33),
+            yellow_entropy: clamp01(rawFrame.yellow_entropy, 0.33),
+            scene_cut: Boolean(rawFrame.scene_cut),
+            context_label: typeof rawFrame.context_label === 'string'
+              ? rawFrame.context_label.trim().slice(0, 60)
+              : '실시간 화면',
+          },
+        };
+        const report = await l1ScaleRotor.call('companion_observe_frame', payload, 8000);
+        if (report && report.status === 'error') {
+          return sendJson(res, 400, report);
+        }
+        if (report && report.rotor_state) {
+          l1ScaleRotor.syncMetaFromState(report.rotor_state);
+        }
+        return sendJson(res, 200, report);
+      } catch (oErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: oErr instanceof Error ? oErr.message : '실시간 화면 관측 처리 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/elysia/digest-sensorimotor') {
+      const body = await readJsonBody(req);
+      try {
+        const logObj = body && typeof body.log === 'object' && body.log !== null ? body.log : body;
+        if (!logObj || typeof logObj !== 'object') {
+          return sendJson(res, 400, { status: 'error', message: '유효한 감각-운동 로그 JSON이 필요합니다.' });
+        }
+        const report = await l1ScaleRotor.call('companion_digest_sensorimotor', { log: logObj }, 12000);
+        if (report && report.status === 'error') {
+          return sendJson(res, 400, report);
+        }
+        if (report && report.rotor_state) {
+          l1ScaleRotor.syncMetaFromState(report.rotor_state);
+        }
+        return sendJson(res, 200, report);
+      } catch (smErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: smErr instanceof Error ? smErr.message : 'PC 체화 로그 소화 오류',
+        });
+      }
+    }
+    if (method === 'GET' && pathname === '/api/elysia/download-embodiment') {
+      try {
+        const out = await l1ScaleRotor.call('companion_embodiment_script', {}, 8000);
+        const scriptBody = String(out?.script || '');
+        res.writeHead(200, {
+          'Content-Type': 'text/x-python; charset=utf-8',
+          'Content-Disposition': 'attachment; filename="elysia_desktop_embodiment.py"',
+          'Cache-Control': 'no-store',
+        });
+        res.end(scriptBody);
+        return;
+      } catch (eErr) {
+        return sendJson(res, 500, {
+          status: 'error',
+          message: eErr instanceof Error ? eErr.message : 'PC 체화 브리지 스크립트 생성 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/elysia/sandbox-action') {
+      const body = await readJsonBody(req);
+      try {
+        const rawDelta = Number(body?.delta);
+        const clampM = (v, fb) => {
+          const n = Number(v);
+          return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : fb;
+        };
+        const rawM = body && typeof body.metrics === 'object' && body.metrics !== null ? body.metrics : null;
+        const payload = {
+          app: typeof body?.app === 'string' ? body.app.trim().slice(0, 32) : 'desktop',
+          action: typeof body?.action === 'string' ? body.action.trim().slice(0, 48) : 'explore',
+          target: typeof body?.target === 'string' ? body.target.trim().slice(0, 64) : '',
+          outcome: typeof body?.outcome === 'string' ? body.outcome.trim().slice(0, 140) : '',
+          delta: Number.isFinite(rawDelta) ? Math.max(0, Math.min(1, rawDelta)) : 0.25,
+          note_text: typeof body?.note_text === 'string' ? body.note_text.trim().slice(0, 2400) : '',
+          metrics: rawM
+            ? {
+                flux: clampM(rawM.flux, 0.5),
+                order: clampM(rawM.order, 0.5),
+                entropy: clampM(rawM.entropy, 0.5),
+                scale: clampM(rawM.scale, 0.5),
+              }
+            : undefined,
+        };
+        const report = await l1ScaleRotor.call('companion_sandbox_action', payload, 8000);
+        if (report && report.status === 'error') {
+          return sendJson(res, 400, report);
+        }
+        if (report && report.rotor_state) {
+          l1ScaleRotor.syncMetaFromState(report.rotor_state);
+        }
+        return sendJson(res, 200, report);
+      } catch (sbErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: sbErr instanceof Error ? sbErr.message : '브라우저 OS 행동 기록 오류',
+        });
+      }
+    }
+    if (method === 'GET' && pathname === '/api/elysia/wiki-peek') {
+      const q = String(parsed.searchParams.get('q') || '').trim().slice(0, 60);
+      if (!q) {
+        return sendJson(res, 400, { status: 'error', message: '탐색할 개념이나 주제를 입력해 주세요.' });
+      }
+      try {
+        const bundle = await fetchWikiConceptBundle(q);
+        return sendJson(res, 200, {
+          status: 'ok',
+          query: q,
+          title: bundle.title || q,
+          extract: bundle.extract || '',
+          links: Array.isArray(bundle.links) ? bundle.links.slice(0, 10) : [],
+          categories: Array.isArray(bundle.categories) ? bundle.categories.slice(0, 5) : [],
+          pageUrl: bundle.pageUrl || '',
+          scaleCenter: bundle.scaleCenter ?? 2.0,
+        });
+      } catch (wErr) {
+        return sendJson(res, 200, {
+          status: 'ok',
+          query: q,
+          title: q,
+          extract: `'${q}'에 대한 외부 백과 응답을 지금 바로 불러오지 못했습니다. 대신 사용자가 직접 알려주거나 로컬 지식을 먹이면 엘리시아가 스스로 개념을 쌓을 수 있습니다.`,
+          links: [],
+          categories: [],
+          pageUrl: '',
+          scaleCenter: 2.0,
+          offline_fallback: true,
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/elysia/rotor-mode') {
+      const body = await readJsonBody(req);
+      try {
+        const payload = {};
+        if (typeof body?.paused === 'boolean') payload.paused = body.paused;
+        const bt = Number(body?.burst_trials);
+        if (Number.isFinite(bt) && bt > 0) payload.burst_trials = Math.min(400, Math.round(bt));
+        const report = await l1ScaleRotor.call('companion_rotor_mode', payload, 8000);
+        return sendJson(res, 200, report);
+      } catch (rErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: rErr instanceof Error ? rErr.message : '배경 로터 제어 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/elysia/apply-tool') {
+      const body = await readJsonBody(req);
+      try {
+        const payload = {
+          target_text: typeof body?.target_text === 'string' ? body.target_text.slice(0, 500) : '',
+          tool_id: typeof body?.tool_id === 'string' ? body.tool_id.slice(0, 64) : '',
+        };
+        const report = await l1ScaleRotor.call('companion_apply_tool', payload, 8000);
+        return sendJson(res, 200, report);
+      } catch (tErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: tErr instanceof Error ? tErr.message : '학문 도구 교차 적용 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/elysia/learn-world') {
+      const body = await readJsonBody(req);
+      try {
+        const payload = {
+          topic: typeof body?.topic === 'string' ? body.topic.trim().slice(0, 48) : '',
+        };
+        const report = await l1ScaleRotor.call('companion_learn_world', payload, 10000);
+        return sendJson(res, 200, report);
+      } catch (wErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: wErr instanceof Error ? wErr.message : '현실 한국어 독해 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/elysia/distill-weights') {
+      const body = await readJsonBody(req);
+      try {
+        const rawVecs = (body && typeof body.weight_vectors === 'object' && !Array.isArray(body.weight_vectors))
+          ? body.weight_vectors
+          : null;
+        const boundedVecs = {};
+        if (rawVecs) {
+          let count = 0;
+          for (const [k, v] of Object.entries(rawVecs)) {
+            if (count >= 400) break;
+            if (Array.isArray(v) && v.length >= 2 && v.length <= 256) {
+              boundedVecs[String(k).slice(0, 32)] = v.map((n) => Number(n) || 0);
+              count += 1;
+            }
+          }
+        }
+        const payload = {
+          source_name: typeof body?.source_name === 'string' ? body.source_name.trim().slice(0, 48) : '오픈 가중치 슬라이스',
+          weight_vectors: Object.keys(boundedVecs).length > 0 ? boundedVecs : null,
+        };
+        const report = await l1ScaleRotor.call('companion_distill_weights', payload, 10000);
+        return sendJson(res, 200, report);
+      } catch (dErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: dErr instanceof Error ? dErr.message : '가중치 인과 증류 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/elysia/feedback') {
+      const body = await readJsonBody(req);
+      try {
+        const payload = {
+          signal: typeof body?.signal === 'string' ? body.signal.trim().slice(0, 24) : 'resonate',
+          correction: typeof body?.correction === 'string' ? body.correction.trim().slice(0, 400) : '',
+        };
+        const report = await l1ScaleRotor.call('companion_feedback', payload, 8000);
+        return sendJson(res, 200, report);
+      } catch (fErr) {
+        return sendJson(res, 500, {
+          status: 'error',
+          message: fErr instanceof Error ? fErr.message : '차이 학습 반영 중 오류가 발생했습니다.',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/reset') {
+      const body = await readJsonBody(req);
+      const state = await l1ScaleRotor.call('reset', body || {});
+      l1ScaleRotor.syncMetaFromState(state);
+      return sendJson(res, 200, state);
+    }
+    if (method === 'POST' && pathname === '/api/scale-rotor/ingest-concept') {
+      const body = await readJsonBody(req);
+      const query = String(body.query || body.text || '').trim();
+      if (!query) {
+        return sendJson(res, 400, { status: 'error', message: '외부 개념 또는 주제를 입력해 주세요.' });
+      }
+      let externalSummary = query;
+      let externalImageUrl = null;
+      let externalTitle = query;
+      let externalVisualCues = { contrast: 0.70, motion: 0.48, structure: 0.76, coherence: 0.74 };
+      try {
+        const onto = await resonateOntologyProtocols({ concepts: [query] });
+        const node = Array.isArray(onto.concepts) && onto.concepts[0] ? onto.concepts[0] : null;
+        if (node) {
+          externalTitle = node.title || query;
+          externalSummary = `${node.title || query}: ${node.extract || ''}`.trim();
+          externalImageUrl = node.thumbnail || null;
+          if (node.prism && typeof node.prism === 'object') {
+            externalVisualCues = {
+              structure: Number(node.prism.components ?? 0.74),
+              contrast: Number(node.prism.environment ?? 0.68),
+              motion: Number(node.prism.transformation ?? 0.52),
+              coherence: Number(node.prism.causality ?? 0.76),
+            };
+          }
+        }
+      } catch {
+        // Fallback gracefully to direct linguistic/structural projection if offline
+      }
+      const stepPayload = {
+        vision: {
+          label: `외부 관측: ${externalTitle}`,
+          ...externalVisualCues,
+        },
+        language: {
+          label: externalTitle,
+          text: externalSummary,
+        },
+        audio: body.audio || undefined,
+        behavior: body.behavior || undefined,
+        noise_ratio: Number(body.noise_ratio || 0),
+        frame: body.frame || undefined,
+      };
+      const state = await l1ScaleRotor.call('step', stepPayload);
+      return sendJson(res, 200, {
+        ...state,
+        ingested_external: {
+          title: externalTitle,
+          summary: externalSummary.slice(0, 320),
+          image_url: externalImageUrl,
+        },
+      });
     }
 
     // --- Scale-Rotor Hierarchy API (S0..S4) ---
