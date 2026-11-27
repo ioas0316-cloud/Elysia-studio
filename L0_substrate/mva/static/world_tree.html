@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elysia World-Tree Cognitive Virtual World</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #060910;
+      --panel: #0D1320;
+      --inset: #080C15;
+      --border: #1C273D;
+      --cyan: #06B6D4;
+      --emerald: #10B981;
+      --amber: #F59E0B;
+      --crimson: #F43F5E;
+      --text: #F1F5F9;
+      --muted: #94A3B8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 13px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    header {
+      height: 50px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      gap: 12px;
+    }
+    header h1 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .actions { display: flex; gap: 8px; align-items: center; }
+    .btn, a.btn {
+      background: var(--inset);
+      border: 1px solid #2B3B58;
+      color: var(--text);
+      padding: 5px 10px;
+      font-size: 12px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .btn:hover { border-color: var(--cyan); background: rgba(6,182,212,0.14); }
+    .btn.emerald { border-color: var(--emerald); background: rgba(16,185,129,0.16); color: #D1FAE5; }
+    .btn.crimson { border-color: var(--crimson); background: rgba(244,63,94,0.16); color: #FFE4E6; }
+    .btn.amber { border-color: var(--amber); background: rgba(245,158,11,0.16); color: #FEF3C7; }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 12px;
+      padding: 12px;
+      flex: 1;
+      max-width: 1680px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    @media (max-width: 1100px) { main { grid-template-columns: 1fr; } }
+
+    .stage-panel, .side-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+    .stage-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 540px;
+      background: radial-gradient(circle at 50% 50%, #0E1B2E 0%, #060910 74%);
+      cursor: crosshair;
+    }
+    #worldCanvas { width: 100%; height: 100%; display: block; }
+    .hud {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+    .side-panel { padding: 12px; gap: 10px; }
+    .card {
+      background: var(--inset);
+      border: 1px solid var(--border);
+      padding: 9px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .card h2 { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--cyan); }
+    .row { display: flex; gap: 6px; }
+    input {
+      background: #060910;
+      border: 1px solid #2B3B58;
+      color: var(--text);
+      padding: 6px 8px;
+      font-size: 12px;
+      flex: 1;
+    }
+    .log-list { display: flex; flex-direction: column; gap: 5px; max-height: 220px; overflow-y: auto; font-size: 11.5px; color: var(--muted); }
+    .log-list strong { color: var(--text); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>✦ ELYSIA WORLD-TREE — 온라인 인지신경망 가상 월드</h1>
+    <div class="actions">
+      <span id="deltaBadge" class="btn mono">델타 패킷: 0 B/tick</span>
+      <a class="btn" href="/ecology">← 생태계 워크벤치</a>
+      <a class="btn" href="/">메인 스튜디오</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="stage-panel">
+      <div class="stage-wrap">
+        <canvas id="worldCanvas"></canvas>
+        <div class="hud mono">
+          <span id="hudLeft">클릭해서 사용자(경계) 아바타 이동 · 상보 공명(청록) vs 일방 추출 마찰(적색)</span>
+          <span id="hudRight">열매 공유: 0 · 마찰: 0 · CoW 가지: 1</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side-panel">
+      <div class="card">
+        <h2>1. 세계수 중심축 (0_value · 사랑과 상보 공명)</h2>
+        <div id="summaryBox" class="mono" style="font-size:11px; color:var(--muted);">연결 중...</div>
+        <div class="row">
+          <input id="fruitInput" type="text" placeholder="세계수에 심을 원리 열매 (예: 경청, 신뢰, 균형)">
+          <button id="btnPlantFruit" class="btn emerald">열매 심기</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. 공동체 질서 vs 이기적 추출 실험</h2>
+        <div class="row">
+          <button id="btnSpawnSelfish" class="btn crimson" style="flex:1;">이기적 추출자 투입</button>
+          <button id="btnHealSelfish" class="btn emerald" style="flex:1;">순환 회복(공명)</button>
+        </div>
+        <button id="btnForkCow" class="btn amber">4KB CoW 평행 가지 분기 (0B 복사)</button>
+      </div>
+
+      <div class="card">
+        <h2>3. 활성 가지 노드 (64비트 큐브 상태)</h2>
+        <div id="agentList" class="log-list" style="max-height:175px;"></div>
+      </div>
+
+      <div class="card" style="flex:1;">
+        <h2>4. 세계수 인과 사건 로그</h2>
+        <div id="eventList" class="log-list"></div>
+      </div>
+    </aside>
+  </main>
+
+  <script src="/static/world_tree.js"></script>
+</body>
+</html>

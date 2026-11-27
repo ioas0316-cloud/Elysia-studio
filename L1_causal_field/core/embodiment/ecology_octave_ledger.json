@@ -1,0 +1,58 @@
+{
+  "iceSymbols": {
+    "지속성 로터::active_circulation": {
+      "key": "지속성 로터::active_circulation",
+      "rotorCategory": "지속성 로터",
+      "circuitRole": "active_circulation",
+      "count": 6091,
+      "octaveOrder": 3,
+      "symbolUnit": "천(10³) 옥타브 상징",
+      "lastSample": "L1_causal_field/core/embodiment/ecology_octave_ledger.json",
+      "lastSeen": "2026-11-27T20:29:46",
+      "melted": false
+    },
+    "자원 공유 로터::active_circulation": {
+      "key": "자원 공유 로터::active_circulation",
+      "rotorCategory": "자원 공유 로터",
+      "circuitRole": "active_circulation",
+      "count": 2352,
+      "octaveOrder": 3,
+      "symbolUnit": "천(10³) 옥타브 상징",
+      "lastSample": "MsMpEng.exe",
+      "lastSeen": "2026-11-27T20:30:11",
+      "melted": false
+    },
+    "자원 공유 로터::error_rotor_leak": {
+      "key": "자원 공유 로터::error_rotor_leak",
+      "rotorCategory": "자원 공유 로터",
+      "circuitRole": "error_rotor_leak",
+      "count": 207,
+      "octaveOrder": 2,
+      "symbolUnit": "백(10²) 옥타브 상징",
+      "lastSample": "MsMpEng.exe",
+      "lastSeen": "2026-11-27T20:29:34",
+      "melted": false
+    }
+  },
+  "compounds": {
+    "자원 공유 로터::active_circulation + 지속성 로터::active_circulation": {
+      "bondId": "자원 공유 로터::active_circulation + 지속성 로터::active_circulation",
+      "constituents": [
+        "지속성 로터::active_circulation",
+        "자원 공유 로터::active_circulation"
+      ],
+      "emergentProperty": "지속성 로터⇄자원 공유 로터 결합 복합체",
+      "bondStrength": 1058,
+      "lastSeen": "2026-11-27T20:29:47"
+    }
+  },
+  "languageConventions": {
+    "sensoryToWord": {},
+    "pendingWords": [],
+    "unnamedClusters": {}
+  },
+  "totalRawAbsorbed": 8650,
+  "meltedCount": 0,
+  "decayedCount": 0,
+  "bondRejections": 171
+}

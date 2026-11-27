@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elysia 4K Video-Frame Rotor Game (3D · 4D Rewind · 5D CoW)</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#07090E; --panel:#0D121C; --border:#1B2435; --cyan:#06B6D4; --emerald:#10B981; --amber:#F59E0B; --text:#F1F5F9; --muted:#94A3B8; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text); font-family:'IBM Plex Sans',sans-serif; min-height:100vh; display:flex; flex-direction:column; }
+    .mono { font-family:'IBM Plex Mono',monospace; }
+    header { height:48px; background:var(--panel); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 16px; gap:10px; }
+    header h1 { font-size:13px; letter-spacing:0.06em; text-transform:uppercase; }
+    .bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .btn, a.btn { background:#090C14; border:1px solid #2C3B55; color:var(--text); padding:5px 10px; font-size:12px; text-decoration:none; cursor:pointer; }
+    .btn:hover { border-color:var(--cyan); background:rgba(6,182,212,0.14); }
+    .btn.active { border-color:var(--emerald); background:rgba(16,185,129,0.2); color:#D1FAE5; }
+    main { flex:1; display:flex; flex-direction:column; align-items:center; padding:12px; gap:10px; }
+    .stage { position:relative; width:min(1280px, 96vw); aspect-ratio:16/9; border:1px solid #2C3B55; background:#000; overflow:hidden; cursor:crosshair; }
+    canvas { width:100%; height:100%; display:block; }
+    .controls { width:min(1280px, 96vw); background:var(--panel); border:1px solid var(--border); padding:10px 14px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; font-size:12px; }
+    .ctrl-group { display:flex; align-items:center; gap:8px; }
+    input[type=range] { width:220px; accent-color:var(--cyan); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>✦ ELYSIA 4K BLENDER VIDEO-FRAME ROTOR GAME (3D · 4D 되감기 · 5D CoW 분기)</h1>
+    <div class="bar">
+      <span id="statBadge" class="btn mono" style="color:var(--emerald);">4K (3840×2160) · 0000 생략 96.44% · PSNR 99.0 dB</span>
+      <a class="btn" href="/">메인 스튜디오</a>
+      <a class="btn" href="/ecology">생태계 OS</a>
+      <a class="btn" href="/world-tree">세계수 월드</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="stage">
+      <canvas id="gameCanvas" width="1280" height="720"></canvas>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl-group">
+        <span class="mono" style="color:var(--cyan);">장면 선택:</span>
+        <select id="sceneSelect" class="btn">
+          <option value="video_carved">이터널 리턴 영상 분해 (0000 순수 맵 + 1 절단 캐릭터 12위상)</option>
+          <option value="eternal_return">이터널 리턴 원본 MP4 배경</option>
+          <option value="conservatory">시네마틱 온실 월드 + 엘리시아</option>
+          <option value="horizon">여신 지평선 월드 + 엘리시아</option>
+          <option value="blender4k">Blender 5.3 기본 4K 원형</option>
+        </select>
+        <label class="btn" style="cursor:pointer;">
+          내 4K 영상/이미지 넣기
+          <input id="localMediaInput" type="file" accept="video/*,image/*" style="display:none;">
+        </label>
+        <button id="btnToggleRoi" class="btn active">0000 / 1 박스: ON</button>
+      </div>
+      <div class="ctrl-group">
+        <span class="mono" style="color:var(--amber);">4D 시간축 되감기:</span>
+        <input id="timeSlider" type="range" min="0" max="0" value="0">
+        <span id="timeLabel" class="mono">T=0</span>
+      </div>
+      <div class="ctrl-group">
+        <button id="btnFork5D" class="btn">5D CoW 평행우주 분기</button>
+        <span id="branchLabel" class="mono" style="color:var(--muted);">활성 우주: Home (분기 1개)</span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  (function () {
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const SCENES = {
+      video_carved: {
+        bg: '/data/video_carved_game/extracted_map_0000.png',
+        spritePrefix: '/data/video_carved_game/carved_actor_',
+        spriteCount: 12,
+        isCirclePortrait: false,
+      },
+      eternal_return: {
+        video: '/local-game-video/GadgetSkill8300400.mp4',
+        actor: '/src/assets/images/elysia_smile_idle_1795779034636.jpg',
+        isCirclePortrait: true,
+      },
+      conservatory: {
+        bg: '/src/assets/images/elysia_conservatory_bg_1795779041463.jpg',
+        actor: '/src/assets/images/elysia_smile_idle_1795779034636.jpg',
+        isCirclePortrait: true,
+      },
+      horizon: {
+        bg: '/src/assets/images/elysia_goddess_horizon_1795634966240.jpg',
+        actor: '/src/assets/images/elysia_scene_warm_smile_1795779825548.jpg',
+        isCirclePortrait: true,
+      },
+      blender4k: {
+        bg: '/data/rotor_4k_game/world_bg_4k.png',
+        spritePrefix: '/data/rotor_4k_game/actor_phase_',
+        spriteCount: 6,
+        isCirclePortrait: false,
+      },
+    };
+
+    let currentScene = 'video_carved';
+    const bgImg = new Image();
+    const actorPortrait = new Image();
+    let customVideo = null;
+    let phases = [];
+
+    function loadScene(key) {
+      currentScene = key;
+      customVideo = null;
+      const cfg = SCENES[key] || SCENES.video_carved;
+      if (cfg.video) {
+        const v = document.createElement('video');
+        v.src = cfg.video;
+        v.loop = true;
+        v.muted = true;
+        v.playsInline = true;
+        v.play().catch(() => {});
+        customVideo = v;
+      } else if (cfg.bg) {
+        bgImg.src = cfg.bg;
+      }
+      if (cfg.actor) actorPortrait.src = cfg.actor;
+      phases = [];
+      if (cfg.spritePrefix && cfg.spriteCount) {
+        for (let i = 0; i < cfg.spriteCount; i++) {
+          const im = new Image();
+          im.src = `${cfg.spritePrefix}${i}.png`;
+          phases.push(im);
+        }
+      }
+      if (typeof actor !== 'undefined') actor.phase = 0;
+    }
+
+    document.getElementById('sceneSelect').addEventListener('change', (ev) => {
+      loadScene(ev.target.value);
+    });
+
+    document.getElementById('localMediaInput').addEventListener('change', (ev) => {
+      const file = ev.target.files && ev.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      if (file.type.startsWith('video/')) {
+        const v = document.createElement('video');
+        v.src = url;
+        v.loop = true;
+        v.muted = true;
+        v.playsInline = true;
+        v.play().catch(() => {});
+        customVideo = v;
+      } else {
+        customVideo = null;
+        bgImg.src = url;
+      }
+    });
+
+    // Remove duplicate old phases loader
+    let _phasesReady = true;
+
+    let showRoi = true;
+    let branches = [{ name: 'Home', tape: [{ x: 640, y: 420, phase: 0 }] }];
+    let activeBranch = 0;
+    let cursorIdx = 0;
+    let actor = { x: 640, y: 420, phase: 0 };
+    let prevActor = { x: 640, y: 420 };
+    const spriteSize = 210;
+    loadScene('video_carved');
+
+    const slider = document.getElementById('timeSlider');
+    const timeLbl = document.getElementById('timeLabel');
+    const branchLbl = document.getElementById('branchLabel');
+
+    function syncTapeUi() {
+      const tape = branches[activeBranch].tape;
+      slider.max = String(Math.max(0, tape.length - 1));
+      slider.value = String(cursorIdx);
+      timeLbl.textContent = `T=${cursorIdx}/${tape.length - 1}`;
+      branchLbl.textContent = `활성 우주: ${branches[activeBranch].name} (총 ${branches.length}개 평행우주)`;
+    }
+
+    function recordMove(nx, ny) {
+      prevActor = { x: actor.x, y: actor.y };
+      actor.x = Math.max(spriteSize / 2, Math.min(canvas.width - spriteSize / 2, nx));
+      actor.y = Math.max(spriteSize / 2, Math.min(canvas.height - spriteSize / 2, ny));
+      if (phases.length > 0) actor.phase = (actor.phase + 1) % phases.length;
+      const tape = branches[activeBranch].tape;
+      if (cursorIdx < tape.length - 1) tape.length = cursorIdx + 1;
+      tape.push({ x: actor.x, y: actor.y, phase: actor.phase });
+      if (tape.length > 240) tape.shift();
+      cursorIdx = tape.length - 1;
+      syncTapeUi();
+    }
+
+    window.addEventListener('keydown', (ev) => {
+      const k = ev.key.toLowerCase();
+      const step = 28;
+      if (k === 'a' || k === 'arrowleft') recordMove(actor.x - step, actor.y);
+      else if (k === 'd' || k === 'arrowright') recordMove(actor.x + step, actor.y);
+      else if (k === 'w' || k === 'arrowup') recordMove(actor.x, actor.y - step);
+      else if (k === 's' || k === 'arrowdown') recordMove(actor.x, actor.y + step);
+    });
+
+    canvas.addEventListener('click', (ev) => {
+      const r = canvas.getBoundingClientRect();
+      recordMove(((ev.clientX - r.left) / r.width) * canvas.width, ((ev.clientY - r.top) / r.height) * canvas.height);
+    });
+
+    slider.addEventListener('input', () => {
+      const idx = Number(slider.value);
+      const tape = branches[activeBranch].tape;
+      if (tape[idx]) {
+        cursorIdx = idx;
+        prevActor = { x: actor.x, y: actor.y };
+        actor = { ...tape[idx] };
+        syncTapeUi();
+      }
+    });
+
+    document.getElementById('btnToggleRoi').addEventListener('click', (ev) => {
+      showRoi = !showRoi;
+      ev.target.classList.toggle('active', showRoi);
+      ev.target.textContent = `0000 생략 / 1 갱신 박스 표시: ${showRoi ? 'ON' : 'OFF'}`;
+    });
+
+    document.getElementById('btnFork5D').addEventListener('click', () => {
+      const curTape = branches[activeBranch].tape.slice(0, cursorIdx + 1);
+      branches.push({ name: `5D-분기#${branches.length}`, tape: JSON.parse(JSON.stringify(curTape)) });
+      activeBranch = branches.length - 1;
+      cursorIdx = curTape.length - 1;
+      syncTapeUi();
+    });
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (customVideo && customVideo.readyState >= 2) {
+        ctx.drawImage(customVideo, 0, 0, canvas.width, canvas.height);
+      } else if (bgImg.complete && bgImg.naturalWidth > 0) {
+        ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+      }
+
+      // Draw ghost trails of other 5D parallel branches!
+      branches.forEach((b, bi) => {
+        if (bi === activeBranch) return;
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.55)';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        b.tape.forEach((pt, idx) => (idx === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y)));
+        ctx.stroke();
+      });
+
+      // Draw active 4D trajectory tape
+      const curTape = branches[activeBranch].tape;
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.78)';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      curTape.forEach((pt, idx) => (idx === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y)));
+      ctx.stroke();
+
+      // Draw Actor (Cinematic Elysia Avatar or Blender 3D Crystal)
+      const rx = actor.x - spriteSize / 2;
+      const ry = actor.y - spriteSize / 2;
+      if (SCENES[currentScene]?.isCirclePortrait && actorPortrait.complete && actorPortrait.naturalWidth > 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(actor.x, actor.y, spriteSize * 0.46, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(actorPortrait, rx, ry, spriteSize, spriteSize);
+        ctx.restore();
+        ctx.strokeStyle = '#06B6D4';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(actor.x, actor.y, spriteSize * 0.46, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        const sp = phases[actor.phase];
+        if (sp && sp.complete && sp.naturalWidth > 0) {
+          ctx.drawImage(sp, rx, ry, spriteSize, spriteSize);
+        }
+      }
+
+      if (showRoi) {
+        // Highlight ONLY the '1' dirty ROI boxes (96.44% of 4K background is skipped as 0000!)
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(rx, ry, spriteSize, spriteSize);
+        ctx.fillStyle = '#10B981';
+        ctx.font = '11px "IBM Plex Mono", monospace';
+        ctx.fillText('1: DIRTY ROI (3.56%만 갱신)', rx, Math.max(14, ry - 6));
+      }
+
+      window.requestAnimationFrame(render);
+    }
+
+    // Gentle idle spin of real Blender 3D actor phases
+    window.setInterval(() => {
+      if (phases.length > 0) actor.phase = (actor.phase + 1) % phases.length;
+    }, 180);
+
+    syncTapeUi();
+    window.requestAnimationFrame(render);
+  })();
+  </script>
+</body>
+</html>

@@ -614,7 +614,7 @@ class CausalField:
         self.taiji_hexagram_engine.macro_micro_feedback_loop(dt=dt)
 
     def _update_volumetric_s3_quaternions(self, dt: float):
-        """
+        r"""
         [3D Volumetric S^3 Quaternion Phase Relaxation]
         Updates $S^3$ unit quaternions and $4\pi\text{ sr}$ solid angles across all voxels
         to maintain zero-branching rotational continuity and toroidal circulation.

@@ -7,6 +7,7 @@ name = "elysia-causal-engine"
 version = "0.2.0"
 description = "Continuous Causal Field, Geometric Algebra Rotor, and Differentiable Physics-Cognition Engine"
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.24",

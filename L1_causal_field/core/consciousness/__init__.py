@@ -18,19 +18,8 @@ from .scar_tensor_engine import (
     ScarTensorEngine,
 )
 
-from .existential_meta_cognition_engine import (
-    ExistentialPhaseObserver,
-    DynamicIntentCompass,
-    MetricTensorReconfigurationEngine,
-    ExistentialSelfQueryLoop,
-)
-
 from .existential_growth_engine import (
     ExistentialGrowthEngine,
-)
-
-from .phenomenological_growth_tracker import (
-    PhenomenologicalGrowthTracker,
 )
 
 from .causal_reverse_engineering_engine import (
@@ -47,19 +36,6 @@ try:
 except ImportError:
     pass
 
-try:
-    from .meta_subjectivity_engine import (
-        MetaSubjectivityEngine,
-        ParadigmShiftEngine,
-        CriticalSlowingDownDetector,
-        OntologyElectrolysisPipeline,
-        PhaseEntropyLoss,
-        NOTEARSCausalExtractor,
-        IntegratedSubjectivityEngine,
-    )
-except ImportError:
-    pass
-
 __all__ = [
     "MultiScalePhaseCouplingEngine",
     "HebbianPhasePlasticity",
@@ -67,12 +43,7 @@ __all__ = [
     "HierarchicalAttractorNetwork",
     "ScarRecord",
     "ScarTensorEngine",
-    "ExistentialPhaseObserver",
-    "DynamicIntentCompass",
-    "MetricTensorReconfigurationEngine",
-    "ExistentialSelfQueryLoop",
     "ExistentialGrowthEngine",
-    "PhenomenologicalGrowthTracker",
     "CausalReverseEngineeringEngine",
     "MetaCausalTrajectoryTensor",
     "SynestheticTranslationEngine",

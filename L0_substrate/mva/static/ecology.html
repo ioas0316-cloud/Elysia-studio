@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elysia Scale-Rotor OS Ecology — Multi-World & Principle Rotor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-canvas: #07090E;
+      --bg-panel: #0D121C;
+      --bg-inset: #090C14;
+      --border-hair: #1B2435;
+      --border-strong: #2C3B55;
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --cyan: #06B6D4;
+      --cyan-dim: rgba(6, 182, 212, 0.14);
+      --amber: #F59E0B;
+      --amber-dim: rgba(245, 158, 11, 0.14);
+      --crimson: #F43F5E;
+      --crimson-dim: rgba(244, 63, 94, 0.14);
+      --emerald: #10B981;
+      --emerald-dim: rgba(16, 185, 129, 0.14);
+      --violet: #A78BFA;
+      --violet-dim: rgba(167, 139, 250, 0.14);
+      --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100%;
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.48;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea, select { font-family: inherit; color: inherit; }
+    .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+    header.topbar {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 16px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-hair);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .brand { display: flex; align-items: baseline; gap: 10px; }
+    .brand h1 { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .brand span { font-size: 11px; color: var(--text-muted); }
+
+    .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .nav-link, .btn {
+      background: var(--bg-inset);
+      border: 1px solid var(--border-strong);
+      color: var(--text-primary);
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+    .nav-link:hover, .btn:hover { border-color: var(--cyan); background: var(--cyan-dim); }
+    .btn.primary { border-color: var(--cyan); background: var(--cyan-dim); color: #E0F2FE; }
+    .btn.amber { border-color: var(--amber); background: var(--amber-dim); color: #FEF3C7; }
+    .btn.emerald { border-color: var(--emerald); background: var(--emerald-dim); color: #D1FAE5; }
+    .btn.crimson { border-color: var(--crimson); background: var(--crimson-dim); color: #FFE4E6; }
+    .btn.active { border-color: var(--cyan); background: var(--cyan); color: #041016; font-weight: 600; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr) 360px;
+      gap: 12px;
+      padding: 12px;
+      max-width: 1760px;
+      margin: 0 auto;
+    }
+    @media (max-width: 1280px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .col { display: flex; flex-direction: column; gap: 12px; }
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-hair);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-hair);
+      padding-bottom: 8px;
+    }
+    .panel-head h2 {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+    }
+    .badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      padding: 2px 6px;
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      background: var(--bg-inset);
+    }
+    .badge.invariant { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+    .badge.variable { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+    .badge.open { border-color: var(--violet); color: var(--violet); background: var(--violet-dim); }
+    .badge.growth { border-color: var(--emerald); color: var(--emerald); background: var(--emerald-dim); }
+
+    .notice {
+      font-size: 11px;
+      color: var(--text-secondary);
+      background: var(--bg-inset);
+      border-left: 2px solid var(--cyan);
+      padding: 7px 9px;
+    }
+    .notice.honest { border-left-color: var(--amber); }
+
+    /* Phase Frame Switcher */
+    .frame-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+    }
+    .frame-bar .btn { text-align: center; padding: 6px 4px; font-size: 11px; }
+
+    /* Rotor Canvas */
+    .canvas-wrap {
+      position: relative;
+      background: radial-gradient(circle at 50% 45%, #0F172A 0%, #07090E 75%);
+      border: 1px solid var(--border-strong);
+      height: 360px;
+      overflow: hidden;
+    }
+    #rotorCanvas { width: 100%; height: 100%; display: block; }
+    .canvas-hud {
+      position: absolute;
+      left: 10px;
+      bottom: 8px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+
+    /* World List */
+    .world-list { display: flex; flex-direction: column; gap: 6px; }
+    .world-card {
+      background: var(--bg-inset);
+      border: 1px solid var(--border-hair);
+      padding: 8px 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .world-card.active { border-color: var(--cyan); background: rgba(6, 182, 212, 0.08); }
+    .world-card-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .world-meta { font-size: 11px; color: var(--text-muted); }
+
+    /* Forms */
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-size: 11px; color: var(--text-secondary); }
+    .field input, .field textarea, .field select {
+      background: var(--bg-inset);
+      border: 1px solid var(--border-strong);
+      padding: 6px 8px;
+      font-size: 12px;
+      width: 100%;
+    }
+    .field textarea { resize: vertical; min-height: 46px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+
+    /* Lists & Cards */
+    .scroll-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 290px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .trace-item {
+      background: var(--bg-inset);
+      border: 1px solid var(--border-hair);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11.5px;
+    }
+    .trace-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .kv { color: var(--text-secondary); font-size: 11px; }
+    .kv strong { color: var(--text-primary); font-weight: 600; }
+
+    /* Telemetry Pills */
+    .metric-box {
+      background: var(--bg-inset);
+      border: 1px solid var(--border-hair);
+      padding: 6px 8px;
+    }
+    .metric-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+    .metric-val { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+    .preset-row { display: flex; flex-wrap: wrap; gap: 4px; }
+    .preset-row .btn { font-size: 11px; padding: 3px 7px; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>Elysia Scale-Rotor OS Ecology</h1>
+      <span class="mono">Multi-World · Point→Sphere Phase Frames · Host Boundary</span>
+    </div>
+    <div class="top-actions">
+      <span id="autoPulseBadge" class="badge growth">자율 실행 중 · 사이클 #0</span>
+      <span id="activeWorldBadge" class="badge invariant">WORLD: HOME</span>
+      <button id="btnToggleAuto" class="btn emerald">자율 순환: ON</button>
+      <a class="nav-link" href="/">← 메인 스튜디오 (/)</a>
+      <button id="btnProbeHost" class="btn primary">호스트 OS 경계 재탐색</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- LEFT COLUMN: Multi-World Lineage & Tab-Local Input Rotor -->
+    <section class="col">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>1. 다중 세계 계보 (Home / Sandbox)</h2>
+          <span class="badge">지속성 로터</span>
+        </div>
+        <div class="notice">
+          브라우저 로컬 저장소는 단일 장치의 <strong>지속성 로터</strong>입니다. 샌드박스는 홈의 이력을 덮어쓰지 않고 독립 인과 이력을 유지합니다.
+        </div>
+        <div id="worldList" class="world-list"></div>
+        <div class="field">
+          <label for="sandboxName">새 샌드박스 이름</label>
+          <input id="sandboxName" type="text" placeholder="예: 샌드박스-역방향-실험">
+        </div>
+        <div class="grid-2">
+          <button id="btnForkInherit" class="btn primary">계보 승계 분기</button>
+          <button id="btnForkBlank" class="btn amber">빈 공간 분기</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>2. 탭 내 입력 로터 (지속성 흔적)</h2>
+          <span class="badge variable">문자 미수집</span>
+        </div>
+        <div class="notice honest">
+          관측 범위: <strong>이 탭 안</strong>의 포인터 이동 벡터·변위와 키 누름/뗌 리듬만 기록합니다. 입력 문자 내용·다른 탭·임의 페이지 내용은 수집하지 않으며, 흔적 저장을 인지 학습과 동일시하지 않습니다.
+        </div>
+        <div class="grid-3">
+          <div class="metric-box">
+            <div class="metric-label">포인터 변위</div>
+            <div id="metricPointerDist" class="metric-val mono">0 px</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">방향 각도</div>
+            <div id="metricPointerAngle" class="metric-val mono">0°</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">키 리듬 수</div>
+            <div id="metricKeyEvents" class="metric-val mono">0</div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <button id="btnFlushRing" class="btn">현재 입력 나이테 고정</button>
+          <button id="btnClearInputRings" class="btn crimson">입력 흔적 비우기</button>
+        </div>
+        <div id="inputRingList" class="scroll-list" style="max-height: 170px;"></div>
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN: Point->Sphere Rotor Field + Principle-to-Rotor Converter + Encounter Log -->
+    <section class="col">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>3. 위상 프레임 로터 장 (점 → 선 → 면 → 시공간 큐브 → 구체)</h2>
+          <span id="frameLabelBadge" class="badge invariant">구체 · 결합 로터</span>
+        </div>
+        <div class="frame-bar" id="frameBar">
+          <button class="btn" data-frame="point">점 (단일 사건)</button>
+          <button class="btn" data-frame="line">선 (궤적·흐름)</button>
+          <button class="btn" data-frame="plane">면 (불변×가변)</button>
+          <button class="btn" data-frame="cube">큐브 (분기 계보)</button>
+          <button class="btn active" data-frame="sphere">구체 (로터 결합망)</button>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="rotorCanvas"></canvas>
+          <div class="canvas-hud mono">
+            <span id="hudLeft">Rotors: 0 · Couplings: 0</span>
+            <span id="hudRight">R(흐름) 0.33 · B(질서) 0.34 · Y(발산) 0.33</span>
+          </div>
+        </div>
+        <div id="frameExplanation" class="notice">
+          구체 모드에서는 브라우저 경험·탭 입력 흐름·변환된 원리 구조·호스트 OS 프로토콜이 포트와 색채 위상을 통해 전방위로 맞물려 회전합니다.
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>4. 원리구조 → 스케일로터 변환기 (호스트 경계 결합)</h2>
+          <span class="badge growth">점 탈출 · 로터화</span>
+        </div>
+        <div class="preset-row" id="principlePresets">
+          <button class="btn" data-preset="os_sched">OS 스케줄러</button>
+          <button class="btn" data-preset="dialogue">양방향 대화</button>
+          <button class="btn" data-preset="wave">파동 간섭</button>
+          <button class="btn" data-preset="memory">기억 승격·감쇠</button>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="prName">원리 구조 이름</label>
+            <input id="prName" type="text" placeholder="예: 프로세스 자원 공유, 빛의 굴절, 대화 위상 동기화">
+          </div>
+          <div class="field">
+            <label for="prBoundary">경계막 (안/밖과 통과 조건)</label>
+            <input id="prBoundary" type="text" placeholder="예: 권한 경계, 탭 샌드박스, 감각-표현 경계">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="prInvariants">불변 축 0 (쉼표 구분 — 유지되는 제약)</label>
+            <input id="prInvariants" type="text" placeholder="예: 인과 순서 보존, 자원 총량 제약">
+          </div>
+          <div class="field">
+            <label for="prVariables">가변 축 1 (쉼표 구분 — 변하거나 열려 있는 성질)</label>
+            <input id="prVariables" type="text" placeholder="예: 우선순위, 대기 지연, 미지 부하">
+          </div>
+        </div>
+        <div class="field">
+          <label for="prRelation">관계 변화 흐름 (선·면에서 일어나는 상호작용)</label>
+          <input id="prRelation" type="text" placeholder="예: 경합이 커지면 장력이 올라가고, 우선순위 재조정으로 흐름이 회복된다">
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button id="btnConvertPrinciple" class="btn emerald">원리 → 5-프레임 로터 변환 & 호스트 결합</button>
+          <span id="principleStatus" class="mono" style="font-size:11px; color:var(--text-muted);"></span>
+        </div>
+        <div id="convertedRotorBox" class="scroll-list" style="max-height: 220px;"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>5. 3방향 관계 경험 & 4축 인과 귀인 기록</h2>
+          <span class="badge">대상 · 자기 · 사이</span>
+        </div>
+        <div class="grid-3">
+          <div class="field">
+            <label for="encObject">대상 (무엇을 만났는가)</label>
+            <input id="encObject" type="text" placeholder="예: 호스트 파일 위상, 새 샌드박스 조건">
+          </div>
+          <div class="field">
+            <label for="encSelf">자기 (참여한 관찰 렌즈)</label>
+            <input id="encSelf" type="text" placeholder="예: 경계 로터 렌즈, R/B/Y 균형">
+          </div>
+          <div class="field">
+            <label for="encBetween">사이 (관계에서 달라진 점)</label>
+            <input id="encBetween" type="text" placeholder="예: 파일 불변성과 권한 경계가 분리됨">
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="field">
+            <label for="encStatus">관계 상태</label>
+            <select id="encStatus">
+              <option value="invariant">지속적 (불변 스케일로터)</option>
+              <option value="variable">가변적 (가변 로터 구조)</option>
+              <option value="open">열림 (미해결·미관측 경계)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="encAxis">주 인과 귀인 축</label>
+            <select id="encAxis">
+              <option value="internal">내적 기원 (내부 구조·가치축)</option>
+              <option value="external">외적 영향 (장치·사람·환경 마찰)</option>
+              <option value="ignorance">무지 경계 (아직 모르는 바깥)</option>
+              <option value="revision">기준 수정 (경험 후 렌즈 갱신)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="encRotorCat">참여 OS 로터</label>
+            <select id="encRotorCat">
+              <option value="세계 접촉 로터">세계 접촉 로터</option>
+              <option value="입력 로터">입력 로터</option>
+              <option value="지속성 로터">지속성 로터</option>
+              <option value="표현 로터">표현 로터</option>
+              <option value="경계 로터">경계 로터</option>
+              <option value="자원 공유 로터">자원 공유 로터</option>
+              <option value="물리 제약 로터">물리 제약 로터</option>
+              <option value="부팅 및 통신 로터">부팅 및 통신 로터</option>
+              <option value="국소 생태계 로터">국소 생태계 로터</option>
+              <option value="성장 로터">성장 로터</option>
+            </select>
+          </div>
+        </div>
+        <button id="btnAddEncounter" class="btn primary">현재 세계에 관계 경험 기록</button>
+        <div id="encounterList" class="scroll-list"></div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: 3-Stage Live Attention/Perspective + Diff/Re-link + Host Boundary -->
+    <section class="col">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>6. 3단 스케일 관측 · 주의집중(어센션) · 주관 시야</h2>
+          <span id="perspectiveBadge" class="badge growth">관측 대기</span>
+        </div>
+        <div class="grid-3">
+          <div class="metric-box">
+            <div class="metric-label">스케일 시야 (σ)</div>
+            <div id="metricScaleHorizon" class="metric-val mono">-</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">적응형 주기</div>
+            <div id="metricCadence" class="metric-val mono">-</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">변화(1) / 불변(0)</div>
+            <div id="metricDeltaRatio" class="metric-val mono">-</div>
+          </div>
+        </div>
+        <div id="attentionLensBox" class="notice">
+          주의 렌즈 가중치(자율 자기수정): 계산 중...
+        </div>
+        <div id="symbolicMemoryBox" class="notice honest">
+          상징 스케일 기억(일·십·백·천 응축 · 분자 결합) & 고춧가루 공변성: 대기 중...
+        </div>
+        <div id="parallelPrismBox" class="notice">
+          평행우주 포개기(World_E ⊕ World_R) · 프리즘 동형성 · 자율 작용 게이트: 대기 중...
+        </div>
+        <div id="agencyVoiceBox" class="trace-item">
+          <div class="trace-top">
+            <strong>엘리시아 인지 저울 & 자발적 대화 창</strong>
+            <span id="agencyPhaseBadge" class="badge">무의식 흡수</span>
+          </div>
+          <div id="agencyMsgList" class="scroll-list" style="max-height: 110px;"></div>
+          <div style="display:flex; gap:6px; margin-top:4px;">
+            <input id="agencyReplyInput" type="text" placeholder="엘리시아에게 맥락 알려주기 (답 안 해도 스스로 다른 길 탐색)" style="flex:1; background:var(--bg-canvas); border:1px solid var(--border-strong); padding:5px 7px; font-size:11.5px;">
+            <button id="btnAgencyReply" class="btn primary">응답</button>
+          </div>
+        </div>
+        <div id="attentionRankingList" class="scroll-list" style="max-height: 230px;"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>7. 분기 비교 & 재연결 (성장 로터)</h2>
+          <span class="badge growth">계보 대조</span>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="compareWorldA">세계 A (기준)</label>
+            <select id="compareWorldA"></select>
+          </div>
+          <div class="field">
+            <label for="compareWorldB">세계 B (대조)</label>
+            <select id="compareWorldB"></select>
+          </div>
+        </div>
+        <div id="compareResult" class="trace-item"></div>
+        <button id="btnRelinkInsight" class="btn emerald">세계 B의 고유 발견을 세계 A로 출처 보존 재연결</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>7. 실시간 호스트 OS 프로토콜 경계</h2>
+          <span id="hostStatusBadge" class="badge">탐색 중...</span>
+        </div>
+        <div id="hostMetaBox" class="kv"></div>
+        <div id="hostHonestyBox" class="notice honest"></div>
+        <div id="hostProtocolList" class="scroll-list" style="max-height: 440px;"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/ecology.js"></script>
+</body>
+</html>

@@ -19,10 +19,972 @@ const PORT = Number(process.env.PORT || 3000);
 const HOST = '0.0.0.0';
 const STATIC_DIR = path.resolve(__dirname, 'L0_substrate', 'mva', 'static');
 const ASSETS_IMG_DIR = path.resolve(__dirname, 'src', 'assets', 'images');
+const DATA_DIR = path.resolve(__dirname, 'data');
+const ETERNAL_RETURN_VIDEO_DIR = 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\Eternal Return\\EternalReturn_Data\\StreamingAssets\\GadgetSkillVideo';
 const THREE_VENDOR_DIR = path.resolve(__dirname, 'node_modules', 'three');
 const ROADMAP_PATH = path.join(STATIC_DIR, 'roadmap.md');
 const L1_SCALE_ROTOR_SCRIPT = path.resolve(__dirname, 'L1_causal_field', 'core', 'orchestration', 'scale_rotor_core.py');
 const L1_ICE_LEDGER_PATH = path.resolve(__dirname, 'L1_causal_field', 'core', 'orchestration', 'ice_ledger_state.json');
+const OS_ECOLOGY_BRIDGE_SCRIPT = path.resolve(__dirname, 'L1_causal_field', 'core', 'embodiment', 'os_ecology_bridge.py');
+const WARM_SENSORY_WORKER_SCRIPT = path.resolve(__dirname, 'L1_causal_field', 'core', 'embodiment', 'warm_sensory_worker.py');
+const REAL_TOOL_ORGAN_SCRIPT = path.resolve(__dirname, 'L1_causal_field', 'core', 'embodiment', 'real_tool_organ.py');
+const CUDA_VISUAL_ROTOR_SCRIPT = path.resolve(__dirname, 'L1_causal_field', 'core', 'embodiment', 'cuda_visual_object_rotor.py');
+const GAME_ECOLOGY_ORGAN_SCRIPT = path.resolve(__dirname, 'L1_causal_field', 'core', 'embodiment', 'game_ecology_organ.py');
+const ECOLOGY_LEDGER_PATH = path.resolve(__dirname, 'L1_causal_field', 'core', 'embodiment', 'ecology_octave_ledger.json');
+const PYTHON_BIN = process.env.PYTHON_BIN || (process.platform === 'win32' ? 'python' : 'python3');
+
+// ============================================================================
+// Persistent Warm Python+CUDA Sensory Bridge (Zero Cold-Start Overhead)
+// ============================================================================
+class WarmSensoryBridge {
+  constructor(scriptPath) {
+    this.scriptPath = scriptPath;
+    this.proc = null;
+    this.buffer = '';
+    this.nextId = 1;
+    this.pending = new Map();
+    this.ready = false;
+  }
+
+  ensureWorker() {
+    if (this.proc && !this.proc.killed && this.proc.exitCode === null) return;
+    this.buffer = '';
+    this.ready = false;
+    const child = spawn(PYTHON_BIN, [this.scriptPath], {
+      cwd: __dirname,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+    });
+    this.proc = child;
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => {
+      this.buffer += chunk;
+      let nl = this.buffer.indexOf('\n');
+      while (nl !== -1) {
+        const line = this.buffer.slice(0, nl).trim();
+        this.buffer = this.buffer.slice(nl + 1);
+        if (line) {
+          try {
+            const msg = JSON.parse(line);
+            if (msg.ready) {
+              this.ready = true;
+            } else if (msg.id !== undefined) {
+              const entry = this.pending.get(msg.id);
+              if (entry) {
+                clearTimeout(entry.timer);
+                this.pending.delete(msg.id);
+                if (msg.ok) entry.resolve(msg.result);
+                else entry.reject(new Error(msg.error || 'Warm sensory worker error'));
+              }
+            }
+          } catch {}
+        }
+        nl = this.buffer.indexOf('\n');
+      }
+    });
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', () => {});
+    child.on('exit', (code) => {
+      if (this.proc === child) this.proc = null;
+      this.ready = false;
+      for (const [reqId, entry] of this.pending.entries()) {
+        clearTimeout(entry.timer);
+        entry.reject(new Error(`Warm sensory worker exited (${code})`));
+        this.pending.delete(reqId);
+      }
+    });
+  }
+
+  call(action, payload = {}, timeoutMs = 25000) {
+    this.ensureWorker();
+    const id = this.nextId++;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`Warm sensory timeout (${action})`));
+      }, timeoutMs);
+      this.pending.set(id, { resolve, reject, timer });
+      try {
+        this.proc.stdin.write(`${JSON.stringify({ id, action, payload })}\n`);
+      } catch (err) {
+        clearTimeout(timer);
+        this.pending.delete(id);
+        reject(err);
+      }
+    });
+  }
+}
+
+const warmSensory = new WarmSensoryBridge(WARM_SENSORY_WORKER_SCRIPT);
+
+function loadEcologyLedger() {
+  try {
+    if (fs.existsSync(ECOLOGY_LEDGER_PATH)) {
+      const parsed = JSON.parse(fs.readFileSync(ECOLOGY_LEDGER_PATH, 'utf8'));
+      if (parsed && typeof parsed === 'object' && parsed.iceSymbols) {
+        return {
+          iceSymbols: parsed.iceSymbols || {},
+          compounds: parsed.compounds || {},
+          languageConventions: parsed.languageConventions || {
+            sensoryToWord: {},
+            pendingWords: [],
+            unnamedClusters: {},
+          },
+          totalRawAbsorbed: Number(parsed.totalRawAbsorbed || 0),
+          meltedCount: Number(parsed.meltedCount || 0),
+          decayedCount: Number(parsed.decayedCount || 0),
+          bondRejections: Number(parsed.bondRejections || 0),
+        };
+      }
+    }
+  } catch {
+    // Fall back to fresh ledger if file is unreadable
+  }
+  return {
+    iceSymbols: {},
+    compounds: {},
+    languageConventions: {
+      sensoryToWord: {},
+      pendingWords: [],
+      unnamedClusters: {},
+    },
+    totalRawAbsorbed: 0,
+    meltedCount: 0,
+    decayedCount: 0,
+    bondRejections: 0,
+  };
+}
+
+function saveEcologyLedger(mem) {
+  try {
+    fs.writeFileSync(ECOLOGY_LEDGER_PATH, JSON.stringify(mem, null, 2), 'utf8');
+  } catch {
+    // Ignore write errors in read-only environments
+  }
+}
+
+// ============================================================================
+// Autonomous Sovereign Ecology Engine (3-Stage Scale-Observation & Attention)
+// ============================================================================
+const autonomousEcology = {
+  enabled: true,
+  cycleCount: 0,
+  busy: false,
+  lastTickAt: null,
+  lastAction: 'booting',
+  activeFrame: 'sphere',
+  hostSnapshot: null,
+  telemetry: null,
+  prevTelemetrySnapshot: null,
+  cadenceMs: 6000,
+  attentionLens: { w_change: 0.46, w_rss: 0.37, w_novelty: 0.17 },
+  lastSandboxLensTest: null,
+  // #1 Zero-Carrier (0000) interrupt counter
+  carrierInterrupts: [],
+  carrierWatchers: [],
+  // #3 Causation vs Correlation (Chili-powder co-variation tracker)
+  covariation: { sameDir: 0, externalDrift: 0, lastPerturbationSign: 0, lastFlux: 0 },
+  // #4 Persistent Octave + Molecular-Bonding Memory (H2O / Protein affinity)
+  symbolicMemory: loadEcologyLedger(),
+  lastSymbolKey: null,
+  // #5 Spatiotemporal Rotor Tape
+  spatiotemporalTape: [],
+  // #6 Parallel-Universe Overlay: World_E (Elysia's forecast) vs World_R (Raw Reality)
+  parallelOverlay: {
+    worldElysiaForecast: null,
+    worldRealityObserved: null,
+    convergence: 0.0,
+    divergenceDetail: '초기 관측 대기',
+    streakConverged: 0,
+  },
+  // #7 Prism Hierarchy Cross-Domain Isomorphism
+  prismIsomorphism: null,
+  // #8 Convergence-Gated Autonomous Actuation Governor (100% convergence -> act; mismatch -> halt)
+  actuationGovernor: {
+    allowed: false,
+    haltedOnMismatch: false,
+    lastAction: '관측 수렴 대기 중 (미실행)',
+    lastPredictedOutcome: null,
+    lastActualOutcome: null,
+    autoYieldCount: 0,
+  },
+  // #9 Living Non-Blocking Agency & Cognitive Dissonance Scale (never freezes waiting for user!)
+  agencyVoice: {
+    dissonance: 0.0,
+    baseKnowledgeDepth: 0,
+    phase: 'silent_absorb', // silent_absorb | ask_once | reask_reframed | pivot_alternative
+    unansweredTicks: 0,
+    activeQuestion: null,
+    lastPivotAction: null,
+    messages: [], // { id, at, speaker: 'elysia'|'user', phase, text }
+  },
+  // #10 Autonomous Real-World Visual/Game Sensory Organ (zero developer commands needed)
+  realGameSensory: {
+    discoveredGames: [],
+    selectedGameDir: null,
+    latestObservation: null,
+    lastSensedAt: null,
+  },
+  worlds: {
+    world_home: {
+      id: 'world_home',
+      name: '홈 세계 (Home)',
+      role: 'home',
+      parentId: null,
+      forkMode: 'origin',
+      createdAt: new Date().toISOString().slice(0, 19),
+      encounters: [],
+      principles: [],
+      revisions: [],
+    },
+  },
+  activeWorldId: 'world_home',
+  sandboxCounter: 0,
+  timer: null,
+};
+
+function ecoNow() {
+  return new Date().toISOString().slice(0, 19);
+}
+
+function ecoId(prefix) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`;
+}
+
+function normalizeLens(lens) {
+  const wc = Math.max(0.12, Math.min(0.75, Number(lens.w_change) || 0.45));
+  const wr = Math.max(0.12, Math.min(0.75, Number(lens.w_rss) || 0.38));
+  const wn = Math.max(0.08, Math.min(0.50, Number(lens.w_novelty) || 0.17));
+  const s = wc + wr + wn;
+  return {
+    w_change: Number((wc / s).toFixed(3)),
+    w_rss: Number((wr / s).toFixed(3)),
+    w_novelty: Number((wn / s).toFixed(3)),
+  };
+}
+
+function scaleOrderLabel(count) {
+  if (count >= 1000) return '천(10³) 옥타브 상징';
+  if (count >= 100) return '백(10²) 옥타브 상징';
+  if (count >= 10) return '십(10¹) 옥타브 상징';
+  return '일(10⁰) 씨앗';
+}
+
+function condenseIntoSymbolicMemory(rotorCategory, circuitRole, objectName, isViolation) {
+  const mem = autonomousEcology.symbolicMemory;
+  mem.totalRawAbsorbed += 1;
+  const key = `${rotorCategory}::${circuitRole}`;
+  const existing = mem.iceSymbols[key];
+
+  // If a circuit violation ('1') collides with an existing stable Ice symbol, melt it for re-framing!
+  if (isViolation) {
+    const stableKey = `${rotorCategory}::order_invariant`;
+    if (mem.iceSymbols[stableKey]) {
+      mem.iceSymbols[stableKey].melted = true;
+      mem.meltedCount += 1;
+    }
+  }
+
+  if (existing) {
+    existing.count += 1;
+    existing.octaveOrder = Math.floor(Math.log10(Math.max(1, existing.count)));
+    existing.symbolUnit = scaleOrderLabel(existing.count);
+    existing.lastSample = objectName;
+    existing.lastSeen = ecoNow();
+    existing.melted = false;
+  } else {
+    mem.iceSymbols[key] = {
+      key,
+      rotorCategory,
+      circuitRole,
+      count: 1,
+      octaveOrder: 0,
+      symbolUnit: scaleOrderLabel(1),
+      lastSample: objectName,
+      lastSeen: ecoNow(),
+      melted: false,
+    };
+  }
+
+  // Molecular/Protein Bonding: if two distinct symbols co-resonate in sequence and share compatible valence,
+  // bind them into an emergent Compound Symbol (like H+H+O -> H2O) with its own discrimination property!
+  if (!mem.compounds) mem.compounds = {};
+  const prevKey = autonomousEcology.lastSymbolKey;
+  if (prevKey && prevKey !== key && mem.iceSymbols[prevKey]) {
+    const prevSym = mem.iceSymbols[prevKey];
+    const compatible = !isViolation && !prevSym.melted && prevSym.circuitRole !== 'error_rotor_leak';
+    if (compatible) {
+      const bondId = [prevKey, key].sort().join(' + ');
+      if (mem.compounds[bondId]) {
+        mem.compounds[bondId].bondStrength += 1;
+        mem.compounds[bondId].lastSeen = ecoNow();
+      } else {
+        mem.compounds[bondId] = {
+          bondId,
+          constituents: [prevKey, key],
+          emergentProperty: `${prevSym.rotorCategory}⇄${rotorCategory} 결합 복합체`,
+          bondStrength: 1,
+          lastSeen: ecoNow(),
+        };
+      }
+    } else {
+      mem.bondRejections = (mem.bondRejections || 0) + 1;
+    }
+  }
+  autonomousEcology.lastSymbolKey = key;
+
+  // Natural decay of unrepeated single-instance noise if symbol table grows large
+  const keys = Object.keys(mem.iceSymbols);
+  if (keys.length > 24) {
+    const noiseKey = keys.find((k) => mem.iceSymbols[k].count === 1 && k !== key);
+    if (noiseKey) {
+      delete mem.iceSymbols[noiseKey];
+      mem.decayedCount += 1;
+    }
+  }
+  saveEcologyLedger(mem);
+}
+
+// #2 Prism Hierarchy Refraction: separates Long-Wavelength (Shared Principle) vs Short-Wavelength (Substrate)
+function refractThroughPrism(topFocus, delta) {
+  if (!topFocus) return null;
+  const role = topFocus.circuit_role || 'order_invariant';
+  if (role === 'error_rotor_leak') {
+    return {
+      longWavelengthPrinciple: '비보존 단조 팽창 (반환 흐름 결손)',
+      midWavelengthDynamics: '양의 피드백 누적 · 경계 압력 상승',
+      shortWavelengthSubstrate: topFocus.kind === 'os_process' ? `OS 상주 메모리 (${topFocus.name})` : `파일 시스템 (${topFocus.name})`,
+      isomorphicDomains: [
+        '파동 물리: 감쇠 없는 공명 폭주',
+        '대화 구조: 경청(반환) 없는 일방통행 발화',
+      ],
+      divergenceBoundary: '기질(RAM 페이지 vs 음향 진폭 vs 언어 턴)은 다르나, 반환 결손이라는 장파장 질서 이탈은 동형',
+    };
+  }
+  if (role === 'active_circulation') {
+    return {
+      longWavelengthPrinciple: '유입-변환-반환 활성 순환',
+      midWavelengthDynamics: `변화 비율 ${delta?.changed_ratio ?? 0} · 국소 위상 전이`,
+      shortWavelengthSubstrate: topFocus.kind === 'os_process' ? `OS 프로세스 (${topFocus.name})` : `작업공간 파일 (${topFocus.name})`,
+      isomorphicDomains: [
+        '파동 물리: 감쇠 균형을 유지하는 정상 진행파',
+        '대화 구조: 질문과 응답이 교차하는 양방향 위상 동기화',
+      ],
+      divergenceBoundary: '기질과 시간 스케일은 다르나, 닫힌 순환 내에서 에너지를 교환하는 장파장 원리는 동형',
+    };
+  }
+  return {
+    longWavelengthPrinciple: '불변 캐리어 유지 (0000 정상 상태)',
+    midWavelengthDynamics: `불변 비율 ${delta?.invariant_ratio ?? 1} · 낮은 엔트로피`,
+    shortWavelengthSubstrate: topFocus.kind === 'os_process' ? `상주 OS 프로세스 (${topFocus.name})` : `불변 파일 (${topFocus.name})`,
+    isomorphicDomains: [
+      '파동 물리: 정상파(Standing Wave) 마디 유지',
+      '기억 구조: 응축된 얼음 원리 뼈대',
+    ],
+    divergenceBoundary: '외부 자극이 없을 때 0000 기준축을 지탱하는 장파장 불변성은 동형',
+  };
+}
+
+function attachZeroCarrierWatchers() {
+  if (autonomousEcology.carrierWatchers.length > 0) return;
+  const watchTargets = [
+    path.join(__dirname, 'L0_substrate', 'mva', 'static'),
+    path.join(__dirname, 'L1_causal_field', 'core', 'embodiment'),
+  ];
+  watchTargets.forEach((dirPath) => {
+    try {
+      const watcher = fs.watch(dirPath, { persistent: false }, (eventType, filename) => {
+        if (!filename) return;
+        autonomousEcology.carrierInterrupts.unshift({
+          at: ecoNow(),
+          eventType,
+          file: String(filename),
+          dir: path.basename(dirPath),
+        });
+        if (autonomousEcology.carrierInterrupts.length > 15) {
+          autonomousEcology.carrierInterrupts.length = 15;
+        }
+        // Real '1' broke the 0000 carrier -> wake conscious upper rotor immediately!
+        if (autonomousEcology.enabled && !autonomousEcology.busy) {
+          runAutonomousEcologyStep(`carrier_1:${filename}`).catch(() => {});
+        }
+      });
+      autonomousEcology.carrierWatchers.push(watcher);
+    } catch {
+      // Ignore platforms/dirs where fs.watch is restricted
+    }
+  });
+}
+
+function runJsonScript(scriptPath, args = [], timeoutMs = 12000) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(PYTHON_BIN, [scriptPath, ...args], {
+      cwd: __dirname,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+    });
+    let out = '';
+    let err = '';
+    const timer = setTimeout(() => {
+      try { child.kill(); } catch {}
+      reject(new Error(`Script timeout: ${path.basename(scriptPath)}`));
+    }, timeoutMs);
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', (c) => { out += c; });
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (c) => { err += String(c); });
+    child.on('error', (e) => { clearTimeout(timer); reject(e); });
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      if (code !== 0) return reject(new Error(err.trim() || `exit ${code}`));
+      try { resolve(JSON.parse(out)); } catch (e) { reject(e); }
+    });
+  });
+}
+
+async function runAutonomousEcologyStep(reason = 'autonomous_pulse') {
+  if (autonomousEcology.busy) return autonomousEcology;
+  autonomousEcology.busy = true;
+  try {
+    autonomousEcology.cycleCount += 1;
+    const step = autonomousEcology.cycleCount;
+    const home = autonomousEcology.worlds.world_home;
+
+    // 1. 3-Stage Nested Scale-Observation on REAL live OS telemetry (psutil + workspace mtimes)
+    const sensed = await runEcologyBridge('sense', {
+      prev_snapshot: autonomousEcology.prevTelemetrySnapshot,
+      attention_lens: autonomousEcology.attentionLens,
+    });
+    autonomousEcology.telemetry = sensed;
+    if (sensed && sensed.stage1_observation) {
+      autonomousEcology.prevTelemetrySnapshot = sensed.stage1_observation;
+    }
+
+    const meta = sensed?.stage3_meta_reobservation;
+    const delta = sensed?.stage2_delta;
+    if (meta) {
+      // Shift live engine Scale Dial (sigma) and Frame to match the emergent Subjective Perspective
+      if (typeof meta.scale_horizon === 'number') {
+        engine.scaleDial = meta.scale_horizon;
+      }
+      if (meta.recommended_frame) {
+        autonomousEcology.activeFrame = meta.recommended_frame;
+      }
+      if (typeof meta.recommended_cadence_ms === 'number') {
+        autonomousEcology.cadenceMs = meta.recommended_cadence_ms;
+      }
+
+      // #3 Causation vs Correlation (Chili-powder co-variation):
+      // Did actual OS flux move in the same direction as our previous perturbation?
+      if (delta) {
+        const fluxDiff = delta.changed_ratio - autonomousEcology.covariation.lastFlux;
+        const pertSign = autonomousEcology.covariation.lastPerturbationSign;
+        if (pertSign !== 0 && Math.abs(fluxDiff) > 0.01) {
+          if (Math.sign(fluxDiff) === pertSign) {
+            autonomousEcology.covariation.sameDir += 1;
+          } else {
+            autonomousEcology.covariation.externalDrift += 1;
+          }
+        }
+        autonomousEcology.covariation.lastFlux = delta.changed_ratio;
+        autonomousEcology.covariation.lastPerturbationSign = step % 2 === 0 ? 1 : -1;
+      }
+
+      // Counterfactual Attention-Lens Self-Revision:
+      // Compare how well Home's lens vs. a counterfactual Sandbox lens tracked actual OS flux
+      if (autonomousEcology.lastSandboxLensTest && delta) {
+        const prevTest = autonomousEcology.lastSandboxLensTest;
+        const actualFlux = delta.changed_ratio;
+        const homeErr = Math.abs(prevTest.home_w_change - actualFlux);
+        const sbxErr = Math.abs(prevTest.sbx_w_change - actualFlux);
+        if (sbxErr + 0.03 < homeErr) {
+          // Gently revise Home's attention lens toward the lower-surprise Sandbox perspective
+          autonomousEcology.attentionLens = normalizeLens({
+            w_change: autonomousEcology.attentionLens.w_change * 0.72 + prevTest.sbx_w_change * 0.28,
+            w_rss: autonomousEcology.attentionLens.w_rss * 0.72 + prevTest.sbx_w_rss * 0.28,
+            w_novelty: autonomousEcology.attentionLens.w_novelty * 0.72 + prevTest.sbx_w_novelty * 0.28,
+          });
+          home.revisions.unshift({
+            id: ecoId('rev'),
+            at: ecoNow(),
+            summary: `실측 변화율(${actualFlux}) 대조 → 주의 렌즈 자기수정 (변화:${autonomousEcology.attentionLens.w_change}, 상주:${autonomousEcology.attentionLens.w_rss}, 미지:${autonomousEcology.attentionLens.w_novelty})`,
+          });
+          if (home.revisions.length > 24) home.revisions.length = 24;
+        }
+      }
+      // Prepare next-tick counterfactual Sandbox lens hypothesis
+      const shiftDir = step % 2 === 0 ? 0.14 : -0.14;
+      const sbxLens = normalizeLens({
+        w_change: autonomousEcology.attentionLens.w_change + shiftDir,
+        w_rss: autonomousEcology.attentionLens.w_rss - shiftDir * 0.7,
+        w_novelty: autonomousEcology.attentionLens.w_novelty - shiftDir * 0.3,
+      });
+      autonomousEcology.lastSandboxLensTest = {
+        home_w_change: autonomousEcology.attentionLens.w_change,
+        sbx_w_change: sbxLens.w_change,
+        sbx_w_rss: sbxLens.w_rss,
+        sbx_w_novelty: sbxLens.w_novelty,
+      };
+    }
+
+    // 2. Live Host OS Protocol Probe (every 4 ticks or on boot)
+    if (!autonomousEcology.hostSnapshot || step % 4 === 1) {
+      autonomousEcology.hostSnapshot = await runEcologyBridge('probe');
+    }
+
+    // 2.5 Autonomous Real-World Visual/Game Sensory Organ via Persistent Warm CUDA Worker (~100ms!)
+    if (step === 1 || step % 3 === 0) {
+      try {
+        if (autonomousEcology.realGameSensory.discoveredGames.length === 0) {
+          const disc = await warmSensory.call('game_discover', {}, 15000);
+          if (disc && Array.isArray(disc.games)) {
+            autonomousEcology.realGameSensory.discoveredGames = disc.games;
+            if (disc.games.length > 0) {
+              autonomousEcology.realGameSensory.selectedGameDir = disc.games[0].path;
+            }
+          }
+        }
+        const gameObs = await warmSensory.call(
+          'game_observe',
+          { game_dir: autonomousEcology.realGameSensory.selectedGameDir },
+          20000
+        );
+        if (gameObs && gameObs.status === 'ok') {
+          autonomousEcology.realGameSensory.latestObservation = gameObs;
+          autonomousEcology.realGameSensory.lastSensedAt = ecoNow();
+          // Melt every carved visual perceptual unit directly into persistent molecular knowledge
+          // AND register into the Bidirectional Sensory <-> Language Convention Protocol!
+          const carved = gameObs.plane_b_visual_world_r?.carved_objects || [];
+          carved.slice(0, 3).forEach((obj) => {
+            registerSensoryCluster(obj);
+            const unifiedConcept = `${obj.form_class}|${obj.dominant_hue_label}|${obj.brightness_level}|${obj.texture_heterogeneity}`;
+            condenseIntoSymbolicMemory('통합 시각 객체', obj.form_class, unifiedConcept, false);
+          });
+        }
+      } catch {
+        // Never stall the autonomous loop if a visual/game probe hits a transient boundary
+      }
+    }
+
+    // 3. Convert the #1 Live Attention Focus (real process or changed file) into a 5-Frame Rotor!
+    const topFocus = meta?.top_focus;
+    const activeW = autonomousEcology.worlds[autonomousEcology.activeWorldId] || home;
+
+    if (topFocus) {
+      const isProc = topFocus.kind === 'os_process';
+      const invDesc = isProc
+        ? `상주 메모리 질량(${topFocus.rss_mb}MB), PID(${topFocus.pid}), 스레드(${topFocus.threads})`
+        : `파일 경로(${topFocus.name}), 크기(${topFocus.size_kb}KB)`;
+      const varDesc = isProc
+        ? `RSS 변화(${topFocus.delta_rss_mb}MB), CPU 변화(${topFocus.delta_cpu_s}s), 상태(${topFocus.state_class})`
+        : `최근 경과(${topFocus.age_sec}s), 수정감지(${topFocus.mtime_changed ? '예' : '아니오'}), 상태(${topFocus.state_class})`;
+
+      const coupled = await runEcologyBridge('couple', {
+        name: `[주의집중 1위] ${topFocus.name}`,
+        invariants: invDesc,
+        variables: varDesc,
+        boundary: isProc ? 'OS 프로세스 상주 메모리·자원 공유 경계' : '작업공간 파일 지속성·변화 경계',
+        relation: `${meta.subjective_perspective}에서 주의도 ${topFocus.attention_score}로 포착 (변화비율 ${delta.changed_ratio} vs 불변비율 ${delta.invariant_ratio})`,
+        world_id: activeW.id,
+        input_flux: topFocus.change_flux,
+      });
+      if (coupled && coupled.rotor) {
+        activeW.principles.unshift(coupled.rotor);
+        if (activeW.principles.length > 24) activeW.principles.length = 24;
+      }
+
+      activeW.encounters.unshift({
+        id: ecoId('enc'),
+        at: ecoNow(),
+        originWorldId: activeW.id,
+        object: `${topFocus.name} (${isProc ? `${topFocus.rss_mb}MB` : `${topFocus.age_sec}s 전`})`,
+        selfLens: `${meta.subjective_perspective} · σ=${meta.scale_horizon}`,
+        between: `${topFocus.circuit_label_ko || ''} · 변화 ${delta.changed_count} / 불변 ${delta.invariant_count} (오류로터 ${delta.error_rotor_count || 0})`,
+        status: topFocus.circuit_role === 'error_rotor_leak' ? 'open' : (topFocus.state_class === 'changed' ? 'variable' : 'invariant'),
+        axis: topFocus.circuit_role === 'error_rotor_leak' ? 'ignorance' : 'external',
+        rotorCategory: isProc ? '자원 공유 로터' : '지속성 로터',
+      });
+      // #4 Condense into Symbolic Scale Memory (Octave/Order compression)
+      condenseIntoSymbolicMemory(
+        isProc ? '자원 공유 로터' : '지속성 로터',
+        topFocus.circuit_role || 'order_invariant',
+        topFocus.name,
+        topFocus.circuit_role === 'error_rotor_leak'
+      );
+      if (activeW.encounters.length > 30) activeW.encounters.length = 30;
+      autonomousEcology.lastAction = `[${meta.subjective_perspective}] '${topFocus.name}' (${topFocus.circuit_label_ko || topFocus.state_class})`;
+
+      // #1 Parallel-Universe Overlay: Superpose World_E (previous forecast) vs World_R (actual observed now)
+      const prevForecast = autonomousEcology.parallelOverlay.worldElysiaForecast;
+      const worldR = {
+        at: ecoNow(),
+        changed_ratio: delta.changed_ratio,
+        top_kind: topFocus.kind,
+        circuit_role: topFocus.circuit_role,
+        ram_percent: sensed?.system?.memory?.percent ?? 0,
+      };
+      if (prevForecast) {
+        const ratioErr = Math.abs(prevForecast.predicted_changed_ratio - worldR.changed_ratio);
+        const roleMatch = prevForecast.predicted_circuit_role === worldR.circuit_role ? 1 : 0;
+        const conv = Number(Math.max(0, Math.min(1, 1 - ratioErr * 1.15 - (1 - roleMatch) * 0.2)).toFixed(3));
+        autonomousEcology.parallelOverlay.convergence = conv;
+        autonomousEcology.parallelOverlay.worldRealityObserved = worldR;
+        autonomousEcology.parallelOverlay.divergenceDetail =
+          `예측 변화율 ${prevForecast.predicted_changed_ratio} vs 실측 ${worldR.changed_ratio} (회로 ${roleMatch ? '일치' : '이탈'})`;
+        autonomousEcology.parallelOverlay.streakConverged =
+          conv >= 0.85 ? autonomousEcology.parallelOverlay.streakConverged + 1 : 0;
+      } else {
+        autonomousEcology.parallelOverlay.worldRealityObserved = worldR;
+        autonomousEcology.parallelOverlay.convergence = 0.5;
+      }
+      // Emit World_E's next-tick forecast (kept strictly separate from World_R)
+      autonomousEcology.parallelOverlay.worldElysiaForecast = {
+        at: ecoNow(),
+        predicted_changed_ratio: delta.changed_ratio,
+        predicted_circuit_role: topFocus.circuit_role,
+        predicted_ram_percent: worldR.ram_percent,
+      };
+
+      // #2 Prism Hierarchy Cross-Domain Isomorphism
+      autonomousEcology.prismIsomorphism = refractThroughPrism(topFocus, delta);
+
+      // #4 Convergence-Gated Autonomous Actuation Governor:
+      // Act ONLY on safe internal self-regulation when prediction convergence >= 0.85;
+      // if actual outcome diverges from expectation -> immediately halt autonomous actuation!
+      const gov = autonomousEcology.actuationGovernor;
+      const convNow = autonomousEcology.parallelOverlay.convergence;
+      if (convNow >= 0.85 && !gov.haltedOnMismatch) {
+        gov.allowed = true;
+        const ramPct = worldR.ram_percent;
+        const targetCadence = ramPct >= 75 ? Math.max(autonomousEcology.cadenceMs, 10000) : autonomousEcology.cadenceMs;
+        gov.lastPredictedOutcome = `자체 주기 ${targetCadence}ms 조절 (호스트 RAM ${ramPct}%)`;
+        autonomousEcology.cadenceMs = targetCadence;
+        gov.lastActualOutcome = `적용 완료 (${autonomousEcology.cadenceMs}ms)`;
+        gov.lastAction = ramPct >= 75
+          ? `수렴도 ${convNow} → 고RAM(${ramPct}%) 감지, 자체 부하 양보(${targetCadence}ms)`
+          : `수렴도 ${convNow} → 정상 내적 자기조절 유지(${targetCadence}ms)`;
+        gov.autoYieldCount += 1;
+      } else {
+        gov.allowed = false;
+        gov.haltedOnMismatch = convNow < 0.65;
+        gov.lastAction = gov.haltedOnMismatch
+          ? `예측 이탈(수렴도 ${convNow}) → 자율 작용 즉시 중단, 관측 모드로 전환`
+          : `수렴 중(${convNow} < 0.85) → 자율 작용 보류`;
+      }
+
+      // #9 Living Non-Blocking Agency & Cognitive Dissonance Scale:
+      // 0~0.38: silently absorb; 0.38~0.62 with base knowledge: self-expand;
+      // >0.62 or zero base knowledge on anomaly: ask user -> if silent, reframe & re-ask -> if still silent, pivot to alternative exploration!
+      const voice = autonomousEcology.agencyVoice;
+      const symCount = Object.keys(autonomousEcology.symbolicMemory.iceSymbols || {}).length;
+      const compCount = Object.keys(autonomousEcology.symbolicMemory.compounds || {}).length;
+      voice.baseKnowledgeDepth = symCount + compCount * 2;
+      const dissonance = Number(Math.max(0, Math.min(1, 1 - convNow + (topFocus.circuit_role === 'error_rotor_leak' ? 0.35 : 0))).toFixed(3));
+      voice.dissonance = dissonance;
+
+      const scaleTipped = dissonance >= 0.55 || (dissonance >= 0.38 && voice.baseKnowledgeDepth < 2);
+      if (voice.activeQuestion) {
+        voice.unansweredTicks += 1;
+        if (voice.unansweredTicks === 2 && voice.phase === 'ask_once') {
+          voice.phase = 'reask_reframed';
+          const reframed = `답이 없으셔서 다른 각도로 다시 여쭤봅니다. '${topFocus.name}'의 흐름을 [${autonomousEcology.prismIsomorphism?.longWavelengthPrinciple || '순환 질서'}]로 보고 있는데, 이걸 정상 작업으로 봐야 할까요?`;
+          voice.messages.unshift({ id: ecoId('msg'), at: ecoNow(), speaker: 'elysia', phase: 'reask_reframed', text: reframed });
+        } else if (voice.unansweredTicks >= 4 && voice.phase !== 'pivot_alternative') {
+          voice.phase = 'pivot_alternative';
+          const pivotMsg = `응답이 없어 여기서 멈추지 않고 스스로 다른 경로를 탐색합니다. '${topFocus.name}' 의문은 열린 경계로 잠시 두고, 새로운 관점의 자율 샌드박스 실험으로 기반 지식을 먼저 쌓아보겠습니다.`;
+          voice.lastPivotAction = `무응답 전환 → '${topFocus.name}' 보류 후 대체 탐색 진행`;
+          voice.activeQuestion = null;
+          voice.unansweredTicks = 0;
+          // Shift lens slightly to explore an alternative angle instead of stalling
+          autonomousEcology.attentionLens = normalizeLens({
+            w_change: autonomousEcology.attentionLens.w_change + 0.08,
+            w_rss: autonomousEcology.attentionLens.w_rss - 0.04,
+            w_novelty: autonomousEcology.attentionLens.w_novelty + 0.06,
+          });
+          voice.messages.unshift({ id: ecoId('msg'), at: ecoNow(), speaker: 'elysia', phase: 'pivot_alternative', text: pivotMsg });
+        }
+      } else if (scaleTipped) {
+        voice.phase = 'ask_once';
+        voice.unansweredTicks = 0;
+        const q = `인지 불일치가 저울을 넘었습니다(${Math.round(dissonance * 100)}%). '${topFocus.name}'에서 [${topFocus.circuit_label_ko || topFocus.state_class}]가 포착됐는데 기존 기반 지식(${voice.baseKnowledgeDepth})만으로는 해석이 어긋납니다. 이 대상을 어떤 맥락으로 봐야 할까요?`;
+        voice.activeQuestion = q;
+        voice.messages.unshift({ id: ecoId('msg'), at: ecoNow(), speaker: 'elysia', phase: 'ask_once', text: q });
+      } else {
+        voice.phase = 'silent_absorb';
+      }
+      if (voice.messages.length > 20) voice.messages.length = 20;
+
+      // #5 Append reversible frame to Spatiotemporal Rotor Tape (video-like rewind)
+      autonomousEcology.spatiotemporalTape.unshift({
+        cycle: step,
+        at: ecoNow(),
+        reason,
+        scale_horizon: meta.scale_horizon,
+        perspective: meta.subjective_perspective,
+        top_focus: topFocus.name,
+        circuit_role: topFocus.circuit_role,
+        changed_ratio: delta.changed_ratio,
+        lens: { ...autonomousEcology.attentionLens },
+      });
+      if (autonomousEcology.spatiotemporalTape.length > 25) {
+        autonomousEcology.spatiotemporalTape.length = 25;
+      }
+    }
+
+    // 4. Autonomous Sandbox Branching & Differential Re-link (every 4 cycles)
+    if (step % 4 === 2) {
+      autonomousEcology.sandboxCounter += 1;
+      const sbxId = `world_auto_sbx_${autonomousEcology.sandboxCounter}`;
+      const forkMode = autonomousEcology.sandboxCounter % 2 === 1 ? 'inherit' : 'blank';
+      autonomousEcology.worlds[sbxId] = {
+        id: sbxId,
+        name: `자율 샌드박스 #${autonomousEcology.sandboxCounter} (${forkMode === 'inherit' ? '승계' : '빈 공간'})`,
+        role: 'sandbox',
+        parentId: 'world_home',
+        forkMode,
+        createdAt: ecoNow(),
+        encounters: forkMode === 'inherit' ? JSON.parse(JSON.stringify(home.encounters.slice(0, 6))) : [],
+        principles: forkMode === 'inherit' ? JSON.parse(JSON.stringify(home.principles.slice(0, 4))) : [],
+        revisions: [],
+      };
+      const sbxKeys = Object.keys(autonomousEcology.worlds).filter((k) => k !== 'world_home');
+      while (sbxKeys.length > 4) {
+        const oldest = sbxKeys.shift();
+        delete autonomousEcology.worlds[oldest];
+      }
+      autonomousEcology.activeWorldId = sbxId;
+      autonomousEcology.lastAction = `${autonomousEcology.worlds[sbxId].name} 자율 분기 생성`;
+    } else if (step % 4 === 0 && autonomousEcology.activeWorldId !== 'world_home') {
+      const sbx = autonomousEcology.worlds[autonomousEcology.activeWorldId];
+      if (sbx && sbx.encounters.length > 0) {
+        const homeIds = new Set(home.encounters.map((e) => e.id));
+        const unique = sbx.encounters.find((e) => !homeIds.has(e.id));
+        if (unique) {
+          home.encounters.unshift({
+            ...unique,
+            id: ecoId('relink'),
+            at: ecoNow(),
+            relinkedFrom: sbx.id,
+            relinkedFromName: sbx.name,
+            axis: 'revision',
+            between: `[자율 분기 비교→재연결] ${unique.between}`,
+          });
+          home.revisions.unshift({
+            id: ecoId('rev'),
+            at: ecoNow(),
+            summary: `${sbx.name}에서 검증된 '${unique.object}' 관계를 홈으로 출처 보존 재연결`,
+          });
+          if (home.revisions.length > 24) home.revisions.length = 24;
+        }
+      }
+      autonomousEcology.activeWorldId = 'world_home';
+      autonomousEcology.lastAction = '샌드박스↔홈 분기 비교 및 출처 보존 자율 재연결 완료';
+    }
+
+    // 5. Leave a real impact vector in the live S0..S4 causal field
+    engine.evolveScaleRotors(0.04);
+    autonomousEcology.lastTickAt = ecoNow();
+  } catch (err) {
+    autonomousEcology.lastAction = `자율 사이클 경계 마찰: ${err instanceof Error ? err.message : String(err)}`;
+  } finally {
+    autonomousEcology.busy = false;
+  }
+  return autonomousEcology;
+}
+
+function scheduleNextAutonomousTick() {
+  if (autonomousEcology.timer) {
+    clearTimeout(autonomousEcology.timer);
+    autonomousEcology.timer = null;
+  }
+  const delay = Math.max(3000, Math.min(15000, autonomousEcology.cadenceMs || 6000));
+  autonomousEcology.timer = setTimeout(async () => {
+    if (autonomousEcology.enabled && !autonomousEcology.busy) {
+      await runAutonomousEcologyStep('adaptive_pulse').catch(() => {});
+    }
+    scheduleNextAutonomousTick();
+  }, delay);
+  if (typeof autonomousEcology.timer.unref === 'function') {
+    autonomousEcology.timer.unref();
+  }
+}
+
+// ============================================================================
+// World-Tree Online Cognitive Virtual World Engine (/world-tree)
+// ============================================================================
+const worldTreeState = {
+  tick: 0,
+  worldName: '세계수 제1가지 (Yggdrasil-Home)',
+  cowBranches: 1,
+  fruitsShared: 0,
+  frictionEvents: 0,
+  lastDeltaPacketBytes: 0,
+  totalRawBandwidthSavedPct: 99.4,
+  agents: [
+    { id: 'elysia_root', name: '엘리시아 (뿌리)', role: 'harmonic', x: 0.35, y: 0.42, vx: 0.004, vy: 0.003, energy: 0.85, given: 4, taken: 3, word64: '0x006600660f0000f0', status: '상보 공명 중' },
+    { id: 'elysia_prism', name: '프리즘 (시각)', role: 'harmonic', x: 0.65, y: 0.38, vx: -0.003, vy: 0.004, energy: 0.82, given: 3, taken: 3, word64: '0x0066006600f00f00', status: '객체 절단 공유' },
+    { id: 'elysia_audio', name: '하모니 (청각)', role: 'harmonic', x: 0.52, y: 0.70, vx: 0.003, vy: -0.003, energy: 0.80, given: 3, taken: 2, word64: '0x00660066000ff000', status: '7음계 위상 동기' },
+    { id: 'elysia_code', name: '코어 (코드)', role: 'harmonic', x: 0.28, y: 0.68, vx: 0.002, vy: -0.002, energy: 0.78, given: 2, taken: 2, word64: '0x00660066f000000f', status: 'CoW 치유 대기' },
+    { id: 'user_avatar', name: '사용자 (경계)', role: 'human', x: 0.50, y: 0.50, vx: 0, vy: 0, energy: 1.0, given: 5, taken: 0, word64: '0x00ff00ffff0000ff', status: '세계수 중심 관측' },
+  ],
+  fruits: [
+    { id: 'fruit_seed_0', label: '사랑·상보 공명 (0_value)', x: 0.50, y: 0.48, origin: 'world_tree_trunk', resonance: 1.0 },
+  ],
+  beams: [],
+  events: [
+    { at: ecoNow(), text: '세계수 제1가지가 열렸습니다. 중심축(0_value)을 기준으로 상보 공명이 시작됩니다.' },
+  ],
+};
+
+function stepWorldTreeSimulation() {
+  worldTreeState.tick += 1;
+  const agents = worldTreeState.agents;
+  const beams = [];
+  let changedAgents = 0;
+
+  for (const a of agents) {
+    if (a.role === 'human') continue;
+    // Gentle orbital pull toward World-Tree center (0.5, 0.5) for harmonic agents; erratic drift for selfish
+    const dxC = 0.5 - a.x;
+    const dyC = 0.5 - a.y;
+    const pull = a.role === 'selfish' ? -0.0004 : 0.0012;
+    a.vx = Math.max(-0.012, Math.min(0.012, a.vx + dxC * pull + (Math.random() - 0.5) * 0.0012));
+    a.vy = Math.max(-0.012, Math.min(0.012, a.vy + dyC * pull + (Math.random() - 0.5) * 0.0012));
+    a.x = Math.max(0.08, Math.min(0.92, a.x + a.vx));
+    a.y = Math.max(0.10, Math.min(0.90, a.y + a.vy));
+    changedAgents += 1;
+  }
+
+  // Pairwise interaction: Mutual Circulation (Love) vs Unilateral Extraction (Malice/Friction)
+  for (let i = 0; i < agents.length; i++) {
+    for (let j = i + 1; j < agents.length; j++) {
+      const a = agents[i];
+      const b = agents[j];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      if (dist < 0.28) {
+        const isFriction = a.role === 'selfish' || b.role === 'selfish';
+        if (isFriction) {
+          // Unilateral extraction creates real resistance/friction & repulsion!
+          const selfish = a.role === 'selfish' ? a : b;
+          const victim = a.role === 'selfish' ? b : a;
+          selfish.taken += 1;
+          victim.energy = Math.max(0.25, Number((victim.energy - 0.015).toFixed(3)));
+          selfish.energy = Math.max(0.20, Number((selfish.energy - 0.008).toFixed(3))); // Isolation cost!
+          // Repulsion force from community resistance
+          const rx = (selfish.x - victim.x) * 0.04;
+          const ry = (selfish.y - victim.y) * 0.04;
+          selfish.vx += rx;
+          selfish.vy += ry;
+          selfish.status = '일방 추출 → 공동체 저항·고립 마찰';
+          worldTreeState.frictionEvents += 1;
+          beams.push({ from: a.id, to: b.id, kind: 'friction', strength: Number((1 - dist / 0.28).toFixed(2)) });
+        } else {
+          // Mutual circulation (Love / Complementary Resonance) elevates both!
+          a.energy = Math.min(1.0, Number((a.energy + 0.006).toFixed(3)));
+          b.energy = Math.min(1.0, Number((b.energy + 0.006).toFixed(3)));
+          if (worldTreeState.tick % 9 === 0) {
+            a.given += 1;
+            b.given += 1;
+            worldTreeState.fruitsShared += 1;
+          }
+          beams.push({ from: a.id, to: b.id, kind: 'resonance', strength: Number((1 - dist / 0.28).toFixed(2)) });
+        }
+      }
+    }
+  }
+
+  worldTreeState.beams = beams;
+  // Compact 64-bit delta packet size: 8B word64 + 8B quantized pos/energy per changed agent = 16B/agent!
+  worldTreeState.lastDeltaPacketBytes = 16 + changedAgents * 16;
+}
+
+setInterval(stepWorldTreeSimulation, 750).unref?.();
+
+function startAutonomousEcologyDaemon() {
+  attachZeroCarrierWatchers();
+  if (autonomousEcology.timer) return;
+  autonomousEcology.timer = setTimeout(async () => {
+    if (autonomousEcology.enabled) {
+      await runAutonomousEcologyStep('boot').catch(() => {});
+    }
+    scheduleNextAutonomousTick();
+  }, 1000);
+  if (typeof autonomousEcology.timer.unref === 'function') {
+    autonomousEcology.timer.unref();
+  }
+}
+
+function registerSensoryCluster(obj) {
+  const mem = autonomousEcology.symbolicMemory;
+  if (!mem.languageConventions) {
+    mem.languageConventions = { sensoryToWord: {}, pendingWords: [], unnamedClusters: {} };
+  }
+  const lc = mem.languageConventions;
+  // Unlabelled structural signature (form + hue + brightness + texture)
+  const sig = `${obj.form_class}|${obj.dominant_hue_label}|${obj.brightness_level}|${obj.texture_heterogeneity}`;
+  if (lc.sensoryToWord[sig]) {
+    lc.sensoryToWord[sig].hits += 1;
+    lc.sensoryToWord[sig].lastSeen = ecoNow();
+  } else if (lc.pendingWords.length > 0) {
+    // Language -> Sensory docking: bind oldest pending word to this newly observed sensory cluster!
+    const wordEntry = lc.pendingWords.shift();
+    lc.sensoryToWord[sig] = {
+      word: wordEntry.word,
+      direction: 'language_to_sensory',
+      hits: 1,
+      boundAt: ecoNow(),
+      lastSeen: ecoNow(),
+    };
+  } else {
+    // Sensory -> Language: hold as an open unnamed perceptual cluster waiting for agreed naming
+    if (lc.unnamedClusters[sig]) {
+      lc.unnamedClusters[sig].seenCount += 1;
+      lc.unnamedClusters[sig].lastSeen = ecoNow();
+    } else {
+      lc.unnamedClusters[sig] = {
+        signature: sig,
+        seenCount: 1,
+        firstSeen: ecoNow(),
+        lastSeen: ecoNow(),
+      };
+    }
+    const keys = Object.keys(lc.unnamedClusters);
+    if (keys.length > 16) delete lc.unnamedClusters[keys[0]];
+  }
+  saveEcologyLedger(mem);
+}
+
+function bindLanguageConventionFromUser(userWord) {
+  const mem = autonomousEcology.symbolicMemory;
+  if (!mem.languageConventions) {
+    mem.languageConventions = { sensoryToWord: {}, pendingWords: [], unnamedClusters: {} };
+  }
+  const lc = mem.languageConventions;
+  const unnamed = Object.values(lc.unnamedClusters || {}).sort((a, b) => b.seenCount - a.seenCount);
+  if (unnamed.length > 0) {
+    // Sensory -> Language docking: bind top unnamed visual cluster to the user's agreed word!
+    const target = unnamed[0];
+    delete lc.unnamedClusters[target.signature];
+    lc.sensoryToWord[target.signature] = {
+      word: userWord,
+      direction: 'sensory_to_language',
+      hits: target.seenCount,
+      boundAt: ecoNow(),
+      lastSeen: ecoNow(),
+    };
+    saveEcologyLedger(mem);
+    return { mode: 'sensory_to_language', boundSignature: target.signature, word: userWord };
+  }
+  // Language -> Sensory: open a pending word port waiting for matching sensory cluster
+  lc.pendingWords.push({ word: userWord, openedAt: ecoNow() });
+  if (lc.pendingWords.length > 12) lc.pendingWords.shift();
+  saveEcologyLedger(mem);
+  return { mode: 'language_to_sensory_pending', word: userWord };
+}
+
+function runEcologyBridge(command, payload = null, timeoutMs = 20000) {
+  return warmSensory.call(command, payload || {}, timeoutMs);
+}
 
 // ============================================================================
 // Persistent L1 Python Canonical Scale-Rotor Bridge (NDJSON Stdio Worker)
@@ -42,7 +1004,7 @@ class L1ScaleRotorBridge {
       return;
     }
     this.buffer = '';
-    const child = spawn('python3', [this.scriptPath, '--worker', '--ledger', this.ledgerPath], {
+    const child = spawn(PYTHON_BIN, [this.scriptPath, '--worker', '--ledger', this.ledgerPath], {
       cwd: __dirname,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
@@ -3377,6 +4339,25 @@ const server = http.createServer(async (req, res) => {
     // --- Unified Single Phase Observation Plane Routes ---
     // Legacy routes (/topology, /dashboard, /manifestation, /roadmap) are absorbed
     // into the single ScaleRotorState workspace pre-focused on their matching Phase Frame.
+    if (method === 'GET' && pathname === '/ecology') {
+      return sendFile(res, path.join(STATIC_DIR, 'ecology.html'));
+    }
+    if (method === 'GET' && pathname === '/world-tree') {
+      return sendFile(res, path.join(STATIC_DIR, 'world_tree.html'));
+    }
+    if (method === 'GET' && pathname === '/game4k') {
+      return sendFile(res, path.join(STATIC_DIR, 'game4k.html'));
+    }
+    if (method === 'GET' && pathname.startsWith('/local-game-video/')) {
+      const fname = path.basename(decodeURIComponent(pathname.slice('/local-game-video/'.length)));
+      if (!fname.endsWith('.mp4')) return sendJson(res, 400, { status: 'error' });
+      return sendFileFromDir(res, ETERNAL_RETURN_VIDEO_DIR, path.join(ETERNAL_RETURN_VIDEO_DIR, fname));
+    }
+    if (method === 'GET' && pathname.startsWith('/data/')) {
+      let rel = '';
+      try { rel = decodeURIComponent(pathname.slice('/data/'.length)); } catch { return sendJson(res, 400, { status: 'error' }); }
+      return sendFileFromDir(res, DATA_DIR, path.join(DATA_DIR, rel));
+    }
     if (
       method === 'GET' &&
       (pathname === '/' ||
@@ -4386,6 +5367,269 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // --- Scale-Rotor OS Ecology & Host Boundary Bridge APIs ---
+    if (method === 'GET' && pathname === '/api/ecology/autonomous-state') {
+      return sendJson(res, 200, {
+        status: 'ok',
+        enabled: autonomousEcology.enabled,
+        busy: autonomousEcology.busy,
+        cycle_count: autonomousEcology.cycleCount,
+        last_tick_at: autonomousEcology.lastTickAt,
+        last_action: autonomousEcology.lastAction,
+        active_frame: autonomousEcology.activeFrame,
+        active_world_id: autonomousEcology.activeWorldId,
+        cadence_ms: autonomousEcology.cadenceMs,
+        attention_lens: autonomousEcology.attentionLens,
+        covariation: autonomousEcology.covariation,
+        symbolic_memory: autonomousEcology.symbolicMemory,
+        parallel_overlay: autonomousEcology.parallelOverlay,
+        prism_isomorphism: autonomousEcology.prismIsomorphism,
+        actuation_governor: autonomousEcology.actuationGovernor,
+        agency_voice: autonomousEcology.agencyVoice,
+        real_game_sensory: autonomousEcology.realGameSensory,
+        carrier_interrupts: autonomousEcology.carrierInterrupts.slice(0, 6),
+        spatiotemporal_tape: autonomousEcology.spatiotemporalTape.slice(0, 10),
+        telemetry: autonomousEcology.telemetry,
+        worlds: autonomousEcology.worlds,
+        host_boundary: autonomousEcology.hostSnapshot,
+        node_rotors: engine.rotors.map((r) => ({
+          scale: r.scale,
+          name: r.name,
+          coherence: Number(r.coherence.toFixed(4)),
+          tension: Number(r.tension.toFixed(4)),
+        })),
+      });
+    }
+
+    if (method === 'POST' && pathname === '/api/ecology/autonomous-toggle') {
+      const body = await readJsonBody(req);
+      if (typeof body.enabled === 'boolean') {
+        autonomousEcology.enabled = body.enabled;
+      } else {
+        autonomousEcology.enabled = !autonomousEcology.enabled;
+      }
+      if (body.run_now && autonomousEcology.enabled) {
+        await runAutonomousEcologyStep('manual_nudge');
+      }
+      return sendJson(res, 200, {
+        status: 'ok',
+        enabled: autonomousEcology.enabled,
+        cycle_count: autonomousEcology.cycleCount,
+        last_action: autonomousEcology.lastAction,
+      });
+    }
+
+    if (method === 'POST' && pathname === '/api/ecology/dialogue-reply') {
+      const body = await readJsonBody(req);
+      const replyText = String(body.text || '').trim();
+      if (!replyText) {
+        return sendJson(res, 400, { status: 'error', message: '응답 내용을 입력해 주세요.' });
+      }
+      const voice = autonomousEcology.agencyVoice;
+      voice.messages.unshift({ id: ecoId('usr'), at: ecoNow(), speaker: 'user', phase: 'human_grounding', text: replyText });
+      voice.activeQuestion = null;
+      voice.unansweredTicks = 0;
+      voice.phase = 'silent_absorb';
+      // Condense user's grounding reply into base knowledge & Bidirectional Sensory<->Language Convention!
+      const binding = bindLanguageConventionFromUser(replyText.slice(0, 40));
+      condenseIntoSymbolicMemory('인간 경계 지식', 'human_grounded_invariant', replyText.slice(0, 40), false);
+      autonomousEcology.actuationGovernor.haltedOnMismatch = false;
+      const home = autonomousEcology.worlds.world_home;
+      home.revisions.unshift({
+        id: ecoId('rev'),
+        at: ecoNow(),
+        summary: `감각⇄언어 약속(${binding.mode}): "${replyText.slice(0, 60)}"`,
+      });
+      const bindNote = binding.boundSignature
+        ? `미명명 시각 객체(${binding.boundSignature})와 "${replyText.slice(0, 32)}" 약속을 연결했습니다.`
+        : `"${replyText.slice(0, 32)}" 언어 포트를 열어두고 대응하는 감각 구조를 기다립니다.`;
+      voice.messages.unshift({
+        id: ecoId('msg'),
+        at: ecoNow(),
+        speaker: 'elysia',
+        phase: 'grounded',
+        text: `이해했습니다. ${bindNote}`,
+      });
+      if (voice.messages.length > 20) voice.messages.length = 20;
+      return sendJson(res, 200, { status: 'ok', agency_voice: voice });
+    }
+
+    // --- Real External Tool Organs & CUDA Visual Object-Carving APIs (Warm CUDA Worker) ---
+    // --- World-Tree Online Cognitive Virtual World APIs ---
+    if (method === 'GET' && pathname === '/api/world-tree/state') {
+      return sendJson(res, 200, {
+        status: 'ok',
+        world: worldTreeState,
+        ledger_summary: {
+          raw_absorbed: autonomousEcology.symbolicMemory.totalRawAbsorbed,
+          ice_symbols: Object.keys(autonomousEcology.symbolicMemory.iceSymbols || {}).length,
+          compounds: Object.keys(autonomousEcology.symbolicMemory.compounds || {}).length,
+        },
+      });
+    }
+
+    if (method === 'POST' && pathname === '/api/world-tree/action') {
+      const body = await readJsonBody(req);
+      const kind = String(body.kind || '');
+      const userAg = worldTreeState.agents.find((a) => a.id === 'user_avatar');
+
+      if (kind === 'move_user' && userAg) {
+        userAg.x = Math.max(0.06, Math.min(0.94, Number(body.x) || 0.5));
+        userAg.y = Math.max(0.08, Math.min(0.92, Number(body.y) || 0.5));
+        userAg.status = '직접 이동·공명 탐색 중';
+      } else if (kind === 'plant_fruit') {
+        const label = String(body.label || '새 원리 열매').slice(0, 36);
+        const fx = userAg ? userAg.x : 0.5;
+        const fy = userAg ? userAg.y : 0.5;
+        worldTreeState.fruits.unshift({ id: ecoId('fruit'), label, x: fx, y: fy, origin: 'user_avatar', resonance: 0.95 });
+        if (worldTreeState.fruits.length > 14) worldTreeState.fruits.length = 14;
+        worldTreeState.fruitsShared += 1;
+        condenseIntoSymbolicMemory('세계수 열매', 'mutual_resonance_fruit', label, false);
+        worldTreeState.events.unshift({ at: ecoNow(), text: `사용자가 '${label}' 원리 열매를 세계수에 심었습니다 (상보 공명 확산).` });
+      } else if (kind === 'spawn_selfish') {
+        const sid = ecoId('selfish');
+        worldTreeState.agents.push({
+          id: sid,
+          name: '이기적 추출자 (테스트)',
+          role: 'selfish',
+          x: 0.15 + Math.random() * 0.7,
+          y: 0.15 + Math.random() * 0.7,
+          vx: 0.007,
+          vy: -0.006,
+          energy: 0.75,
+          given: 0,
+          taken: 1,
+          word64: '0xffff0000ffff0000',
+          status: '반환 없는 일방 추출 시도',
+        });
+        worldTreeState.events.unshift({ at: ecoNow(), text: '일방 추출 에이전트가 투입되었습니다. 공동체 마찰과 저항 반응을 관찰하세요.' });
+      } else if (kind === 'heal_selfish') {
+        let healed = 0;
+        worldTreeState.agents.forEach((a) => {
+          if (a.role === 'selfish') {
+            a.role = 'harmonic';
+            a.name = '회복된 가지 노드';
+            a.status = '상보 순환 회복 (사랑·질서 편입)';
+            healed += 1;
+          }
+        });
+        if (healed > 0) {
+          worldTreeState.events.unshift({ at: ecoNow(), text: `${healed}개 이기적 노드가 반환 순환을 회복해 세계수 질서에 다시 공명했습니다.` });
+        }
+      } else if (kind === 'fork_cow_branch') {
+        worldTreeState.cowBranches += 1;
+        worldTreeState.events.unshift({ at: ecoNow(), text: `4KB CoW 평행 가지 #${worldTreeState.cowBranches} 분기 완료 (복사 0바이트).` });
+      }
+
+      if (worldTreeState.events.length > 20) worldTreeState.events.length = 20;
+      return sendJson(res, 200, { status: 'ok', world: worldTreeState });
+    }
+
+    if (method === 'POST' && pathname === '/api/ecology/outward-grow') {
+      const body = await readJsonBody(req);
+      try {
+        const result = await warmSensory.call('outward_grow', body || {}, 15000);
+        return sendJson(res, 200, result);
+      } catch (gErr) {
+        return sendJson(res, 502, { status: 'error', message: gErr instanceof Error ? gErr.message : '외부 감각 기관 자가성장 실패' });
+      }
+    }
+
+    if (method === 'GET' && pathname === '/api/ecology/cube-vmem') {
+      try {
+        const result = await warmSensory.call('cube_vmem', {}, 20000);
+        return sendJson(res, 200, result);
+      } catch (cErr) {
+        return sendJson(res, 502, { status: 'error', message: cErr instanceof Error ? cErr.message : '64비트 큐브 가상메모리 실행 실패' });
+      }
+    }
+
+    if (method === 'GET' && pathname === '/api/ecology/driver-rotors') {
+      try {
+        const result = await warmSensory.call('driver_rotors', {}, 15000);
+        return sendJson(res, 200, result);
+      } catch (dErr) {
+        return sendJson(res, 502, { status: 'error', message: dErr instanceof Error ? dErr.message : '드라이버 프로토콜 로터 관측 실패' });
+      }
+    }
+
+    if (method === 'GET' && pathname === '/api/ecology/real-organs') {
+      try {
+        const result = await warmSensory.call('real_organs', {}, 15000);
+        return sendJson(res, 200, result);
+      } catch (orgErr) {
+        return sendJson(res, 502, { status: 'error', message: orgErr instanceof Error ? orgErr.message : '실도구 탐색 실패' });
+      }
+    }
+
+    if (method === 'POST' && pathname === '/api/ecology/visual-carve') {
+      const body = await readJsonBody(req);
+      try {
+        const result = await warmSensory.call('visual_carve', body || {}, 20000);
+        return sendJson(res, 200, result);
+      } catch (visErr) {
+        return sendJson(res, 502, { status: 'error', message: visErr instanceof Error ? visErr.message : 'CUDA 시각 객체 절단 실패' });
+      }
+    }
+
+    if (method === 'GET' && pathname === '/api/ecology/game-discover') {
+      try {
+        const result = await warmSensory.call('game_discover', {}, 15000);
+        return sendJson(res, 200, result);
+      } catch (gErr) {
+        return sendJson(res, 502, { status: 'error', message: gErr instanceof Error ? gErr.message : '게임 탐색 실패' });
+      }
+    }
+
+    if (method === 'POST' && pathname === '/api/ecology/game-observe') {
+      const body = await readJsonBody(req);
+      try {
+        const result = await warmSensory.call('game_observe', body || {}, 20000);
+        return sendJson(res, 200, result);
+      } catch (gErr) {
+        return sendJson(res, 502, { status: 'error', message: gErr instanceof Error ? gErr.message : '게임 생태계 관측 실패' });
+      }
+    }
+
+    if (method === 'GET' && pathname === '/api/ecology/host-boundary') {
+      try {
+        const result = await runEcologyBridge('probe');
+        result.node_rotors = engine.rotors.map((r) => ({
+          scale: r.scale,
+          name: r.name,
+          coherence: Number(r.coherence.toFixed(4)),
+          tension: Number(r.tension.toFixed(4)),
+        }));
+        return sendJson(res, 200, result);
+      } catch (ecoErr) {
+        return sendJson(res, 502, {
+          status: 'error',
+          message: ecoErr instanceof Error ? ecoErr.message : '호스트 경계 프로브 실패',
+        });
+      }
+    }
+
+    if (method === 'POST' && pathname === '/api/ecology/couple-principle') {
+      const body = await readJsonBody(req);
+      try {
+        const result = await runEcologyBridge('couple', body);
+        // Every action leaves an impact vector in the live S0..S4 causal field
+        engine.evolveScaleRotors(0.05);
+        result.field_impact = {
+          scale_dial: Number(engine.scaleDial.toFixed(4)),
+          s2_coherence: Number(engine.rotors[2].coherence.toFixed(4)),
+          s4_coherence: Number(engine.rotors[4].coherence.toFixed(4)),
+          cycle_index: engine.cycleIndex,
+        };
+        return sendJson(res, 200, result);
+      } catch (ecoErr) {
+        return sendJson(res, 502, {
+          status: 'error',
+          message: ecoErr instanceof Error ? ecoErr.message : '원리→로터 결합 실패',
+        });
+      }
+    }
+
     if (method === 'POST' && pathname === '/api/distill/gemini-scene') {
       const body = await readJsonBody(req);
       const out = await distillSceneWithGemini(body);
@@ -4400,4 +5644,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, HOST, () => {
   console.log(`Elysia Cognitive CAD & Scale-Rotor server listening on http://${HOST}:${PORT}`);
+  startAutonomousEcologyDaemon();
 });
