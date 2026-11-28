@@ -4,33 +4,33 @@
       "key": "지속성 로터::active_circulation",
       "rotorCategory": "지속성 로터",
       "circuitRole": "active_circulation",
-      "count": 8360,
+      "count": 8378,
       "octaveOrder": 3,
       "symbolUnit": "천(10³) 옥타브 상징",
-      "lastSample": "L0_substrate/mva/static/story_world.html",
-      "lastSeen": "2026-11-28T07:23:52",
+      "lastSample": "data/open_sandbox/youtube_multimodal/parallel_self_voices/artist_aesthetic_self_rotor.wav",
+      "lastSeen": "2026-11-28T12:35:16",
       "melted": false
     },
     "자원 공유 로터::active_circulation": {
       "key": "자원 공유 로터::active_circulation",
       "rotorCategory": "자원 공유 로터",
       "circuitRole": "active_circulation",
-      "count": 15575,
+      "count": 15969,
       "octaveOrder": 4,
       "symbolUnit": "천(10³) 옥타브 상징",
       "lastSample": "python.exe",
-      "lastSeen": "2026-11-28T07:26:27",
+      "lastSeen": "2026-11-28T12:39:03",
       "melted": false
     },
     "자원 공유 로터::error_rotor_leak": {
       "key": "자원 공유 로터::error_rotor_leak",
       "rotorCategory": "자원 공유 로터",
       "circuitRole": "error_rotor_leak",
-      "count": 717,
+      "count": 748,
       "octaveOrder": 2,
       "symbolUnit": "백(10²) 옥타브 상징",
-      "lastSample": "language_server.exe",
-      "lastSeen": "2026-11-28T07:23:16",
+      "lastSample": "chrome.exe",
+      "lastSeen": "2026-11-28T12:38:39",
       "melted": false
     },
     "자원 공유 로터::order_invariant": {
@@ -53,8 +53,8 @@
         "자원 공유 로터::active_circulation"
       ],
       "emergentProperty": "지속성 로터⇄자원 공유 로터 결합 복합체",
-      "bondStrength": 1548,
-      "lastSeen": "2026-11-28T07:23:52"
+      "bondStrength": 1559,
+      "lastSeen": "2026-11-28T12:35:16"
     },
     "자원 공유 로터::active_circulation + 자원 공유 로터::order_invariant": {
       "bondId": "자원 공유 로터::active_circulation + 자원 공유 로터::order_invariant",
@@ -72,8 +72,8 @@
     "pendingWords": [],
     "unnamedClusters": {}
   },
-  "totalRawAbsorbed": 24653,
-  "meltedCount": 486,
+  "totalRawAbsorbed": 25096,
+  "meltedCount": 517,
   "decayedCount": 0,
-  "bondRejections": 477
+  "bondRejections": 493
 }

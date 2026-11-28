@@ -512,7 +512,7 @@
             <div class="card">
               <div><strong>${b.label_ko}</strong> <span class="badge">혈류 ${b.blood_flow_pct}%</span> <span class="badge">${b.verdict}</span></div>
               <div style="margin:4px 0;color:#e6edf7;">"${b.expressed_utterance_ko}"</div>
-              ${b.voice_rotor && b.voice_rotor.ok ? `<div class="muted">음성 로터(피치 ${b.voice_rotor.pitch_rotor}× · F0=${b.voice_rotor.mean_pitch_hz}Hz): <audio controls src="${b.voice_rotor.wav_url}${ts}" style="width:100%;height:26px;"></audio></div>` : ''}
+              ${b.voice_rotor && b.voice_rotor.ok ? `<div class="muted">음성 로터(피치 ${b.voice_rotor.pitch_rotor}× · 중심주파수=${b.voice_rotor.mean_spectral_centroid_hz}Hz): <audio controls src="${b.voice_rotor.wav_url}${ts}" style="width:100%;height:26px;"></audio></div>` : ''}
               <div class="muted">• 통제 가능: ${(b.controllable_ground || []).join(' / ')}</div>
               <div class="muted">• 요구 확장 영역: ${(b.epistemic_demands || []).join(' / ')}</div>
             </div>

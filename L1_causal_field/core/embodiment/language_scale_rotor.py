@@ -300,6 +300,11 @@ _NON_NOMINAL_TOKENS: set[str] = {
     "가진", "따른", "통한", "대한", "대해", "대해서", "위한", "관한", "인한", "의한",
     "뭐냐면", "뭐냐", "자", "이제", "그럼", "그러면", "그런데", "이렇게", "그렇게", "저렇게",
 }
+try:
+    from core.orchestration.principled_spectrum_core import DISCOURSE_AND_FUNCTION_WORDS as _PSC_DISCOURSE  # noqa: E402
+    _NON_NOMINAL_TOKENS |= set(_PSC_DISCOURSE)
+except Exception:
+    pass
 
 _NON_NOMINAL_SUFFIXES: Tuple[str, ...] = (
     "하는", "되는", "있는", "없는", "가는", "오는", "보는", "나타나는", "연결되는",

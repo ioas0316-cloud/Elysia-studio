@@ -1426,12 +1426,15 @@ def run_parallel_self_perspective_reintegration(
                 )
                 wavfile.write(str(mod_p), int(sr_v), np.clip(mod_pcm * 32767.0, -32767, 32767).astype(np.int16))
                 at_mod = observe_audio_stream((mod_pcm, int(sr_v)), build_rotor=False)
+                sc_arr = np.asarray(at_mod.spectral_centroid, dtype=np.float64)
+                voiced_sc = sc_arr[sc_arr > 10.0]
                 voice_info = {
                     "ok": True,
                     "pitch_rotor": sp.vocal_pitch_rotor,
                     "tempo_rotor": sp.vocal_tempo_rotor,
                     "mean_rms": round(float(np.mean(at_mod.rms_energy)), 4),
-                    "mean_pitch_hz": round(float(np.mean(at_mod.fundamental_pitch_hz[at_mod.fundamental_pitch_hz > 10])) if np.any(at_mod.fundamental_pitch_hz > 10) else 0.0, 2),
+                    "mean_spectral_centroid_hz": round(float(np.mean(voiced_sc)) if voiced_sc.size else 0.0, 2),
+                    "vocal_harmonicity": round(float(np.mean(at_mod.vocal_harmonicity)), 4),
                     "wav_url": f"/data/open_sandbox/youtube_multimodal/parallel_self_voices/{sp.perspective_id}_rotor.wav",
                     "wav_path": str(mod_p),
                 }
