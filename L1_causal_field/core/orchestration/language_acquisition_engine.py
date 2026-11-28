@@ -149,8 +149,19 @@ def _last_meaningful_char(word: str) -> str:
     return s[-1] if s else ""
 
 
+_ACRONYM_BATCHIM_MAP = {
+    "rgb": False, "gpu": False, "cpu": False, "api": False, "os": False, "ui": False, "ai": False,
+    "3d": False, "2d": False, "ssd": False, "hdd": False,
+    "ram": True, "rom": True, "vram": True, "sram": True, "dram": True, "llm": True, "sql": True, "l1": True, "l2": True, "l3": True,
+}
+
+
 def has_batchim(word: str) -> bool:
-    ch = _last_meaningful_char(word)
+    clean_w = re.sub(r"[\s\"'’”)\]}.,!?~·…]+$", "", (word or "").strip())
+    low_w = clean_w.lower()
+    if low_w in _ACRONYM_BATCHIM_MAP:
+        return _ACRONYM_BATCHIM_MAP[low_w]
+    ch = _last_meaningful_char(clean_w)
     if not ch:
         return False
     code = ord(ch)

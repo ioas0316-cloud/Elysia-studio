@@ -1992,6 +1992,294 @@
             .stage-bottom-tray { grid-template-columns: repeat(2, 1fr); }
             header.telemetry-ribbon { height: auto; flex-wrap: wrap; padding: 8px 12px; }
         }
+        /* Unified Reality View — Single Canonical S0..S4 Scale-Rotor Viewport */
+        .erv-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 65;
+            display: none;
+            flex-direction: column;
+            background: #04070f;
+            color: #e2e8f0;
+            font-family: inherit;
+        }
+        .erv-overlay.open { display: flex; }
+        .erv-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(8, 13, 26, 0.94);
+            flex-wrap: wrap;
+        }
+        .erv-brand {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+        .erv-brand-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #f8fafc;
+            letter-spacing: -0.01em;
+        }
+        .erv-brand-sub {
+            font-size: 11.5px;
+            color: #94a3b8;
+        }
+        .erv-metrics {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .erv-metric-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 9px;
+            border-radius: 6px;
+            background: rgba(30, 41, 59, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            font-size: 11px;
+        }
+        .erv-metric-k { color: #94a3b8; }
+        .erv-metric-v { color: #f8fafc; font-weight: 600; }
+        .erv-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .erv-btn {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            background: rgba(15, 23, 42, 0.85);
+            color: #e2e8f0;
+            font-size: 11.5px;
+            cursor: pointer;
+        }
+        .erv-btn:hover { border-color: rgba(125, 211, 252, 0.65); color: #ffffff; }
+        .erv-btn.primary {
+            border-color: rgba(52, 211, 153, 0.65);
+            background: rgba(16, 185, 129, 0.18);
+            color: #a7f3d0;
+        }
+        .erv-main {
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 300px 1fr 340px;
+            gap: 0;
+        }
+        @media (max-width: 1180px) {
+            .erv-main { grid-template-columns: 260px 1fr 290px; }
+        }
+        @media (max-width: 900px) {
+            .erv-main { grid-template-columns: 1fr; overflow-y: auto; }
+        }
+        .erv-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+            overflow-y: auto;
+            background: rgba(8, 13, 25, 0.88);
+            border-right: 1px solid rgba(148, 163, 184, 0.14);
+        }
+        .erv-col.right {
+            border-right: none;
+            border-left: 1px solid rgba(148, 163, 184, 0.14);
+        }
+        .erv-center {
+            position: relative;
+            min-height: 360px;
+            display: flex;
+            flex-direction: column;
+            background: #04070f;
+        }
+        #ervCanvas {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: grab;
+        }
+        #ervCanvas:active { cursor: grabbing; }
+        .erv-inspector {
+            padding: 10px 14px;
+            border-top: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(9, 14, 28, 0.94);
+            min-height: 82px;
+            max-height: 165px;
+            overflow-y: auto;
+        }
+        .erv-section {
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .erv-sec-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            color: #93c5fd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .erv-muted { font-size: 11px; color: #94a3b8; line-height: 1.45; }
+        .erv-subcopy { font-size: 11px; color: #cbd5e1; line-height: 1.45; }
+        .erv-kv-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 11.5px;
+            color: #f1f5f9;
+        }
+        .erv-fork-row { display: flex; gap: 6px; }
+        .erv-world-btn {
+            width: 100%;
+            text-align: left;
+            padding: 7px 9px;
+            border-radius: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.75);
+            color: #e2e8f0;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        .erv-world-btn.active {
+            border-color: rgba(192, 132, 252, 0.72);
+            background: rgba(126, 34, 206, 0.20);
+        }
+        .erv-world-top { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600; }
+        .erv-world-role { font-size: 10px; color: #c4b5fd; }
+        .erv-world-meta { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+        .erv-bar-wrap { display: flex; flex-direction: column; gap: 3px; }
+        .erv-bar-head { display: flex; justify-content: space-between; font-size: 10.5px; color: #cbd5e1; }
+        .erv-bar-track { height: 5px; border-radius: 3px; background: rgba(51, 65, 85, 0.7); overflow: hidden; }
+        .erv-bar-fill { height: 100%; border-radius: 3px; }
+        .erv-exp-card, .erv-mem-card {
+            padding: 7px 8px;
+            border-radius: 6px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .erv-mem-card { cursor: pointer; }
+        .erv-mem-card:hover { border-color: rgba(251, 191, 36, 0.55); }
+        .erv-exp-head, .erv-mem-top { display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; color: #f1f5f9; }
+        .erv-exp-tag, .erv-mem-badge { font-size: 10px; color: #93c5fd; white-space: nowrap; }
+        .erv-exp-line, .erv-mem-line { font-size: 10.5px; color: #cbd5e1; line-height: 1.38; }
+        .erv-filter-row { display: flex; gap: 6px; }
+        .erv-select, .erv-input {
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 11px;
+            padding: 5px 7px;
+        }
+        .erv-input { flex: 1; min-width: 0; }
+        .erv-mod-list { display: flex; flex-direction: column; gap: 6px; max-height: 360px; overflow-y: auto; }
+        .erv-mod-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 7px 8px;
+            border-radius: 6px;
+            background: rgba(15, 23, 42, 0.86);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+        }
+        .erv-mod-info { flex: 1; min-width: 0; cursor: pointer; }
+        .erv-mod-title-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+        .erv-scale-dot {
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 1px 4px;
+            border-radius: 4px;
+            background: rgba(96, 165, 250, 0.22);
+            color: #bfdbfe;
+        }
+        .erv-mod-name { font-size: 11px; font-weight: 600; color: #f8fafc; word-break: break-all; }
+        .erv-mod-status { font-size: 9.5px; color: #fde68a; }
+        .erv-mod-path { font-size: 10px; color: #64748b; word-break: break-all; margin-top: 1px; }
+        .erv-mod-recipe { font-size: 10.5px; color: #cbd5e1; margin-top: 2px; line-height: 1.35; }
+        .erv-absorb-btn {
+            padding: 5px 8px;
+            border-radius: 5px;
+            border: 1px solid rgba(52, 211, 153, 0.55);
+            background: rgba(16, 185, 129, 0.16);
+            color: #a7f3d0;
+            font-size: 10.5px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .erv-absorb-btn.done {
+            border-color: rgba(148, 163, 184, 0.35);
+            background: rgba(51, 65, 85, 0.45);
+            color: #94a3b8;
+        }
+        .erv-insp-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .erv-insp-title { font-size: 12.5px; font-weight: 700; color: #fef08a; }
+        .erv-scale-pill { font-size: 10.5px; color: #93c5fd; }
+        .erv-toast { font-size: 11px; color: #86efac; transition: opacity 0.3s; }
+        .erv-stage-tabs {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+            background: rgba(15, 23, 42, 0.86);
+        }
+        .erv-tab-group { display: flex; gap: 4px; background: rgba(2, 6, 23, 0.65); padding: 3px; border-radius: 8px; }
+        .erv-tab-btn {
+            border: 0;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .erv-tab-btn.active { background: rgba(56, 189, 248, 0.18); color: #f8fafc; }
+        .wr-stage {
+            display: none;
+            flex: 1;
+            min-height: 0;
+            flex-direction: column;
+            background: #060b16;
+        }
+        .wr-stage.active { display: flex; }
+        .wr-canvas-wrap { flex: 1; min-height: 260px; position: relative; }
+        #wrCanvas, #rmCanvas, #diCanvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+        .wr-deck {
+            padding: 12px 14px;
+            border-top: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(11, 18, 32, 0.96);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-variant-numeric: tabular-nums;
+        }
+        .wr-controls-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+        .wr-sliders-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        .wr-slider-item { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: #cbd5e1; }
+        .wr-slider-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+        .wr-readout-line { font-size: 11px; color: #cbd5e1; line-height: 1.45; }
+        .wr-readout-line.strong { color: #e2e8f0; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -2010,12 +2298,343 @@
             <span class="mem-sub mono" id="elysiaMemoryBadge">개념 0 · 인과 0 · 기억 0</span>
         </div>
         <div class="elysia-top-actions">
+            <button type="button" id="btnOpenDynamicEngine" class="elysia-ghost-btn" style="border-color:rgba(244,114,182,0.78);color:#fbcfe8;">동적 예측 · 의도 창조</button>
+            <button type="button" id="btnOpenRealMedia" class="elysia-ghost-btn" style="border-color:rgba(251,191,36,0.72);color:#fde68a;">실세계 픽셀 인과 분해</button>
+            <button type="button" id="btnOpenWorldRotor" class="elysia-ghost-btn" style="border-color:rgba(56,189,248,0.68);color:#bae6fd;">세계 로터 시뮬레이터</button>
+            <button type="button" id="btnToggleRealityView" class="elysia-ghost-btn" style="border-color:rgba(52,211,153,0.62);color:#a7f3d0;">리얼리티 뷰 (통합 척추)</button>
             <button type="button" id="btnToggleBrowserOs" class="elysia-ghost-btn" style="border-color:rgba(245,194,122,0.55);color:#fde68a;">브라우저 OS 방</button>
             <button type="button" id="btnToggleMindDrawer" class="elysia-ghost-btn">인과 · 자가학습</button>
             <button type="button" id="btnResetElysiaMemory" class="elysia-ghost-btn">기억 초기화</button>
             <button type="button" id="btnShowEngineMode" class="elysia-ghost-btn">엔진 내부 보기</button>
         </div>
     </div>
+
+    <section id="elysiaRealityOverlay" class="erv-overlay" aria-label="엘리시아 통합 리얼리티 뷰 및 의존성 스케일로터 척추">
+        <header class="erv-topbar">
+            <div class="erv-brand">
+                <span class="erv-brand-title">엘리시아 통합 리얼리티 뷰 (S0↔S4 단일 신경 척추)</span>
+                <span id="ervStatusToast" class="erv-toast">Cl(3,0) 기하 도킹 · 의존성 로터 막 가동 중</span>
+            </div>
+            <div id="ervMetricStrip" class="erv-metrics"></div>
+            <div class="erv-actions">
+                <button type="button" id="ervBtnVerticalCycle" class="erv-btn primary">S_min↔S_max 순환</button>
+                <button type="button" id="ervBtnFoldLimit" class="erv-btn" style="border-color:rgba(251,191,36,0.55);color:#fde68a;">한계 지각 · 원근 접기</button>
+                <button type="button" id="ervBtnRescanRepo" class="erv-btn">저장소 로터 재스캔</button>
+                <button type="button" id="btnCloseRealityView" class="erv-btn">닫기</button>
+            </div>
+        </header>
+
+        <div class="erv-main">
+            <aside class="erv-col left">
+                <div class="erv-section">
+                    <div class="erv-sec-title">
+                        <span>다중 세계 계보 (홈 · 샌드박스)</span>
+                        <span class="mono">S4 LINEAGE</span>
+                    </div>
+                    <div class="erv-fork-row">
+                        <button type="button" id="ervBtnForkInherit" class="erv-btn" style="flex:1;">계보 승계 분기</button>
+                        <button type="button" id="ervBtnForkBlank" class="erv-btn" style="flex:1;">빈 공간 분기</button>
+                    </div>
+                    <div id="ervWorldList"></div>
+                </div>
+
+                <div class="erv-section">
+                    <div class="erv-sec-title">
+                        <span>양방향 수직 사이클 & 탭 입력 나이테</span>
+                        <span class="mono">S_min↔S_max</span>
+                    </div>
+                    <div id="ervVerticalBox"></div>
+                </div>
+
+                <div class="erv-section">
+                    <div class="erv-sec-title">
+                        <span>하나↔전체 원리 스펙트럼 · 실측 마찰 실험</span>
+                        <span class="mono">ONE ↔ WHOLE</span>
+                    </div>
+                    <div class="erv-fork-row" style="flex-wrap:wrap;gap:5px;margin-bottom:6px;">
+                        <button type="button" class="erv-btn erv-friction-btn" data-exp="memory_hierarchy">메모리 계층 실측</button>
+                        <button type="button" class="erv-btn erv-friction-btn" data-exp="harmonic_acoustics">화성·배음 간섭 실측</button>
+                        <button type="button" class="erv-btn erv-friction-btn" data-exp="rgb_color_spectrum">RGB 포화 실측</button>
+                        <button type="button" class="erv-btn erv-friction-btn" data-exp="perspective_2d_3d">2D→3D 투영 실측</button>
+                    </div>
+                    <div id="ervSpectrumBox" style="display:flex;flex-direction:column;gap:5px;"></div>
+                </div>
+
+                <div class="erv-section">
+                    <div class="erv-sec-title">
+                        <span>1→1,000,000 단위 분화 숙련 (O(log N) 원리)</span>
+                        <span class="mono">1 → 10⁶</span>
+                    </div>
+                    <div id="ervUnitDivisionBox" style="display:flex;flex-direction:column;gap:6px;"></div>
+                </div>
+
+                <div class="erv-section">
+                    <div class="erv-sec-title">
+                        <span>지각 단위 = 인지 단위 · 정적 구조 궤적</span>
+                        <span class="mono">재계산 0회</span>
+                    </div>
+                    <canvas id="ervTrajectoryCanvas" width="320" height="126" style="width:100%;height:126px;border-radius:8px;background:rgba(15,23,42,0.82);border:1px solid rgba(148,163,184,0.22);margin-bottom:6px;display:block;"></canvas>
+                    <div id="ervPerceptualUnitBox" style="display:flex;flex-direction:column;gap:6px;"></div>
+                </div>
+
+                <div class="erv-section">
+                    <div class="erv-sec-title">
+                        <span>4축 인과 귀인</span>
+                        <span class="mono">SELF-BOUNDARY</span>
+                    </div>
+                    <div id="ervFourAxisBox"></div>
+                </div>
+
+                <div class="erv-section">
+                    <div class="erv-sec-title">
+                        <span>3-Way 관계 경험 기록 (대상 · 자기 · 사이)</span>
+                        <span class="mono">EXPERIENCE</span>
+                    </div>
+                    <div id="ervExperienceList" style="display:flex;flex-direction:column;gap:5px;"></div>
+                </div>
+            </aside>
+
+            <section class="erv-center">
+                <div class="erv-stage-tabs">
+                    <div class="erv-tab-group" role="tablist" aria-label="리얼리티 뷰 중심 모드">
+                        <button type="button" id="ervTabDynamicEngine" class="erv-tab-btn" role="tab" aria-selected="false">동적 예측 · 의도 창조</button>
+                        <button type="button" id="ervTabRealMedia" class="erv-tab-btn" role="tab" aria-selected="false">실세계 픽셀 인과 분해</button>
+                        <button type="button" id="ervTabWorldRotor" class="erv-tab-btn" role="tab" aria-selected="false">세계 로터 (S4→S0)</button>
+                        <button type="button" id="ervTabSpine" class="erv-tab-btn active" role="tab" aria-selected="true">3D 통합 척추</button>
+                    </div>
+                    <span class="mono" style="font-size:10.5px;color:#94a3b8;">정적(t=0) · 가변(정신/궤적) · 미지(외부현실)</span>
+                </div>
+
+                <canvas id="ervCanvas"></canvas>
+                <div id="ervNodeInspector" class="erv-inspector"></div>
+
+                <div id="ervWorldRotorStage" class="wr-stage" aria-label="거시-미시 스케일 계층 세계 로터 시뮬레이터">
+                    <div class="wr-canvas-wrap">
+                        <canvas id="wrCanvas"></canvas>
+                    </div>
+                    <div class="wr-deck">
+                        <div class="wr-controls-row">
+                            <button type="button" id="wrBtnPlayPause" class="erv-btn">일시정지</button>
+                            <button type="button" id="wrBtnExperienceCycle" class="erv-btn primary">구름→물→얼음 통합 경험</button>
+                            <button type="button" id="wrBtnAutoExp" class="erv-btn">자율 경험: 꺼짐</button>
+                            <button type="button" id="wrBtnAudioToggle" class="erv-btn">음향: 꺼짐</button>
+                            <button type="button" id="wrBtnModeHierarchy" class="erv-btn primary">스케일 계층 로터</button>
+                            <button type="button" id="wrBtnModeMicro" class="erv-btn">평면 미시 연산 비교</button>
+                            <button type="button" id="wrBtnIntentLight" class="erv-btn primary">손: 빛 가리키기</button>
+                            <button type="button" id="wrBtnIntentGrasp" class="erv-btn">손: 지점 집기</button>
+                            <button type="button" id="wrBtnIntentWave" class="erv-btn">손: 인사 궤적</button>
+                            <button type="button" id="wrBtnInjectShock" class="erv-btn" style="border-color:rgba(248,113,113,0.55);color:#fca5a5;">미지 구름 유입</button>
+                            <button type="button" id="wrBtnRunBenchmark" class="erv-btn">실측 벤치마크 실행</button>
+                            <button type="button" id="wrBtnReset" class="erv-btn">초기화</button>
+                        </div>
+                        <div class="wr-sliders-row">
+                            <label class="wr-slider-item">
+                                <span class="wr-slider-head"><span>S4 태양·천체 위상</span><span id="wrValHour" class="mono">15:48</span></span>
+                                <input id="wrSliderHour" type="range" min="0" max="23.9" step="0.1" value="15.8">
+                            </label>
+                            <label class="wr-slider-item">
+                                <span class="wr-slider-head"><span>S3 바람·기후 강도</span><span id="wrValWind" class="mono">36%</span></span>
+                                <input id="wrSliderWind" type="range" min="0" max="100" step="1" value="36">
+                            </label>
+                            <label class="wr-slider-item">
+                                <span class="wr-slider-head"><span>계층 로터 확장 L (윤슬·질서)</span><span id="wrValLayers" class="mono">L=6 · 20MP/6축</span></span>
+                                <input id="wrSliderLayers" type="range" min="1" max="12" step="1" value="6">
+                            </label>
+                            <label class="wr-slider-item">
+                                <span class="wr-slider-head"><span>S0 경계 분화 깊이</span><span id="wrValDepth" class="mono">1:1,000 (노드 10개)</span></span>
+                                <input id="wrSliderDepth" type="range" min="0" max="6" step="1" value="3">
+                            </label>
+                        </div>
+                        <div id="wrHarmonicReadout" class="wr-readout-line mono" style="color:#fde68a;">2,000만 화소 수면 난반사: L=6 소수 배음 로터 · 배열 저장 0칸 · 가우시안 질서 수렴 계산 중…</div>
+                        <div id="wrFacetsReadout" class="wr-readout-line mono">물리 · 영상/음향 · 신체제어 · 코드경계 단일 경험 동기화 중…</div>
+                        <div id="wrTriadReadout" class="wr-readout-line strong mono">구름(미지) → 물(4면 관측) → 얼음(t=0 정적 기억)</div>
+                        <div id="wrIceReadout" class="wr-readout-line" style="color:#bae6fd;">최근 얼음(t=0) 통합 원리 결정 대기 중…</div>
+                        <div id="wrBenchReadout" class="wr-readout-line mono" style="color:#a7f3d0;">실측 벤치마크 준비 중…</div>
+                    </div>
+                </div>
+
+                <div id="ervRealMediaStage" class="wr-stage" aria-label="실세계 영상·사진 픽셀 인과 분해 및 스케일 로터 재조합">
+                    <div class="wr-canvas-wrap">
+                        <canvas id="rmCanvas"></canvas>
+                    </div>
+                    <div class="wr-deck">
+                        <div class="wr-controls-row">
+                            <select id="rmSelectSourceA" class="erv-input" style="max-width:190px;" aria-label="실세계 원본 A (물성·형상·윤슬)">
+                                <option value="ocean_sunlight">원본 A: 실사 바다 윤슬</option>
+                                <option value="forest_mist">원본 A: 실사 새벽 숲 호수</option>
+                                <option value="conservatory">원본 A: 실사 유리 서재 빛</option>
+                            </select>
+                            <button type="button" id="rmBtnUploadA" class="erv-btn primary">A 영상/사진 올리기</button>
+                            <input id="rmFileInputA" type="file" accept="video/*,image/*" style="display:none;">
+                            <select id="rmSelectSourceB" class="erv-input" style="max-width:185px;" aria-label="실세계 원본 B (S4 조광 이식원)">
+                                <option value="forest_mist">조광 B: 실사 새벽 숲 호수</option>
+                                <option value="ocean_sunlight">조광 B: 실사 바다 윤슬</option>
+                                <option value="conservatory">조광 B: 실사 유리 서재 빛</option>
+                            </select>
+                            <button type="button" id="rmBtnUploadB" class="erv-btn">B 조광 파일</button>
+                            <input id="rmFileInputB" type="file" accept="video/*,image/*" style="display:none;">
+                            <button type="button" id="rmBtnWebcam" class="erv-btn">실시간 카메라 투입</button>
+                            <button type="button" id="rmBtnCrystallize" class="erv-btn primary">얼음(t=0) 스펙트럼 결정화</button>
+                            <button type="button" id="rmBtnSaveRecomb" class="erv-btn">재조합 원리 저장</button>
+                        </div>
+                        <div class="wr-controls-row">
+                            <button type="button" class="erv-btn primary" data-rm-view="split">원본↔재조합 비교</button>
+                            <button type="button" class="erv-btn" data-rm-view="s4_illum">S4 조광·입사광</button>
+                            <button type="button" class="erv-btn" data-rm-view="s3_albedo">S3 고유 물성(알베도)</button>
+                            <button type="button" class="erv-btn" data-rm-view="s2_normal">S2 표면 법선(3D형상)</button>
+                            <button type="button" class="erv-btn" data-rm-view="s1_specular">S1 경면·난반사 윤슬</button>
+                            <button type="button" class="erv-btn" data-rm-view="s0_residual">S0 미세 질감 잔차</button>
+                        </div>
+                        <div class="wr-sliders-row">
+                            <label class="wr-slider-item">
+                                <span class="wr-slider-head"><span>S4 조광 이식 (A→B)</span><span id="rmValLightMix" class="mono">45%</span></span>
+                                <input id="rmSliderLightMix" type="range" min="0" max="100" step="1" value="45">
+                            </label>
+                            <label class="wr-slider-item">
+                                <span class="wr-slider-head"><span>S2 법선 재조명 회전</span><span id="rmValRelight" class="mono">+0°</span></span>
+                                <input id="rmSliderRelight" type="range" min="-90" max="90" step="1" value="0">
+                            </label>
+                            <label class="wr-slider-item">
+                                <span class="wr-slider-head"><span>S1 경면·윤슬 결합</span><span id="rmValSpecular" class="mono">1.00x</span></span>
+                                <input id="rmSliderSpecular" type="range" min="0" max="220" step="5" value="100">
+                            </label>
+                            <label class="wr-slider-item">
+                                <span class="wr-slider-head"><span>S0 미세 질감 결합</span><span id="rmValDetail" class="mono">1.00x</span></span>
+                                <input id="rmSliderDetail" type="range" min="0" max="220" step="5" value="100">
+                            </label>
+                        </div>
+                        <div id="rmAnatomyReadout" class="wr-readout-line mono">실세계 미디어 픽셀 인과 분해 준비 중…</div>
+                        <div id="rmPixelProbeReadout" class="wr-readout-line strong mono" style="color:#fde68a;">화면의 아무 픽셀이나 클릭하면 RGB = S4(조광) × S3(물성) × S2(법선) + S1(경면) + S0(잔차)로 해부됩니다.</div>
+                        <div id="rmFidelityReadout" class="wr-readout-line mono" style="color:#a7f3d0;">무손실 원형 복원 검증 대기 중…</div>
+                    </div>
+                </div>
+
+                <div id="ervDynamicEngineStage" class="wr-stage" aria-label="실시간 동적 현실 예측·자가보정 및 의도 기반 재창조 본체 엔진">
+                    <div class="wr-canvas-wrap">
+                        <canvas id="diCanvas"></canvas>
+                    </div>
+                    <div class="wr-deck">
+                        <div class="wr-controls-row">
+                            <select id="diSelectStream" class="erv-input" style="max-width:215px;" aria-label="동적 실세계 스트림 선택">
+                                <option value="forest_drift">실사 새벽 숲 호수 (동적 흐름)</option>
+                                <option value="ocean_drift">실사 바다 윤슬 (동적 파동)</option>
+                                <option value="conservatory_drift">실사 유리 서재 (동적 조광)</option>
+                            </select>
+                            <button type="button" id="diBtnUploadVideo" class="erv-btn primary">동영상·사진 올리기</button>
+                            <input id="diFileVideo" type="file" accept="video/*,image/*" style="display:none;">
+                            <button type="button" id="diBtnScreenCapture" class="erv-btn">게임·화면 캡처</button>
+                            <button type="button" id="diBtnWebcam" class="erv-btn">카메라</button>
+                            <button type="button" id="diBtnHarvestMoving" class="erv-btn">움직이는 실체 수확·복제</button>
+                            <button type="button" id="diBtnSaveLaw" class="erv-btn">동적 법칙 저장</button>
+                            <button type="button" id="diBtnTrainCorpus" class="erv-btn" style="border-color:rgba(52,211,153,0.65);color:#a7f3d0;">실세계 자산 일괄 학습</button>
+                            <button type="button" id="diBtnUploadCorpus" class="erv-btn">다중 사진·영상 학습</button>
+                            <input id="diFileBatchCorpus" type="file" multiple accept="image/*,video/*" style="display:none;">
+                        </div>
+                        <div class="wr-controls-row">
+                            <button type="button" id="diBtnExtractMotion" class="erv-btn" style="border-color:rgba(251,191,36,0.7);color:#fde68a;">영상 A 동작 리듬 추출</button>
+                            <select id="diSelectMotionDna" class="erv-input" style="max-width:210px;" aria-label="추출된 동작 DNA 선택"></select>
+                            <select id="diSelectActorBody" class="erv-input" style="max-width:130px;" aria-label="이식할 개체 몸체 선택"></select>
+                            <button type="button" id="diBtnTransplantActor" class="erv-btn primary">타 환경 살아있는 이식 (A→B)</button>
+                        </div>
+                        <div class="wr-controls-row">
+                            <select id="diSelectRealmPreset" class="erv-input" style="max-width:190px;" aria-label="S4 거시 사회·권위·세력장 선택">
+                                <option value="peaceful_sanctuary">S4 평온한 숲 · 여행자</option>
+                                <option value="revered_sovereign">S4 경외받는 왕국 수호자</option>
+                                <option value="feared_intruder">S4 적대 세력 · 침입자</option>
+                                <option value="warzone_frontier">S4 전장 경계선 · 고긴장</option>
+                            </select>
+                            <select id="diSelectPresenceRotor" class="erv-input" style="max-width:202px;" aria-label="매력·미모·카리스마 스케일 로터 선택">
+                                <option value="balanced">매력·카리스마 균형 로터</option>
+                                <option value="radiant_allure_f">치명적 미모·매혹 인력 (여성)</option>
+                                <option value="sovereign_charisma">압도적 제왕 카리스마</option>
+                                <option value="austere_loner">차가운 고독 · 무매력</option>
+                            </select>
+                            <select id="diSelectAlignment" class="erv-input" style="max-width:116px;" aria-label="DnD 성향·가치관 선택">
+                                <option value="lawful_good">질서 선 (LG)</option>
+                                <option value="neutral_good" selected>중립 선 (NG)</option>
+                                <option value="chaotic_good">혼돈 선 (CG)</option>
+                                <option value="true_neutral">완전 중립 (TN)</option>
+                                <option value="lawful_evil">질서 악 (LE)</option>
+                                <option value="chaotic_evil">혼돈 악 (CE)</option>
+                            </select>
+                            <select id="diSelectArchetype" class="erv-input" style="max-width:118px;" aria-label="개체 생태·사회 유형 선택">
+                                <option value="spirit_beast">영수 · 신수</option>
+                                <option value="companion_pet">반려동물</option>
+                                <option value="citizen_npc">마을 NPC</option>
+                                <option value="wild_monster">야생 몬스터</option>
+                            </select>
+                            <button type="button" id="diBtnRollCharacter" class="erv-btn" style="border-color:rgba(167,139,250,0.72);color:#ddd6fe;">종족·매력·성향 랜덤 굴리기</button>
+                            <span id="diCharBadge" class="mono" style="font-size:10.5px;color:#c4b5fd;white-space:nowrap;">인간 방랑자 · 중립 선 · 매력48/카리스마45</span>
+                        </div>
+                        <div class="wr-controls-row">
+                            <input id="diIntentInput" class="erv-input" style="flex:1;min-width:220px;" type="text" placeholder="의도·개입·원리연구 예: SF 우주함선 만들어줘 / 비행기 원리 연구 / 호랑이처럼 어슬렁거려 / 햇살 밝혀줘">
+                            <button type="button" id="diBtnApplyIntent" class="erv-btn primary">의도 실행</button>
+                            <button type="button" id="diBtnAutoIntent" class="erv-btn" style="border-color:rgba(244,114,182,0.65);color:#fbcfe8;">엘리시아 자율 의도</button>
+                            <button type="button" id="diBtnResearchFrontier" class="erv-btn" style="border-color:rgba(56,189,248,0.75);color:#bae6fd;">미지 원리 연구 (우주함선·비행기)</button>
+                            <button type="button" id="diBtnClearEntities" class="erv-btn">초기화</button>
+                        </div>
+                        <div class="wr-controls-row">
+                            <button type="button" class="erv-btn" data-di-quick="햇살이 어두우니 따뜻하게 밝혀줘">+ 햇살 밝히기</button>
+                            <button type="button" class="erv-btn" data-di-quick="나무가 허전하니까 나무 한 그루 추가해줘">+ 나무 추가</button>
+                            <button type="button" class="erv-btn" data-di-quick="쓸쓸해 보이니 귀여운 강아지 데려와줘">+ 강아지</button>
+                            <button type="button" class="erv-btn" data-di-quick="귀여운 고양이 한 마리 넣어줘">+ 고양이</button>
+                            <button type="button" class="erv-btn" data-di-quick="혼자라 외로우니 두 사람이 포옹하는 따뜻한 장면으로 바꿔줘">+ 두 사람 포옹</button>
+                            <span style="color:#475569;margin:0 2px;">|</span>
+                            <button type="button" class="erv-btn primary" data-di-view="recompose">의도 재창조 결과</button>
+                            <button type="button" class="erv-btn" data-di-view="pred_split">실제↔예측(I vs Î)</button>
+                            <button type="button" class="erv-btn" data-di-view="cloud_error">미지 오차맵(|I-Î|)</button>
+                            <button type="button" class="erv-btn" data-di-view="motion_class">동적 재분류(배경·실체·윤슬)</button>
+                        </div>
+                        <div id="diLearnReadout" class="wr-readout-line mono">동적 스트림 실시간 예측·오차 수렴 측정 중…</div>
+                        <div id="diIntentReadout" class="wr-readout-line strong" style="color:#fbcfe8;">자연어 의도를 입력하거나 [엘리시아 자율 의도]를 눌러 장면을 직접 변조·재창조해 보세요.</div>
+                        <div id="diLedgerReadout" class="wr-readout-line mono" style="color:#a7f3d0;">디스크 영속 원장(dynamic_world_memory.json) 동기화 중…</div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="erv-col right">
+                <div class="erv-section">
+                    <div class="erv-sec-title">
+                        <span>자아·비자아 도구·지식 경계 (조작면 결합 · 분리)</span>
+                        <span class="mono">0% 내부 로드</span>
+                    </div>
+                    <div class="erv-filter-row" style="margin-bottom:6px;">
+                        <input id="ervHandleNameInput" class="erv-input" type="text" placeholder="외부 도구·학문명 (예: Blender, Git, 음악 이론)">
+                        <button type="button" id="ervBtnCoupleCustom" class="erv-btn primary" style="white-space:nowrap;">경계 결합</button>
+                    </div>
+                    <div id="ervBoundaryHandleList" style="display:flex;flex-direction:column;gap:6px;"></div>
+                </div>
+
+                <div class="erv-section">
+                    <div class="erv-sec-title">
+                        <span>의존성 로터 막 (불변 커널 ↔ 가변 가속기)</span>
+                        <span class="mono">S1 MEMBRANE</span>
+                    </div>
+                    <div id="ervMembraneList" style="display:flex;flex-direction:column;gap:6px;"></div>
+                </div>
+
+                <div class="erv-section">
+                    <div class="erv-sec-title">
+                        <span>전체 파일·의존성 스케일로터화 맵 (AST 원리 흡수)</span>
+                        <span class="mono">REPO ROTOR</span>
+                    </div>
+                    <div class="erv-filter-row">
+                        <select id="ervModFilter" class="erv-select">
+                            <option value="ALL">전체 모듈</option>
+                            <option value="INVARIANT_BRIDGEABLE">의존성 가교 가능</option>
+                            <option value="MISSING_PATH_BRIDGE">누락 상위경로 가교</option>
+                            <option value="HW_KERNEL_PORT">L0 커널 대기</option>
+                            <option value="LIVE_BOUND">라이브 직결</option>
+                            <option value="ABSORBED_INVARIANT">원리 흡수 완료</option>
+                            <option value="PURE_DORMANT_SEED">순수 대기 씨앗</option>
+                        </select>
+                        <input id="ervModSearch" class="erv-input" type="text" placeholder="모듈명 검색 (예: vertical, causal, cuda)">
+                    </div>
+                    <div id="ervModList" class="erv-mod-list"></div>
+                </div>
+            </aside>
+        </div>
+    </section>
 
     <section id="elysiaOsOverlay" class="eos-overlay" aria-label="엘리시아 브라우저 OS 샌드박스 방">
         <header class="eos-bar">
@@ -2791,5 +3410,9 @@ kinetic = 0.5 * mass * vel * vel</textarea>
 <script type="module" src="/static/causal_3d_atelier.mjs"></script>
 <script src="/static/elysia_live_game.js"></script>
 <script src="/static/elysia_browser_os.js"></script>
+<script src="/static/scale_world_rotor_sim.js"></script>
+<script src="/static/real_media_rotor_lab.js"></script>
+<script src="/static/dynamic_imagination_engine.js"></script>
+<script src="/static/elysia_reality_view.js"></script>
 </body>
 </html>

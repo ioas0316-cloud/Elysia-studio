@@ -777,6 +777,606 @@ def test_living_companion_field():
         )
 
 
+def test_unified_neural_spine_and_dependency_rotorizer():
+    from core.orchestration.unified_neural_spine import (
+        UnifiedNeuralSpine,
+        clifford_docking_affinity,
+        mv_geometric_product,
+        mv_reverse,
+        spectrum_to_multivector,
+    )
+
+    # 1. Exact pure-Python Cl(3,0) self-docking identity (M * ~M scalar alignment == ~1.0)
+    mv_a = spectrum_to_multivector(0.55, 0.30, 0.15, scale=2)
+    mv_b = spectrum_to_multivector(0.15, 0.65, 0.20, scale=2)
+    self_aff = clifford_docking_affinity(mv_a, mv_a)
+    cross_aff = clifford_docking_affinity(mv_a, mv_b)
+    assert self_aff > 0.85 and self_aff > cross_aff, f"Expected strong self docking: {self_aff} vs {cross_aff}"
+    prod_self = mv_geometric_product(mv_a, mv_reverse(mv_a))
+    assert abs(prod_self[0]) > 0.75
+
+    # 2. Boot Single Canonical Spine & verify S0..S4 Capability Membranes + Codebase Scan
+    spine = UnifiedNeuralSpine()
+    snap0 = spine.get_reality_view_snapshot()
+    assert snap0["active_world_id"] == "world_home"
+    assert snap0["runtime_capabilities"]["invariant_coverage_pct"] == 100.0
+    assert len(snap0["runtime_capabilities"]["membranes"]) == 7
+    assert snap0["codebase_summary"]["total_scanned"] >= 100
+    assert snap0["spine_graph"]["node_count"] >= 20
+
+    # 3. Privacy-preserving S0 browser input flow + Bidirectional Vertical Cycle error reduction
+    flow_res = spine.ingest_browser_sensory_flow(
+        pointer_dx=92.0, pointer_dy=-38.0, pointer_x_norm=0.62, pointer_y_norm=0.41,
+        speed=310.0, key_kind="nav", key_phase="down"
+    )
+    assert flow_res["status"] == "ok"
+    vt = flow_res["vertical_trace"]
+    assert vt["cycle"] >= 1
+    assert vt["gap_after"] <= vt["gap_before"]
+
+    # 4. Multi-World Home vs Sandbox lineage isolation (Sandbox must NOT overwrite Home!)
+    home_exp_before = len(spine.worlds["world_home"]["experiences"])
+    fork_snap = spine.fork_world(name="실험 샌드박스", fork_mode="blank")
+    sb_id = fork_snap["active_world_id"]
+    assert sb_id != "world_home"
+    spine.record_experience(
+        obj="샌드박스 전용 실험",
+        self_lens="격리 경계 테스트",
+        inter_space="홈 세계에 영향 없어야 함",
+        relation_state="variable",
+    )
+    assert len(spine.worlds[sb_id]["experiences"]) >= 2
+    assert len(spine.worlds["world_home"]["experiences"]) == home_exp_before
+    spine.switch_world("world_home")
+    assert spine.active_world_id == "world_home"
+
+    # 5. AST Dependency Scale-Rotorization: absorb a numpy & missing-L2 blocked module cleanly!
+    abs_res = spine.absorb_codebase_module("L1_causal_field/core/topology/vertical_scale_spine.py")
+    assert abs_res["status"] == "ok"
+    assert abs_res["absorbed_count"] >= 1
+    assert "numpy" in abs_res["invariant"]["external_deps"]
+    assert "elysia_core" in abs_res["invariant"]["missing_upper"]
+    assert "mod::L1_causal_field/core/topology/vertical_scale_spine.py" in spine.nodes
+
+    # 6. Unbounded Recursive Vertical & Horizontal Expansion (Split S0->S-1, Integrate S4->S5, Expand Horizontal Axis)
+    split_res = spine.differentiate_unit("s0::browser_input_rotor")
+    assert split_res["child_scale"] == -1, f"Expected S0 to split into S-1, got {split_res['child_scale']}"
+    assert len(split_res["children"]) >= 2
+
+    integ_res = spine.integrate_units(["s4::sovereign_identity_horizon", "axis4::internal"], label="S5 초월 공명체")
+    assert integ_res["new_scale"] == 5, f"Expected S4 integration to emerge at S5, got {integ_res['new_scale']}"
+
+    axes_before = len(spine.horizontal_axes)
+    exp_res = spine.expand_horizontal_axis(name="시간 누적 축", anchor_unit_id="lens3::inter_space")
+    assert len(spine.horizontal_axes) == axes_before + 1
+
+    # 7. Limit Perception & Projective Folding (instead of mechanical crash/deletion) + >3 Open Spectral Channels
+    fold_res = spine.fold_under_limit(cluster_size=4, reason="테스트 한계 지각 접기")
+    assert fold_res["status"] == "ok" and fold_res["folded_count"] == 4
+    horizon_id = fold_res["horizon"]["id"]
+    unfold_res = spine.differentiate_unit(horizon_id)
+    assert len(unfold_res["children"]) == 4, "Unfolding a folded horizon must restore its 4 compressed members"
+
+    # 8. Self / Non-Self Boundary Handle Coupling (e.g. Blender / Car — 0% internal blueprint ingestion, clean detach!)
+    cp_res = spine.couple_external_handle("handle::blender_3d")
+    assert cp_res["status"] == "ok"
+    assert cp_res["handle"]["coupled"] is True
+    assert cp_res["handle"]["internal_ingested_pct"] == 0.0
+    assert "handle::blender_3d" in spine.nodes
+
+    act_res = spine.actuate_external_handle("handle::blender_3d", action_label="조명·카메라 구도")
+    assert act_res["handle"]["use_count"] >= 1
+    assert act_res["handle"]["last_observed"]
+
+    dt_res = spine.detach_external_handle("handle::blender_3d")
+    assert dt_res["detached"] is True
+    assert dt_res["handle"]["coupled"] is False
+    assert "handle::blender_3d" not in spine.nodes
+
+    snap_after = spine.get_reality_view_snapshot()
+    lp = snap_after["limit_perception"]
+    assert snap_after["spine_graph"]["scale_range"][0] <= -1
+    assert snap_after["spine_graph"]["scale_range"][1] >= 5
+    assert lp["spectral_dimensions"] >= 4, f"Expected >3 open spectral channels, got {lp['spectral_dimensions']}"
+    assert lp["folded_horizons_count"] >= 1
+    assert lp["self_boundary_envelope"]["internal_blueprint_ingested_pct"] == 0.0
+
+    print(
+        f"[PASS] Open-Scale Limit-Aware & Self/Non-Self Boundary Spine "
+        f"(scanned={snap0['codebase_summary']['total_scanned']}, scale_range={snap_after['spine_graph']['scale_range']}, "
+        f"open_axes={len(spine.horizontal_axes)}, spectral_dims={lp['spectral_dimensions']}, "
+        f"folded={lp['folded_horizons_count']}, handles={len(snap_after['external_handles'])}, "
+        f"cl30_self_dock={self_aff}, gap={vt['gap_before']}->{vt['gap_after']})"
+    )
+
+
+def test_one_whole_principled_spectrum_and_real_friction():
+    import os
+    import tempfile
+    from core.orchestration.living_companion_field import LivingCompanionField
+    from core.orchestration.language_acquisition_engine import josa
+
+    assert josa("RGB", "을/를") == "RGB를"
+    assert josa("RAM", "을/를") == "RAM을"
+    assert josa("GPU", "을/를") == "GPU를"
+
+    with tempfile.TemporaryDirectory() as td:
+        comp = LivingCompanionField(memory_path=os.path.join(td, "one_whole_audit.json"), auto_persist=True)
+
+        # 1. Unknown domain ("3D 가우시안 스플래팅"): MUST NOT slap on canned biology '항상성' paragraph!
+        r1 = comp.converse(message="3D 가우시안 스플래팅이 뭐야? 축과 스펙트럼 원리로 어떻게 이해할 수 있어?")
+        assert "항상성" not in r1["dialogue"], f"Biology tool misfired on 3D Gaussian Splatting: {r1['dialogue']}"
+        assert "아는 척할 수 없어" in r1["dialogue"] or "구성요소" in r1["dialogue"]
+
+        # 2. Multi-constituent teaching ("RGB"): MUST capture ALL 3 axes (빨강/초록/파랑), NOT reduce to "초록빛이다"!
+        r2 = comp.converse(message="RGB는 빨강 초록 파랑 세 축의 연속 스펙트럼으로 모든 색 구조를 만들어내는 원리야")
+        assert "항상성" not in r2["dialogue"]
+        assert "빨강" in r2["dialogue"] and "초록" in r2["dialogue"] and "파랑" in r2["dialogue"]
+        assert "RGB를" in r2["dialogue"]
+
+        # 3. Condition-preserving transfer ("방금 배운 RGB 원리를 음악의 화음에 적용해보면?"):
+        #    MUST NOT treat "방금" as an unknown concept, MUST transfer RGB -> 화음 while contrasting conditions!
+        r3 = comp.converse(message="방금 배운 RGB 축과 스펙트럼 원리를 음악의 화음에 적용해보면 어떨까?")
+        assert "방금을" not in r3["dialogue"], f"Misclassified adverb '방금': {r3['dialogue']}"
+        assert "RGB" in r3["dialogue"] and ("화음" in r3["dialogue"] or "화성" in r3["dialogue"])
+        assert "환경 조건" in r3["dialogue"] or "매질" in r3["dialogue"]
+
+        # 4. Sibling contrast on ONE continuum ("캐시와 램과 GPU 메모리 차이"):
+        r4 = comp.converse(message="캐시 메모리와 램 메모리와 GPU 메모리는 다 같은 메모리인데 왜 달라?")
+        assert "기억·상태 저장 스펙트럼" in r4["dialogue"]
+        assert "캐시" in r4["dialogue"] and "램" in r4["dialogue"] and "GPU" in r4["dialogue"]
+
+        # 5. Real deterministic friction experiments (AMAT & Acoustic Harmonics)
+        f_mem = comp.principled_spectrum.run_friction_experiment("memory_hierarchy", {"cache_hit_rate": 0.92})
+        f_harm = comp.principled_spectrum.run_friction_experiment("harmonic_acoustics", {"base_hz": 220.0, "ratio": 1.5})
+        assert f_mem["metrics"]["speedup_vs_ram"] > 5.0
+        assert f_harm["metrics"]["consonance"] > 0.85
+
+        # 6. Recursive 1 -> 1,000,000 Unit Subdivision (O(log10 N) mastery, NEVER hoarding 1,000,000 rows!)
+        dr = comp.principled_spectrum.refine_unit_division(domain_id="driving_pedal", steps=6)
+        assert dr["addressable_resolution"] == 1_000_000, f"Expected 1,000,000 resolution, got {dr['addressable_resolution']}"
+        assert dr["stored_nodes"] <= 25, f"Stored too many nodes (must stay O(log N)): {dr['stored_nodes']}"
+        assert dr["compression_ratio"] >= 40000.0, f"Expected >=40,000:1 compression, got {dr['compression_ratio']}"
+        assert dr["error_after"] < dr["initial_error"], (
+            f"Real friction error did not shrink: initial={dr['initial_error']} -> after={dr['error_after']}"
+        )
+        tc = dr["temporal_compass"]
+        assert tc and tc.get("past") and tc.get("present") and tc.get("predicted_future")
+        assert tc.get("ideal_future_contrast", {}).get("same") and tc.get("ideal_future_contrast", {}).get("different")
+
+        # 7. Perceptual Unit = Cognitive Unit across 5 media domains (static bound structure -> process trajectory, 0 raw identity recomputations!)
+        for uid in ("hand_rig", "body_kinematics", "scene_lighting_camera", "code_ast_module", "game_actor_entity"):
+            tr = comp.principled_spectrum.actuate_perceptual_unit(unit_id=uid, target=0.82)
+            assert tr["active_perceptual_controls"] == 1
+            assert tr["raw_identity_recomputations"] == 0, f"Must NEVER recompute static identity from raw elements: {tr}"
+            assert tr["coupled_links_moved"] >= 5
+            assert len(tr["frames"]) == 12
+            assert tr["tip_travel_distance"] > 0.05
+
+        hand_tr = comp.principled_spectrum.actuate_perceptual_unit(unit_id="hand_rig", action="grasp", target=0.85)
+        assert hand_tr["static_raw_elements_bound"] == 12480
+        assert hand_tr["raw_identity_recomputations"] == 0
+
+        print(
+            f"[PASS] One<->Whole Principled Spectrum, 1->1,000,000 Unit Subdivision & 5-Domain Perceptual Unit Trajectories "
+            f"(crystals={len(comp.principled_spectrum.crystals)}, transfers={len(comp.principled_spectrum.transfer_history)}, "
+            f"mem_speedup={f_mem['metrics']['speedup_vs_ram']}x, fifth_consonance={f_harm['metrics']['consonance']}, "
+            f"unit_div=1:{dr['addressable_resolution']:,} in {dr['stored_nodes']} nodes "
+            f"[{dr['compression_ratio']:,.1f}:1], err={dr['initial_error']:.5f}->{dr['error_after']:.5f}, "
+            f"hand_bound={hand_tr['static_raw_elements_bound']:,}/recompute={hand_tr['raw_identity_recomputations']})"
+        )
+
+
+def test_scale_hierarchy_world_rotor_vs_flat_micro():
+    from core.orchestration.scale_hierarchy_world_rotor import ScaleHierarchyWorldRotor
+
+    wr = ScaleHierarchyWorldRotor()
+    s0 = wr.get_snapshot()
+    assert s0["layers"]["S4_celestial"]["ops_used"] == 1
+    assert s0["layers"]["S2_S1_body_hand"]["raw_identity_recomputations"] == 0
+    assert s0["layers"]["S2_S1_body_hand"]["static_bound_elements"] == 12480
+
+    # Refine S0 contact boundary to 1:1,000,000 in O(log10 N) nodes
+    s_mil = wr.apply_action("refine_to_million")
+    assert s_mil["layers"]["S0_micro_boundary"]["addressable_resolution"] == 1_000_000
+    assert s_mil["layers"]["S0_micro_boundary"]["stored_nodes"] == 19
+
+    # Inject external Unknown Rotor disturbance -> Variable Rotor absorbs -> converges toward Static t=0
+    s_shock = wr.apply_action("inject_unknown_shock", {"intensity": 0.92})
+    assert s_shock["rotor_triad"]["unknown_rotor"]["shock_level"] > 0.8
+    for _ in range(14):
+        s_after = wr.step(dt_hours=0.25)
+    assert s_after["rotor_triad"]["unknown_rotor"]["shock_level"] == 0.0
+
+    # Unified Cloud -> Water -> Ice integrated experience across ALL 4 simultaneous facets
+    s_exp = wr.apply_action("experience_cycle")
+    facets = s_exp["unified_facets"]
+    for fkey in ("physics", "optics_acoustics", "motor_control", "code_tool_boundary"):
+        assert fkey in facets, f"Missing simultaneous facet: {fkey}"
+    wt = s_exp["experience_result"]["water_trace"]
+    new_ice = s_exp["experience_result"]["new_ice_crystal"]
+    assert wt["error_after"] < wt["error_before"], f"Water phase did not reduce error: {wt}"
+    assert wt["consonance_after"] >= wt["consonance_before"]
+    assert new_ice is not None and len(new_ice["verified_facets"]) == 4
+    assert s_exp["phase_states"]["ice"]["recomputations"] == 0
+    assert s_exp["phase_states"]["ice"]["crystal_count"] >= 2
+
+    # Real deterministic benchmark: Scale-Hierarchy Protocol vs Flat Micro Brute-Force
+    s_bench = wr.apply_action("run_benchmark", {"entity_count": 2400})
+    b = s_bench["benchmark"]
+    assert b["hierarchy"]["ops_per_frame"] <= 25
+    assert b["flat_micro"]["ops_per_frame"] >= 14000
+    assert b["ops_reduction_x"] >= 500.0
+    assert b["hierarchy"]["global_coherence"] == 1.0
+    assert b["flat_micro"]["global_coherence"] < 0.95
+
+    # Zeta/Prime Nested Layer Scaling (L=1->12) across 20,000,000 addressable ocean pixels
+    hf = s_bench["harmonic_field"]
+    assert hf["addressable_pixels"] == 20_000_000
+    assert hf["stored_pixel_arrays"] == 0
+    lc = s_bench["layer_convergence"]
+    steps = lc["steps"]
+    assert steps[0]["layers"] == 1 and steps[-1]["layers"] == 12
+    assert steps[-1]["stored_pixel_arrays"] == 0
+    assert steps[-1]["empirical_noise_rms"] < steps[0]["empirical_noise_rms"] * 0.45, (
+        f"Layer expansion L=1->12 did not suppress noise as expected: {steps}"
+    )
+    assert steps[-1]["empirical_order_clarity"] > steps[0]["empirical_order_clarity"]
+    assert lc["noise_drop_l1_to_l12_pct"] >= 55.0
+
+    # Verify runtime parameter update for harmonic_layers=12
+    s_l12 = wr.apply_action("set_params", {"harmonic_layers": 12})
+    assert s_l12["harmonic_field"]["harmonic_layers"] == 12
+    assert s_l12["harmonic_field"]["stored_rotor_scalars"] == 12
+
+    # Verify Real-World External Media Causal Pixel Decomposition Ingestion & Recombination (AGENTS.md Sec 7)
+    s_med = wr.apply_action("ingest_real_media_spectrum", {
+        "source_name": "실사 바다 윤슬 (황혼 난반사)",
+        "media_kind": "photo",
+        "width": 3840,
+        "height": 2160,
+        "s4_mean_rgb": [196, 152, 112],
+        "s4_color_temp_k": 3400,
+        "s4_mean_luma": 0.56,
+        "s3_flow_x": 0.42,
+        "s3_flow_y": -0.08,
+        "s3_dominant_angle_deg": 4.5,
+        "s2_detail_energy": 0.14,
+        "s1_specular_ratio": 0.19,
+        "recon_rmse": 0.0018,
+        "recon_psnr_db": 54.9,
+    })
+    assert s_med["ingested_media_result"]["pixel_count"] == 3840 * 2160
+    assert s_med["ingested_media_result"]["reconstruction_fidelity"]["psnr_db"] >= 50.0
+    assert len(s_med["ingested_media_spectra"]) >= 1
+
+    s_rec = wr.apply_action("recombine_media_spectra", {
+        "structure_source": "실사 바다 윤슬",
+        "light_source": "실사 새벽 삼나무 숲 호수",
+        "light_mix": 0.65,
+        "detail_gain": 1.15,
+        "phase_shift": 28.0,
+        "recombined_psnr_db": 32.4,
+    })
+    assert len(s_rec["recombined_media_recipes"]) >= 1
+    assert s_rec["phase_states"]["ice"]["crystal_count"] >= 4
+
+    print(
+        f"[PASS] Unified 4-Facet + Real-World Causal Pixel Decomposition & Recombination "
+        f"(ice_crystals={s_rec['phase_states']['ice']['crystal_count']}, "
+        f"ingested_4k_psnr={s_med['ingested_media_result']['reconstruction_fidelity']['psnr_db']}dB, "
+        f"water_err={wt['error_before']:.4f}->{wt['error_after']:.4f}, "
+        f"hier={b['hierarchy']['ops_per_frame']} ops vs micro={b['flat_micro']['ops_per_frame']:,} ops, "
+        f"reduction={b['ops_reduction_x']:,.1f}x)"
+    )
+
+
+def test_dynamic_stream_imagination_engine_persistence():
+    import tempfile
+    from pathlib import Path
+    from core.orchestration.dynamic_stream_imagination_engine import DynamicStreamImaginationEngine
+
+    with tempfile.TemporaryDirectory() as td:
+        ledger = Path(td) / "dynamic_world_memory.json"
+        eng = DynamicStreamImaginationEngine(ledger_path=ledger)
+
+        # 1. Record real dynamic stream learning (fluid specular drift) & verify error drop
+        r1 = eng.apply_action("record_stream_learning", {
+            "source_name": "실사 바다 윤슬 (동적 파동)",
+            "stream_kind": "video",
+            "frames_observed": 90,
+            "rmse_initial": 0.088,
+            "rmse_adapted": 0.029,
+            "psnr_adapted": 30.8,
+            "flow_x": -1.15,
+            "flow_y": 0.12,
+            "accel_x": 0.04,
+            "accel_y": 0.02,
+            "moving_entity_ratio": 0.24,
+            "specular_slip_ratio": 0.14,
+            "mean_luma": 0.52,
+            "color_temp_k": 3800,
+        })
+        assert r1["recorded_law"]["law_type"] == "fluid_specular_drift"
+        assert r1["recorded_law"]["error_reduction_pct"] >= 60.0
+
+        # 2. Harvest live moving entity
+        r2 = eng.apply_action("harvest_entity", {
+            "name": "수확실체(물방울)",
+            "source_name": "실사 바다 윤슬",
+            "bbox_norm": [0.4, 0.4, 0.22, 0.22],
+        })
+        assert r2["harvested_entity"]["origin"] == "live_motion_harvest"
+
+        # 3. Human-like natural Korean creative intent ("쓸쓸해 보이니 강아지 데려오고 햇살 밝혀주고 나무 두 그루")
+        r3 = eng.apply_action("apply_intent", {
+            "intent_text": "쓸쓸해 보이니 강아지 데려오고 햇살을 따뜻하게 밝혀주고 나무 두 그루 추가해줘",
+            "source_name": "실사 새벽 숲 호수",
+            "mean_luma": 0.36,
+            "color_temp_k": 7200,
+            "moving_entity_ratio": 0.06,
+            "existing_entity_count": 0,
+        })
+        plan = r3["creation_result"]["causal_plan"]
+        assert plan["s4_brightness_delta"] > 0.2
+        assert plan["s4_warmth_delta"] > 0.15
+        ent_ids = [s["entity_id"] for s in plan["spawn_entities"]]
+        assert "entity::puppy" in ent_ids
+        assert ent_ids.count("entity::pine_tree") == 2
+
+        # 4. Autonomous Elysia creative intent on dark lonely scene
+        r4 = eng.apply_action("apply_intent", {
+            "autonomous": True,
+            "source_name": "어두운 호수",
+            "mean_luma": 0.31,
+            "color_temp_k": 7500,
+            "moving_entity_ratio": 0.05,
+            "existing_entity_count": 0,
+        })
+        assert r4["creation_result"]["autonomous"] is True
+        assert len(r4["creation_result"]["causal_plan"]["spawn_entities"]) >= 1
+
+        # 4b. Real-World Multi-Asset Corpus Batch Ingestion & Empirical Optical Prior Distillation
+        r_corp = eng.apply_action("ingest_real_corpus_batch", {
+            "items": [
+                {
+                    "source_name": "ocean_sunlight.jpg",
+                    "media_kind": "photo",
+                    "pixel_count": 1920 * 1080,
+                    "sky_rgb": [210, 178, 138],
+                    "horizon_rgb": [228, 192, 148],
+                    "ground_rgb": [64, 72, 82],
+                    "color_temp_k": 3400,
+                    "mean_luma": 0.56,
+                    "specular_ratio": 0.21,
+                    "normal_energy": 0.16,
+                },
+                {
+                    "source_name": "forest_mist.jpg",
+                    "media_kind": "photo",
+                    "pixel_count": 1920 * 1080,
+                    "sky_rgb": [158, 174, 192],
+                    "horizon_rgb": [180, 190, 198],
+                    "ground_rgb": [48, 62, 54],
+                    "color_temp_k": 6800,
+                    "mean_luma": 0.42,
+                    "specular_ratio": 0.05,
+                    "normal_energy": 0.22,
+                },
+            ]
+        })
+        priors = r_corp["corpus_batch_result"]
+        assert priors["corpus_count"] == 2
+        assert priors["total_pixels_studied"] == 2 * 1920 * 1080
+        assert priors["sky_to_ground_ratio"] > 1.5
+        assert priors["horizon_mist_ratio"] > 0.15
+
+        # 4c. Cross-Media Motion DNA Extraction (Source A) -> Living Actor Transplant (World B) -> Live Intervention
+        import math as _m
+        samples_a = [
+            {
+                "vx": 1.6 * _m.sin(2.0 * _m.pi * 1.4 * (k * 0.033)),
+                "vy": 0.4 * _m.cos(4.0 * _m.pi * 1.4 * (k * 0.033)),
+                "cx": 0.5 + 0.04 * _m.sin(2.0 * _m.pi * 1.4 * (k * 0.033)),
+                "cy": 0.6 + 0.015 * _m.cos(4.0 * _m.pi * 1.4 * (k * 0.033)),
+                "area": 0.18 + 0.02 * _m.sin(2.0 * _m.pi * 1.4 * (k * 0.033)),
+                "dt": 0.033,
+            }
+            for k in range(42)
+        ]
+        r_dna = eng.apply_action("extract_motion_dna", {
+            "source_name": "호랑이 보행 영상 A",
+            "stream_kind": "video",
+            "samples": samples_a,
+        })
+        dna = r_dna["extracted_motion_dna"]
+        assert dna["origin"] == "live_video_extraction"
+        assert len(dna["trajectory_samples"]) == 24
+        assert 0.8 <= dna["dominant_freq_hz"] <= 2.4
+
+        r_tr = eng.apply_action("transplant_living_actor", {
+            "motion_dna_id": dna["id"],
+            "entity_id": "entity::cat",
+            "target_world_name": "새벽 숲 호수 환경 B",
+        })
+        assert r_tr["transplant_result"]["source_dna_id"] == dna["id"]
+        assert r_tr["transplant_result"]["target_world_name"] == "새벽 숲 호수 환경 B"
+
+        r_iv = eng.apply_action("intervene_living_actor", {
+            "command_text": "호랑이처럼 어슬렁거려봐",
+            "target_x": 0.65,
+            "target_y": 0.78,
+            "target_world_name": "새벽 숲 호수 환경 B",
+        })
+        assert r_iv["intervention"]["behavior"] == "predator_prowl"
+
+        # 4d. Organic Tactile Gesture-Continuum & Relational Memory (Unfamiliar Poke -> Recoil vs Bonded Poke -> Playful!)
+        t1 = eng.apply_action("tactile_interaction", {
+            "entity_id": "entity::cat",
+            "entity_name": "고양이",
+            "zone": "shoulder",
+            "gesture": "poke",
+            "duration_sec": 0.14,
+            "stroke_cycles": 0,
+            "speed_norm": 0.6,
+        })
+        assert t1["tactile_result"]["posture"] == "startle_recoil"
+
+        # Build genuine warmth & trust via head stroke + hand/paw hold
+        eng.apply_action("tactile_interaction", {
+            "entity_id": "entity::cat",
+            "entity_name": "고양이",
+            "zone": "head",
+            "gesture": "stroke",
+            "duration_sec": 1.6,
+            "stroke_cycles": 3,
+            "speed_norm": 0.25,
+        })
+        t2 = eng.apply_action("tactile_interaction", {
+            "entity_id": "entity::cat",
+            "entity_name": "고양이",
+            "zone": "hand_paw",
+            "gesture": "hold",
+            "duration_sec": 2.4,
+            "stroke_cycles": 0,
+            "speed_norm": 0.05,
+        })
+        assert t2["tactile_result"]["posture"] == "hand_hold_sync"
+        assert t2["tactile_result"]["relation"]["trust"] > 0.48
+
+        # Same exact shoulder poke now produces playful response because relationship changed!
+        t3 = eng.apply_action("tactile_interaction", {
+            "entity_id": "entity::cat",
+            "entity_name": "고양이",
+            "zone": "shoulder",
+            "gesture": "poke",
+            "duration_sec": 0.14,
+            "stroke_cycles": 0,
+            "speed_norm": 0.5,
+        })
+        assert t3["tactile_result"]["posture"] == "playful_nudge_back"
+
+        # 4e. Unified S4(Realm/Authority/Reputation/Character Affinity) -> S2(Spirit Beast/Monster/NPC) -> S0(Tactile) Coupling
+        s_bad = eng.apply_action("set_world_social_field", {"preset_id": "feared_intruder"})
+        assert s_bad["archetype_couplings"]["spirit_beast"]["stance"] == "hostile_guard"
+        t_sb_reject = eng.apply_action("tactile_interaction", {
+            "entity_id": "entity::spirit_tiger",
+            "entity_name": "백호 신수",
+            "archetype": "spirit_beast",
+            "zone": "head",
+            "gesture": "stroke",
+            "duration_sec": 1.4,
+            "stroke_cycles": 2,
+            "speed_norm": 0.2,
+        })
+        assert t_sb_reject["tactile_result"]["posture"] == "social_reject_recoil"
+
+        # Switch S4 Macro Field to Revered Sovereign -> EXACT same stroke on EXACT same Spirit Beast yields reverently!
+        s_good = eng.apply_action("set_world_social_field", {"preset_id": "revered_sovereign"})
+        assert s_good["archetype_couplings"]["spirit_beast"]["stance"] == "reverent_bow"
+        t_sb_yield = eng.apply_action("tactile_interaction", {
+            "entity_id": "entity::spirit_tiger",
+            "entity_name": "백호 신수",
+            "archetype": "spirit_beast",
+            "zone": "head",
+            "gesture": "stroke",
+            "duration_sec": 1.4,
+            "stroke_cycles": 2,
+            "speed_norm": 0.2,
+        })
+        assert t_sb_yield["tactile_result"]["posture"] == "reverent_yield"
+
+        # 4f. Stats-as-Scale-Rotors: Allure Gravity (Gaze-Lock + Courteous Restraint under Hostility) & 2D DnD Alignment Resonance
+        s_hostile_allure = eng.apply_action("set_world_social_field", {
+            "preset_id": "feared_intruder",
+            "presence_preset_id": "radiant_allure_f",
+            "alignment_preset_id": "lawful_good",
+        })
+        npc_c = s_hostile_allure["archetype_couplings"]["citizen_npc"]
+        assert npc_c["stance"] == "courteous_rivalry", f"Expected courteous_rivalry, got {npc_c}"
+        assert npc_c["gaze_lock"] is True
+        t_npc_manner = eng.apply_action("tactile_interaction", {
+            "entity_id": "entity::embrace",
+            "entity_name": "마을 기사",
+            "archetype": "citizen_npc",
+            "zone": "shoulder",
+            "gesture": "stroke",
+            "duration_sec": 1.2,
+            "stroke_cycles": 2,
+            "speed_norm": 0.22,
+        })
+        assert t_npc_manner["tactile_result"]["posture"] == "courteous_restraint"
+
+        # In Peaceful Sanctuary with Radiant Allure -> Captivated Gaze & Blush!
+        s_peace_allure = eng.apply_action("set_world_social_field", {
+            "preset_id": "peaceful_sanctuary",
+            "presence_preset_id": "radiant_allure_f",
+        })
+        assert s_peace_allure["archetype_couplings"]["citizen_npc"]["stance"] == "captivated_gaze"
+        t_npc_blush = eng.apply_action("tactile_interaction", {
+            "entity_id": "entity::embrace",
+            "entity_name": "마을 기사",
+            "archetype": "citizen_npc",
+            "zone": "hand_paw",
+            "gesture": "hold",
+            "duration_sec": 1.4,
+            "stroke_cycles": 0,
+            "speed_norm": 0.08,
+        })
+        assert t_npc_blush["tactile_result"]["posture"] == "captivated_blush"
+
+        # 2D DnD Alignment Shift (Lawful Good -> Chaotic Evil) flips Spirit Beast resonance from positive to negative
+        s_lg = eng.apply_action("set_world_social_field", {"alignment_preset_id": "lawful_good"})
+        s_ce = eng.apply_action("set_world_social_field", {"alignment_preset_id": "chaotic_evil"})
+        assert s_lg["archetype_couplings"]["spirit_beast"]["alignment_resonance"] > 0.4
+        assert s_ce["archetype_couplings"]["spirit_beast"]["alignment_resonance"] < -0.4
+
+        # Roll Character Race, Allure/Charisma, Alignment & Innate Spirit/Mana/Beast Affinities
+        r_char = eng.apply_action("roll_character_profile", {"seed": 42})
+        rc = r_char["rolled_character"]
+        assert rc["race_label_ko"] and rc["trait_label_ko"] and rc["alignment_label_ko"]
+        assert 0.05 <= rc["spirit_affinity"] <= 1.0 and 0.10 <= rc["allure_gravity"] <= 1.0
+
+        # 4g. Self-Directed Epistemic Frontier Research (SF Starship Foothold vs Reality/Vacuum Gap)
+        r_res = eng.apply_action("research_frontier_goal", {"goal_text": "SF 우주함선 만들어줘"})
+        rb = r_res["research_bridge"]
+        assert rb["domain_id"] == "starship"
+        assert rb["grounded_count"] >= 2 and rb["unknown_count"] >= 2
+        assert len(rb["reality_gaps"]) >= 2 and len(rb["next_experiments"]) >= 2
+        assert "진공" in "".join(rb["reality_gaps"])
+
+        r_ax = eng.apply_action("research_frontier_goal", {"goal_text": "에테르 마나 마법 법칙"})
+        assert r_ax["research_bridge"]["domain_id"] == "axiom_world_seed"
+        assert r_ax["research_bridge"]["grounded_count"] >= 2
+
+        # 5. Restart persistence proof: reload from disk and verify prior recall + optical priors + Motion DNA + relations + S4 social field + research bridges survive!
+        eng_reloaded = DynamicStreamImaginationEngine(ledger_path=ledger)
+        snap_r = eng_reloaded.get_snapshot()
+        assert snap_r["memory_summary"]["learned_law_count"] == 1
+        assert snap_r["memory_summary"]["intentional_creation_count"] == 2
+        assert snap_r["memory_summary"]["real_corpus_count"] == 2
+        assert snap_r["memory_summary"]["motion_dna_count"] >= 3
+        assert snap_r["memory_summary"]["transplant_count"] == 1
+        assert snap_r["memory_summary"]["bonded_entity_count"] >= 2
+        assert snap_r["memory_summary"]["research_bridge_count"] >= 1
+        assert snap_r["entity_relations"]["entity::cat"]["trust"] > 0.48
+        assert snap_r["world_social_field"]["race_label_ko"] == rc["race_label_ko"]
+        assert snap_r["distilled_optical_priors"]["sky_to_ground_ratio"] == priors["sky_to_ground_ratio"]
+        sjm = snap_r["scale_joy_meaning"]
+        assert 0.0 <= sjm["s0_point_joy"] <= 1.0 and 0.0 <= sjm["s4_world_meaning"] <= 1.0
+        assert sjm["dominant_attention_scale"] and sjm["enlightenment_coherence"] > 0.0
+        recalled = eng_reloaded.apply_action("recall_prior", {"source_name": "바다 윤슬", "mean_luma": 0.50, "flow_speed": 1.0})
+        assert recalled["matched"] is True
+        assert recalled["prior_law"]["law_type"] == "fluid_specular_drift"
+
+        print(
+            f"[PASS] Unified S4(Realm/StatRotors/Alignment)->S3->S2->S0 + Joy/Meaning + Frontier Research "
+            f"(npc_hostile_allure={t_npc_manner['tactile_result']['posture']}, "
+            f"starship_ready={rb['readiness_pct']}%/gaps={rb['unknown_count']}, "
+            f"char={rc['race_label_ko']}[{rc['alignment_label_ko']}], joy={sjm['summary_ko']})"
+        )
+
+
 def main() -> int:
     test_canonical_runtime()
     test_topir_compiler_dynamic()
@@ -791,6 +1391,10 @@ def main() -> int:
     test_digest_imitate_recreate_lab()
     test_unified_causal_dataflow_engine()
     test_living_companion_field()
+    test_unified_neural_spine_and_dependency_rotorizer()
+    test_one_whole_principled_spectrum_and_real_friction()
+    test_scale_hierarchy_world_rotor_vs_flat_micro()
+    test_dynamic_stream_imagination_engine_persistence()
     print("ALL PYTHON CORE PIPELINE TESTS PASSED.")
     return 0
 

@@ -5038,6 +5038,364 @@ const server = http.createServer(async (req, res) => {
         });
       }
     }
+    if (method === 'GET' && pathname === '/api/spine/state') {
+      try {
+        const snap = await l1ScaleRotor.call('spine_state', {}, 12000);
+        if (snap && snap.active_world_id) {
+          autonomousEcology.activeWorldId = snap.active_world_id;
+        }
+        return sendJson(res, 200, snap);
+      } catch (sErr) {
+        return sendJson(res, 500, {
+          status: 'error',
+          message: sErr instanceof Error ? sErr.message : '단일 신경 척추 상태 조회 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/sense-flow') {
+      const body = await readJsonBody(req);
+      try {
+        const payload = {
+          pointer_dx: Number(body?.pointer_dx || 0),
+          pointer_dy: Number(body?.pointer_dy || 0),
+          pointer_x_norm: Number(body?.pointer_x_norm ?? 0.5),
+          pointer_y_norm: Number(body?.pointer_y_norm ?? 0.5),
+          speed: Number(body?.speed || 0),
+          key_kind: typeof body?.key_kind === 'string' ? body.key_kind.slice(0, 16) : 'none',
+          key_phase: typeof body?.key_phase === 'string' ? body.key_phase.slice(0, 10) : 'none',
+        };
+        const out = await l1ScaleRotor.call('spine_sense_flow', payload, 6000);
+        return sendJson(res, 200, out);
+      } catch (sfErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: sfErr instanceof Error ? sfErr.message : '입력 흐름 로터 관측 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/fork-world') {
+      const body = await readJsonBody(req);
+      try {
+        const snap = await l1ScaleRotor.call('spine_fork_world', {
+          name: typeof body?.name === 'string' ? body.name.trim().slice(0, 36) : '',
+          fork_mode: body?.fork_mode === 'blank' ? 'blank' : 'inherit',
+        }, 10000);
+        if (snap && snap.active_world_id) {
+          autonomousEcology.activeWorldId = snap.active_world_id;
+        }
+        return sendJson(res, 200, snap);
+      } catch (fwErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: fwErr instanceof Error ? fwErr.message : '세계 분기 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/switch-world') {
+      const body = await readJsonBody(req);
+      try {
+        const wid = typeof body?.world_id === 'string' ? body.world_id.trim().slice(0, 48) : 'world_home';
+        const snap = await l1ScaleRotor.call('spine_switch_world', { world_id: wid }, 10000);
+        if (snap && snap.active_world_id) {
+          autonomousEcology.activeWorldId = snap.active_world_id;
+        }
+        return sendJson(res, 200, snap);
+      } catch (swErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: swErr instanceof Error ? swErr.message : '세계 전환 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/scan-codebase') {
+      const body = await readJsonBody(req);
+      try {
+        const maxEntries = Math.max(40, Math.min(240, Number(body?.max_entries || 160)));
+        const snap = await l1ScaleRotor.call('spine_scan_codebase', { max_entries: maxEntries }, 15000);
+        return sendJson(res, 200, snap);
+      } catch (scErr) {
+        return sendJson(res, 500, {
+          status: 'error',
+          message: scErr instanceof Error ? scErr.message : '저장소 의존성 스캔 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/absorb-module') {
+      const body = await readJsonBody(req);
+      try {
+        const relPath = typeof body?.rel_path === 'string' ? body.rel_path.trim().slice(0, 200) : '';
+        if (!relPath) {
+          return sendJson(res, 400, { status: 'error', message: '흡수할 모듈 경로(rel_path)가 필요합니다.' });
+        }
+        const snap = await l1ScaleRotor.call('spine_absorb_module', { rel_path: relPath }, 12000);
+        return sendJson(res, 200, snap);
+      } catch (abErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: abErr instanceof Error ? abErr.message : '모듈 AST 스케일로터 흡수 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/vertical-cycle') {
+      const body = await readJsonBody(req);
+      try {
+        const trigger = typeof body?.trigger === 'string' ? body.trigger.trim().slice(0, 64) : '수직 통합 순환 (S_min↔S_max)';
+        const snap = await l1ScaleRotor.call('spine_vertical_cycle', { trigger }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (vcErr) {
+        return sendJson(res, 500, {
+          status: 'error',
+          message: vcErr instanceof Error ? vcErr.message : '수직 사이클 실행 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/differentiate') {
+      const body = await readJsonBody(req);
+      try {
+        const unitId = typeof body?.unit_id === 'string' ? body.unit_id.trim().slice(0, 180) : '';
+        if (!unitId) {
+          return sendJson(res, 400, { status: 'error', message: '분할할 인지 단위(unit_id)가 필요합니다.' });
+        }
+        const customLabels = Array.isArray(body?.custom_labels)
+          ? body.custom_labels.map((s) => String(s || '').trim().slice(0, 40)).filter(Boolean).slice(0, 4)
+          : null;
+        const snap = await l1ScaleRotor.call('spine_differentiate', { unit_id: unitId, custom_labels: customLabels }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (dfErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: dfErr instanceof Error ? dfErr.message : '인지 단위 분할 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/integrate') {
+      const body = await readJsonBody(req);
+      try {
+        const unitIds = Array.isArray(body?.unit_ids)
+          ? body.unit_ids.map((s) => String(s || '').trim().slice(0, 180)).filter(Boolean).slice(0, 8)
+          : [];
+        if (!unitIds.length) {
+          return sendJson(res, 400, { status: 'error', message: '통합할 인지 단위(unit_ids)가 필요합니다.' });
+        }
+        const label = typeof body?.label === 'string' ? body.label.trim().slice(0, 48) : '';
+        const snap = await l1ScaleRotor.call('spine_integrate', { unit_ids: unitIds, label }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (igErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: igErr instanceof Error ? igErr.message : '인지 단위 통합 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/expand-axis') {
+      const body = await readJsonBody(req);
+      try {
+        const name = typeof body?.name === 'string' ? body.name.trim().slice(0, 32) : '';
+        const anchorUnitId = typeof body?.anchor_unit_id === 'string' ? body.anchor_unit_id.trim().slice(0, 180) : '';
+        const axisGroup = typeof body?.axis_group === 'string' ? body.axis_group.trim().slice(0, 24) : 'emergent_axis';
+        const snap = await l1ScaleRotor.call('spine_expand_axis', {
+          name,
+          anchor_unit_id: anchorUnitId,
+          axis_group: axisGroup,
+        }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (exErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: exErr instanceof Error ? exErr.message : '수평 축 확장 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/fold-limit') {
+      const body = await readJsonBody(req);
+      try {
+        const clusterSize = Math.max(2, Math.min(8, Number(body?.cluster_size || 4)));
+        const reason = typeof body?.reason === 'string' ? body.reason.trim().slice(0, 80) : '한계 지각 · 원근 압축 접기';
+        const snap = await l1ScaleRotor.call('spine_fold_limit', { cluster_size: clusterSize, reason }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (flErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: flErr instanceof Error ? flErr.message : '한계 지각 접기 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/couple-handle') {
+      const body = await readJsonBody(req);
+      try {
+        const snap = await l1ScaleRotor.call('spine_couple_handle', {
+          handle_id: typeof body?.handle_id === 'string' ? body.handle_id.trim().slice(0, 80) : '',
+          name: typeof body?.name === 'string' ? body.name.trim().slice(0, 48) : '',
+          domain: typeof body?.domain === 'string' ? body.domain.trim().slice(0, 24) : 'tool',
+          control_handles: Array.isArray(body?.control_handles) ? body.control_handles.slice(0, 6) : null,
+          observable_surface: Array.isArray(body?.observable_surface) ? body.observable_surface.slice(0, 6) : null,
+          opaque_non_self: typeof body?.opaque_non_self === 'string' ? body.opaque_non_self.trim().slice(0, 140) : '',
+        }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (cpErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: cpErr instanceof Error ? cpErr.message : '외부 경계 결합 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/actuate-handle') {
+      const body = await readJsonBody(req);
+      try {
+        const snap = await l1ScaleRotor.call('spine_actuate_handle', {
+          handle_id: typeof body?.handle_id === 'string' ? body.handle_id.trim().slice(0, 80) : '',
+          action_label: typeof body?.action_label === 'string' ? body.action_label.trim().slice(0, 48) : '',
+          intensity: Number(body?.intensity ?? 0.55),
+        }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (acErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: acErr instanceof Error ? acErr.message : '외부 경계 조작 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/detach-handle') {
+      const body = await readJsonBody(req);
+      try {
+        const snap = await l1ScaleRotor.call('spine_detach_handle', {
+          handle_id: typeof body?.handle_id === 'string' ? body.handle_id.trim().slice(0, 80) : '',
+        }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (dtErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: dtErr instanceof Error ? dtErr.message : '외부 경계 분리 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/run-friction-experiment') {
+      const body = await readJsonBody(req);
+      try {
+        const snap = await l1ScaleRotor.call('spine_run_friction_experiment', {
+          experiment_id: typeof body?.experiment_id === 'string' ? body.experiment_id.trim().slice(0, 48) : 'memory_hierarchy',
+          params: (body?.params && typeof body.params === 'object') ? body.params : {},
+        }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (frErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: frErr instanceof Error ? frErr.message : '실측 마찰 실험 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/refine-unit-division') {
+      const body = await readJsonBody(req);
+      try {
+        const snap = await l1ScaleRotor.call('spine_refine_unit_division', {
+          domain_id: typeof body?.domain_id === 'string' ? body.domain_id.trim().slice(0, 48) : 'driving_pedal',
+          steps: Math.max(1, Math.min(6, Number(body?.steps || 1))),
+        }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (udErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: udErr instanceof Error ? udErr.message : '단위 분화 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/spine/actuate-perceptual-unit') {
+      const body = await readJsonBody(req);
+      try {
+        const snap = await l1ScaleRotor.call('spine_actuate_perceptual_unit', {
+          unit_id: typeof body?.unit_id === 'string' ? body.unit_id.trim().slice(0, 48) : 'hand_rig',
+          action: typeof body?.action === 'string' ? body.action.trim().slice(0, 48) : '',
+          target: Number.isFinite(Number(body?.target)) ? Number(body.target) : 0.78,
+        }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (puErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: puErr instanceof Error ? puErr.message : '지각 단위 궤적 오류',
+        });
+      }
+    }
+    if (method === 'GET' && pathname === '/api/world-rotor/state') {
+      try {
+        const snap = await l1ScaleRotor.call('world_rotor_state', {}, 10000);
+        return sendJson(res, 200, snap);
+      } catch (wrErr) {
+        return sendJson(res, 500, {
+          status: 'error',
+          message: wrErr instanceof Error ? wrErr.message : '세계 로터 상태 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/world-rotor/action') {
+      const body = await readJsonBody(req);
+      try {
+        const snap = await l1ScaleRotor.call('world_rotor_action', {
+          action: typeof body?.action === 'string' ? body.action.trim().slice(0, 48) : 'step',
+          params: (body?.params && typeof body.params === 'object') ? body.params : {},
+        }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (wrErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: wrErr instanceof Error ? wrErr.message : '세계 로터 실행 오류',
+        });
+      }
+    }
+    if (method === 'GET' && pathname === '/api/dynamic-engine/state') {
+      try {
+        const snap = await l1ScaleRotor.call('dynamic_engine_state', {}, 10000);
+        return sendJson(res, 200, snap);
+      } catch (deErr) {
+        return sendJson(res, 500, {
+          status: 'error',
+          message: deErr instanceof Error ? deErr.message : '동적 학습 엔진 상태 오류',
+        });
+      }
+    }
+    if (method === 'POST' && pathname === '/api/dynamic-engine/action') {
+      const body = await readJsonBody(req);
+      try {
+        const snap = await l1ScaleRotor.call('dynamic_engine_action', {
+          action: typeof body?.action === 'string' ? body.action.trim().slice(0, 48) : 'state',
+          params: (body?.params && typeof body.params === 'object') ? body.params : {},
+        }, 10000);
+        return sendJson(res, 200, snap);
+      } catch (deErr) {
+        return sendJson(res, 400, {
+          status: 'error',
+          message: deErr instanceof Error ? deErr.message : '동적 학습 엔진 실행 오류',
+        });
+      }
+    }
+    if (method === 'GET' && pathname === '/api/dynamic-engine/corpus-manifest') {
+      try {
+        const assetsRoot = path.join(__dirname, 'L0_substrate', 'mva', 'static', 'assets');
+        const items = [];
+        const walk = (dir, relBase) => {
+          if (!fs.existsSync(dir)) return;
+          for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+            const full = path.join(dir, entry.name);
+            const rel = relBase ? `${relBase}/${entry.name}` : entry.name;
+            if (entry.isDirectory()) {
+              walk(full, rel);
+            } else if (/\.(jpe?g|png|webp)$/i.test(entry.name)) {
+              items.push({
+                name: rel,
+                url: `/static/assets/${rel}`,
+                kind: 'photo',
+              });
+            }
+          }
+        };
+        walk(assetsRoot, '');
+        return sendJson(res, 200, { status: 'ok', count: items.length, items });
+      } catch (cmErr) {
+        return sendJson(res, 500, {
+          status: 'error',
+          message: cmErr instanceof Error ? cmErr.message : '실세계 코퍼스 스캔 오류',
+        });
+      }
+    }
     if (method === 'POST' && pathname === '/api/scale-rotor/reset') {
       const body = await readJsonBody(req);
       const state = await l1ScaleRotor.call('reset', body || {});

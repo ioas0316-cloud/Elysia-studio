@@ -299,9 +299,20 @@ class DisciplineToolForge:
         if chosen is None:
             if not target_hooks:
                 return None
+            # Count concrete structural cue hits so generic single words ("원리", "이해", "구조") never misfire!
+            low_clean = clean.lower()
+            non_generic_hooks = target_hooks - {"학습·적응"}
+            total_cue_hits = sum(
+                1
+                for hook in non_generic_hooks
+                for cue in STRUCTURAL_HOOK_LEXICON.get(hook, ())
+                if cue in low_clean
+            )
+            if not non_generic_hooks or total_cue_hits < 2:
+                return None
             for t in self.tools:
                 t_hooks = set(t.get("structural_tags") or [])
-                overlap = len(target_hooks & t_hooks)
+                overlap = len(non_generic_hooks & t_hooks)
                 if overlap == 0:
                     continue
                 is_cross = t.get("origin_discipline") != target_disc

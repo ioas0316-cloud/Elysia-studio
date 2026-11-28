@@ -1791,6 +1791,148 @@ def _handle_rpc_request(engine: UnifiedScaleRotorEngine, req: Dict[str, Any]) ->
         from core.orchestration.living_companion_field import handle_companion_reset
 
         return handle_companion_reset()
+    if action == "spine_state":
+        from core.orchestration.living_companion_field import handle_spine_state
+
+        return handle_spine_state()
+    if action == "spine_sense_flow":
+        from core.orchestration.living_companion_field import handle_spine_sense_flow
+
+        return handle_spine_sense_flow(
+            pointer_dx=float(payload.get("pointer_dx", 0.0)),
+            pointer_dy=float(payload.get("pointer_dy", 0.0)),
+            pointer_x_norm=float(payload.get("pointer_x_norm", 0.5)),
+            pointer_y_norm=float(payload.get("pointer_y_norm", 0.5)),
+            speed=float(payload.get("speed", 0.0)),
+            key_kind=str(payload.get("key_kind", "none")),
+            key_phase=str(payload.get("key_phase", "none")),
+        )
+    if action == "spine_fork_world":
+        from core.orchestration.living_companion_field import handle_spine_fork_world
+
+        return handle_spine_fork_world(
+            name=str(payload.get("name", "")),
+            fork_mode=str(payload.get("fork_mode", "inherit")),
+        )
+    if action == "spine_switch_world":
+        from core.orchestration.living_companion_field import handle_spine_switch_world
+
+        return handle_spine_switch_world(world_id=str(payload.get("world_id", "world_home")))
+    if action == "spine_scan_codebase":
+        from core.orchestration.living_companion_field import handle_spine_scan_codebase
+
+        return handle_spine_scan_codebase(max_entries=int(payload.get("max_entries", 160)))
+    if action == "spine_absorb_module":
+        from core.orchestration.living_companion_field import handle_spine_absorb_module
+
+        return handle_spine_absorb_module(rel_path=str(payload.get("rel_path", "")))
+    if action == "spine_vertical_cycle":
+        from core.orchestration.living_companion_field import handle_spine_vertical_cycle
+
+        return handle_spine_vertical_cycle(trigger=str(payload.get("trigger", "수직 통합 순환 (S_min↔S_max)")))
+    if action == "spine_differentiate":
+        from core.orchestration.living_companion_field import handle_spine_differentiate
+
+        cl = payload.get("custom_labels")
+        return handle_spine_differentiate(
+            unit_id=str(payload.get("unit_id", "")),
+            custom_labels=cl if isinstance(cl, list) else None,
+        )
+    if action == "spine_integrate":
+        from core.orchestration.living_companion_field import handle_spine_integrate
+
+        uids = payload.get("unit_ids")
+        return handle_spine_integrate(
+            unit_ids=uids if isinstance(uids, list) else [],
+            label=str(payload.get("label", "")),
+        )
+    if action == "spine_expand_axis":
+        from core.orchestration.living_companion_field import handle_spine_expand_axis
+
+        return handle_spine_expand_axis(
+            name=str(payload.get("name", "")),
+            anchor_unit_id=str(payload.get("anchor_unit_id", "")) or None,
+            axis_group=str(payload.get("axis_group", "emergent_axis")),
+        )
+    if action == "spine_fold_limit":
+        from core.orchestration.living_companion_field import handle_spine_fold_limit
+
+        return handle_spine_fold_limit(
+            cluster_size=int(payload.get("cluster_size", 4)),
+            reason=str(payload.get("reason", "한계 지각 · 원근 압축 접기")),
+        )
+    if action == "spine_couple_handle":
+        from core.orchestration.living_companion_field import handle_spine_couple_handle
+
+        ctrls = payload.get("control_handles")
+        obs = payload.get("observable_surface")
+        return handle_spine_couple_handle(
+            handle_id=str(payload.get("handle_id", "")),
+            name=str(payload.get("name", "")),
+            domain=str(payload.get("domain", "tool")),
+            control_handles=ctrls if isinstance(ctrls, list) else None,
+            observable_surface=obs if isinstance(obs, list) else None,
+            opaque_non_self=str(payload.get("opaque_non_self", "")),
+        )
+    if action == "spine_actuate_handle":
+        from core.orchestration.living_companion_field import handle_spine_actuate_handle
+
+        return handle_spine_actuate_handle(
+            handle_id=str(payload.get("handle_id", "")),
+            action_label=str(payload.get("action_label", "")),
+            intensity=float(payload.get("intensity", 0.55)),
+        )
+    if action == "spine_detach_handle":
+        from core.orchestration.living_companion_field import handle_spine_detach_handle
+
+        return handle_spine_detach_handle(handle_id=str(payload.get("handle_id", "")))
+    if action == "spine_run_friction_experiment":
+        from core.orchestration.living_companion_field import handle_spine_run_friction_experiment
+
+        p_obj = payload.get("params")
+        return handle_spine_run_friction_experiment(
+            experiment_id=str(payload.get("experiment_id", "memory_hierarchy")),
+            params=p_obj if isinstance(p_obj, dict) else None,
+        )
+    if action == "spine_refine_unit_division":
+        from core.orchestration.living_companion_field import handle_spine_refine_unit_division
+
+        return handle_spine_refine_unit_division(
+            domain_id=str(payload.get("domain_id", "driving_pedal")),
+            steps=int(payload.get("steps", 1)),
+        )
+    if action == "spine_actuate_perceptual_unit":
+        from core.orchestration.living_companion_field import handle_spine_actuate_perceptual_unit
+
+        return handle_spine_actuate_perceptual_unit(
+            unit_id=str(payload.get("unit_id", "hand_rig")),
+            action=str(payload.get("action", "")),
+            target=float(payload.get("target", 0.78)),
+        )
+    if action == "world_rotor_state":
+        from core.orchestration.living_companion_field import handle_world_rotor_state
+
+        return handle_world_rotor_state()
+    if action == "world_rotor_action":
+        from core.orchestration.living_companion_field import handle_world_rotor_action
+
+        p_obj = payload.get("params")
+        return handle_world_rotor_action(
+            action=str(payload.get("action", "step")),
+            params=p_obj if isinstance(p_obj, dict) else None,
+        )
+    if action == "dynamic_engine_state":
+        from core.orchestration.living_companion_field import handle_dynamic_engine_state
+
+        return handle_dynamic_engine_state()
+    if action == "dynamic_engine_action":
+        from core.orchestration.living_companion_field import handle_dynamic_engine_action
+
+        p_obj = payload.get("params")
+        return handle_dynamic_engine_action(
+            action=str(payload.get("action", "state")),
+            params=p_obj if isinstance(p_obj, dict) else None,
+        )
     if action == "reset":
         return engine.reset_state(clear_ledger=bool(payload.get("clear_ledger", False)))
     if action == "recall_seed":

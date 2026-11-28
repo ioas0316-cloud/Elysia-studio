@@ -42,8 +42,14 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 from core.orchestration.discipline_tool_forge import DisciplineToolForge
 from core.orchestration.language_acquisition_engine import RealLanguageAcquisitionEngine
 from core.orchestration.plastic_self_manifold import PlasticSelfManifold
+from core.orchestration.principled_spectrum_core import (
+    DISCOURSE_AND_FUNCTION_WORDS,
+    PrincipledSpectrumCore,
+    clean_korean_stem,
+)
 from core.orchestration.qualitative_spectrum_field import QualitativeSpectrumField
 from core.orchestration.structural_experiment_rotor import StructuralExperimentRotor
+from core.orchestration.unified_neural_spine import UnifiedNeuralSpine
 
 
 EMOTION_AXES: Tuple[str, ...] = (
@@ -107,6 +113,8 @@ STOPWORDS: Set[str] = {
     "아니야", "아니", "맞아", "맞지", "그렇", "그래", "그치", "있지", "없지", "할게",
     "the", "and", "for", "that", "this", "with", "from", "are", "was", "have",
     "not", "but", "you", "your", "into", "over", "only", "when", "what", "how",
+    "방금", "아까", "금방", "솔직", "솔직히", "솔직하게", "어떨까", "적용", "적용해", "적용해보면",
+    "설명", "설명해", "설명해봐", "이해할", "배운", "배웠", "싶은", "싶어", "싶다", "해볼까",
 }
 
 # Minimal innate sensory-affective seeds (like a human newborn's basic pain/warmth/curiosity receptors,
@@ -198,10 +206,15 @@ def _dist6(a: Sequence[float], b: Sequence[float]) -> float:
 
 def _strip_korean_particle(word: str) -> str:
     w = word.strip()
-    if len(w) <= 2:
+    if not w:
         return w
-    # Protect words already in innate seeds or known stems before stripping
+    # Protect words already in innate seeds before stripping
     if w in INNATE_AFFECT_SEEDS:
+        return w
+    # Preserve single-char structural nouns when followed by particle (e.g. "축과" -> "축", "색을" -> "색")
+    if len(w) == 2 and w[0] in {"축", "색", "빛", "힘", "음", "점", "선", "면", "물", "불"} and w[1] in {"은", "는", "이", "가", "을", "를", "과", "와", "에", "의", "도", "로"}:
+        return w[0]
+    if len(w) <= 2:
         return w
     for p in KO_PARTICLES:
         if w.endswith(p) and len(w) - len(p) >= 2:
@@ -211,7 +224,7 @@ def _strip_korean_particle(word: str) -> str:
 
 def _extract_tokens(text: str) -> List[str]:
     """Extract meaningful Korean/English concept stems preserving order."""
-    raw = re.findall(r"[가-힣]{2,}|[A-Za-z][A-Za-z0-9_-]{2,}|ㅋㅋ+|ㅎㅎ+", text or "")
+    raw = re.findall(r"[가-힣]{2,}|[A-Za-z0-9][A-Za-z0-9_-]{1,}|ㅋㅋ+|ㅎㅎ+", text or "")
     out: List[str] = []
     seen: Set[str] = set()
     for w in raw:
@@ -222,7 +235,9 @@ def _extract_tokens(text: str) -> List[str]:
             stem = "ㅎㅎ"
         else:
             stem = _strip_korean_particle(wl)
-        if len(stem) < 2 or stem in STOPWORDS:
+        if len(stem) < 2 and stem not in {"축", "색", "빛", "힘", "음"}:
+            continue
+        if stem in STOPWORDS or stem in DISCOURSE_AND_FUNCTION_WORDS:
             continue
         if stem not in seen:
             seen.add(stem)
@@ -383,12 +398,16 @@ class LivingCompanionField:
         self.meso_distillations: List[Dict[str, Any]] = []
         self.surface_revision: int = 1
 
-        # Open Plastic Self, Qualitative Linguistic-Spectrum Field, Discipline-to-Tool Forge, Language Engine & Structural Rotor
+        # Open Plastic Self, Qualitative Linguistic-Spectrum Field, Discipline-to-Tool Forge, Language Engine, Structural Rotor, Principled Spectrum & Unified Neural Spine
         self.plastic_self = PlasticSelfManifold()
         self.qualitative_field = QualitativeSpectrumField()
         self.tool_forge = DisciplineToolForge()
         self.lang_engine = RealLanguageAcquisitionEngine()
         self.structural_rotor = StructuralExperimentRotor()
+        self.principled_spectrum = PrincipledSpectrumCore()
+        self.neural_spine = UnifiedNeuralSpine()
+        for _c in list(self.principled_spectrum.crystals.values()):
+            self.neural_spine.sync_spectrum_crystal(_c)
         opening_phrases = self.plastic_self.last_scale_articulation["s2_breath_phrases"]
         opening_text = " ".join(p["text"] for p in opening_phrases)
         self.conversation_history: List[Dict[str, Any]] = [
@@ -477,6 +496,12 @@ class LivingCompanionField:
                 self.lang_engine.load_dict(raw["lang_engine"])
             if isinstance(raw.get("structural_rotor"), dict):
                 self.structural_rotor.load_dict(raw["structural_rotor"])
+            if isinstance(raw.get("principled_spectrum"), dict):
+                self.principled_spectrum.load_dict(raw["principled_spectrum"])
+            if isinstance(raw.get("neural_spine"), dict):
+                self.neural_spine.load_dict(raw["neural_spine"])
+            for _c in list(self.principled_spectrum.crystals.values()):
+                self.neural_spine.sync_spectrum_crystal(_c)
             if isinstance(raw.get("conversation_history"), list) and raw["conversation_history"]:
                 self.conversation_history = raw["conversation_history"][-40:]
             if isinstance(raw.get("last_causal_trace"), dict) and raw["last_causal_trace"].get("spoken_reply"):
@@ -535,6 +560,8 @@ class LivingCompanionField:
                 "tool_forge": self.tool_forge.to_dict(),
                 "lang_engine": self.lang_engine.to_dict(),
                 "structural_rotor": self.structural_rotor.to_dict(),
+                "principled_spectrum": self.principled_spectrum.to_dict(),
+                "neural_spine": self.neural_spine.to_dict(),
                 "conversation_history": self.conversation_history[-40:],
                 "last_causal_trace": self.last_causal_trace,
             }
@@ -1139,26 +1166,61 @@ class LivingCompanionField:
                             self.tool_forge.distill_from_text(wiki_blob[:400], source_name=fetched.get("title", cand))
                         break
 
-        # Layer 4 (Causal Foothold + Hangul Walker + Non-Templated Dynamic Korean S4 -> S3 -> S2 Composition)
+        # Layer 3e (Unified One<->Whole Principled Spectrum Reasoning):
+        # Reasons over [constituents · causality · environmental conditions] along shared continua,
+        # handles multi-constituent teaching, condition-preserving transfer, sibling contrasts, and honest unknown inquiry!
+        spec_res = self.principled_spectrum.reason_and_compose(clean_msg)
+        if spec_res is not None:
+            if spec_res.get("crystal"):
+                self.neural_spine.sync_spectrum_crystal(spec_res["crystal"])
+            elif spec_res.get("source"):
+                self.neural_spine.sync_spectrum_crystal(spec_res["source"])
+                if spec_res.get("target"):
+                    self.neural_spine.sync_spectrum_crystal(spec_res["target"])
+
+        # Layer 4 (One<->Whole Principled Speech OR Causal Foothold + Hangul Walker Composition)
         aro_s = self.plastic_self.somatic[1]
         base_pause = max(240, min(680, int(round((460 - 150 * aro_s) * self.plastic_self.meta_params["phrase_breath_scale"]))))
-        spoken, uncaptured_q, articulation = self.lang_engine.compose_living_utterance(
-            message=clean_msg,
-            tokens=sensory["tokens"],
-            unknowns=sensory["unknown_tokens"],
-            exp_out=exp_out,
-            learned_defs=learn_out["learned_definitions"],
-            known_defs=graph_hit["definitions"],
-            recalled_ep=graph_hit["recalled_episode"],
-            recalled_clause=graph_hit["recalled_clause"],
-            edges=graph_hit["edges"],
-            has_question=sensory["has_question"],
-            qualitative_capture=qual_cap,
-            forged_tool=newly_forged_tool,
-            applied_tool=applied_tool,
-            live_world_entry=live_world_entry,
-            base_pause=base_pause,
+        multi_axis_qual = bool(qual_cap and len(qual_cap.get("attributes") or {}) >= 2)
+        use_principled = (
+            spec_res is not None
+            and not newly_forged_tool
+            and applied_tool is None
+            and not multi_axis_qual
+            and not (spec_res.get("mode") == "principled_honest_inquiry" and graph_hit["definitions"])
         )
+        if use_principled:
+            spoken = spec_res["reply"]
+            uncaptured_q = spec_res.get("uncaptured_question") or ""
+            s_parts = [p.strip() for p in re.split(r"(?<=[.!?])\s+", spoken) if p.strip()]
+            articulation = {
+                "scale_mode": "One↔Whole",
+                "s4_intent": spec_res.get("summary", "원리 스펙트럼 통합 사유"),
+                "s3_structure": spec_res.get("mode", "principled_spectrum"),
+                "s2_breath_phrases": [
+                    {"text": seg, "pause_ms": base_pause, "tone": "clear"}
+                    for seg in (s_parts or [spoken])
+                ],
+                "walker_used": False,
+            }
+        else:
+            spoken, uncaptured_q, articulation = self.lang_engine.compose_living_utterance(
+                message=clean_msg,
+                tokens=sensory["tokens"],
+                unknowns=sensory["unknown_tokens"],
+                exp_out=exp_out,
+                learned_defs=learn_out["learned_definitions"],
+                known_defs=graph_hit["definitions"],
+                recalled_ep=graph_hit["recalled_episode"],
+                recalled_clause=graph_hit["recalled_clause"],
+                edges=graph_hit["edges"],
+                has_question=sensory["has_question"],
+                qualitative_capture=qual_cap,
+                forged_tool=newly_forged_tool,
+                applied_tool=applied_tool,
+                live_world_entry=live_world_entry,
+                base_pause=base_pause,
+            )
         self.plastic_self.last_scale_articulation = articulation
 
         # Build transparent 4-layer causal trace strings (human-centered + Meta-Self aware)
@@ -1211,6 +1273,22 @@ class LivingCompanionField:
         if uncaptured_q and uncaptured_q not in self.unresolved_curiosities:
             self.unresolved_curiosities.append(uncaptured_q)
             self.unresolved_curiosities = self.unresolved_curiosities[-6:]
+
+        # Feed lived dialogue directly into the Single Canonical S0..S4 Neural Spine
+        try:
+            self.neural_spine.ingest_cognitive_event(
+                kind="dialogue",
+                title=clean_msg[:48],
+                concepts=(sensory["known_tokens"][:3] + sensory["unknown_tokens"][:2]),
+                flux=max(0.15, min(0.85, 0.36 + 0.25 * self.plastic_self.somatic[1])),
+                order=max(0.15, min(0.85, 0.44 - 0.18 * exp_out["unexplained_residual"])),
+                entropy=max(0.10, min(0.80, 0.18 + 0.35 * exp_out["unexplained_residual"])),
+                self_lens=f"감정결={dom_f} · 보행기 정합",
+                inter_space=criteria_rev[:110],
+                relation_state="open" if sensory["unknown_tokens"] else "variable",
+            )
+        except Exception:
+            pass
 
         self.last_causal_trace = {
             "sensory_perception": sensory_desc,
@@ -2438,14 +2516,19 @@ class LivingCompanionField:
             return distill
 
     def _background_rotor_loop(self) -> None:
+        # Anti-solipsistic consolidation: NEVER burn hundreds of thousands of empty internal loops!
+        # Only run a calm, bounded consolidation pass when real recent interaction occurred.
+        last_consolidated_turn = -1
         while self._bg_running:
-            time.sleep(0.25)
+            time.sleep(8.0)
             if not self._bg_running or self._bg_paused:
                 continue
             try:
                 now = time.time()
-                should_surface = (now - self._last_macro_surface_ts) >= 6.5
-                self.run_micro_meso_burst(trials=64, surface_macro=should_surface)
+                if self.turn_count == last_consolidated_turn:
+                    continue
+                last_consolidated_turn = self.turn_count
+                self.run_micro_meso_burst(trials=12, surface_macro=False)
                 if self._bg_dirty and (now - self._last_bg_save_ts) >= 12.0:
                     with self._lock:
                         self.save_memory()
@@ -2541,6 +2624,17 @@ class LivingCompanionField:
                 "discipline_tools": self.tool_forge.get_public_state(),
                 "language_engine": self.lang_engine.get_public_state(),
                 "structural_experiments": self.structural_rotor.get_public_state(),
+                "principled_spectrum": self.principled_spectrum.get_public_state(),
+                "neural_spine_summary": {
+                    "active_world_id": self.neural_spine.active_world_id,
+                    "active_world_name": self.neural_spine._active_world()["name"],
+                    "world_count": len(self.neural_spine.worlds),
+                    "node_count": len(self.neural_spine.nodes),
+                    "link_count": len(self.neural_spine.links),
+                    "vertical_cycles": self.neural_spine.vertical_cycles,
+                    "prediction_gap": self.neural_spine.prediction_gap,
+                    "absorbed_modules": len(self.neural_spine.absorbed_modules),
+                },
                 "scale_articulation": self.plastic_self.last_scale_articulation,
                 "conversation_history": list(self.conversation_history[-30:]),
                 "dialogue": str(self.last_causal_trace.get("spoken_reply", "")),
@@ -2639,6 +2733,20 @@ def handle_companion_learn_world(*, topic: str = "") -> Dict[str, Any]:
                 )
                 _DEFAULT_COMPANION.qualitative_field.absorb_text(blob[:500])
                 _DEFAULT_COMPANION.tool_forge.distill_from_text(blob[:500], source_name=entry.get("title", clean_t or "위키"))
+                try:
+                    _DEFAULT_COMPANION.neural_spine.ingest_cognitive_event(
+                        kind="world_learn",
+                        title=f"세계 독해: {entry.get('title', clean_t or '위키')}",
+                        concepts=[entry.get("title", clean_t or "지식")] + list(entry.get("extracted_concepts", []))[:3],
+                        flux=0.34,
+                        order=0.48,
+                        entropy=0.18,
+                        self_lens="무료 한국어 위키 자율 독해 + 5×N×7 텐서",
+                        inter_space=f"문장 {entry.get('sentence_count', 0)}개 → 현실 원리 결합",
+                        relation_state="invariant",
+                    )
+                except Exception:
+                    pass
             _DEFAULT_COMPANION.save_memory()
         out = _DEFAULT_COMPANION.get_state()
         out["world_reading_result"] = entry
@@ -2754,3 +2862,614 @@ def handle_companion_feedback(*, signal: str = "resonate", correction: str = "")
 def handle_companion_reset() -> Dict[str, Any]:
     with _DEFAULT_COMPANION._lock:
         return _DEFAULT_COMPANION.reset_memory()
+
+
+def handle_spine_state() -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["principled_spectrum"] = _DEFAULT_COMPANION.principled_spectrum.get_public_state()
+        return snap
+
+
+def handle_spine_sense_flow(
+    *,
+    pointer_dx: float = 0.0,
+    pointer_dy: float = 0.0,
+    pointer_x_norm: float = 0.5,
+    pointer_y_norm: float = 0.5,
+    speed: float = 0.0,
+    key_kind: str = "none",
+    key_phase: str = "none",
+) -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        res = _DEFAULT_COMPANION.neural_spine.ingest_browser_sensory_flow(
+            pointer_dx=pointer_dx,
+            pointer_dy=pointer_dy,
+            pointer_x_norm=pointer_x_norm,
+            pointer_y_norm=pointer_y_norm,
+            speed=speed,
+            key_kind=key_kind,
+            key_phase=key_phase,
+        )
+        return res
+
+
+def handle_spine_fork_world(*, name: str = "", fork_mode: str = "inherit") -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        snap = _DEFAULT_COMPANION.neural_spine.fork_world(name=name, fork_mode=fork_mode)
+        _DEFAULT_COMPANION.save_memory()
+        return snap
+
+
+def handle_spine_switch_world(*, world_id: str = "world_home") -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        snap = _DEFAULT_COMPANION.neural_spine.switch_world(world_id)
+        _DEFAULT_COMPANION.save_memory()
+        return snap
+
+
+def handle_spine_scan_codebase(*, max_entries: int = 160) -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        _DEFAULT_COMPANION.neural_spine.refresh_codebase_rotor_map(max_entries=max(40, min(260, int(max_entries))))
+        _DEFAULT_COMPANION.neural_spine.step_vertical_cycle(trigger="저장소 의존성 스케일로터 전수 스캔", external_novelty=0.38)
+        _DEFAULT_COMPANION.save_memory()
+        return _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+
+
+def handle_spine_absorb_module(*, rel_path: str = "") -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        res = _DEFAULT_COMPANION.neural_spine.absorb_codebase_module(rel_path)
+        inv = res.get("invariant", {})
+        if inv:
+            doc_blob = f"{inv.get('name', '')}: {inv.get('doc', '')} {' '.join(inv.get('bridge_steps', []))}"
+            _DEFAULT_COMPANION.tool_forge.distill_from_text(doc_blob[:600], source_name=f"코드모듈:{inv.get('name', '')}")
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["absorption_result"] = res
+        return snap
+
+
+def handle_spine_vertical_cycle(*, trigger: str = "수동 수직 순환 (S_min↔S_max)") -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        trace = _DEFAULT_COMPANION.neural_spine.step_vertical_cycle(trigger=trigger, external_novelty=0.35)
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["cycle_trace"] = trace
+        return snap
+
+
+def handle_spine_differentiate(*, unit_id: str = "", custom_labels: Optional[List[str]] = None) -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        op_res = _DEFAULT_COMPANION.neural_spine.differentiate_unit(unit_id, custom_labels=custom_labels)
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["topology_result"] = op_res
+        return snap
+
+
+def handle_spine_integrate(*, unit_ids: Optional[List[str]] = None, label: str = "") -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        op_res = _DEFAULT_COMPANION.neural_spine.integrate_units(unit_ids or [], label=label)
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["topology_result"] = op_res
+        return snap
+
+
+def handle_spine_expand_axis(*, name: str = "", anchor_unit_id: Optional[str] = None, axis_group: str = "emergent_axis") -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        op_res = _DEFAULT_COMPANION.neural_spine.expand_horizontal_axis(
+            name=name,
+            anchor_unit_id=anchor_unit_id or None,
+            axis_group=axis_group,
+        )
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["topology_result"] = op_res
+        return snap
+
+
+def handle_spine_fold_limit(*, cluster_size: int = 4, reason: str = "한계 지각 · 원근 압축 접기") -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        op_res = _DEFAULT_COMPANION.neural_spine.fold_under_limit(cluster_size=cluster_size, reason=reason)
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["topology_result"] = op_res
+        return snap
+
+
+def handle_spine_couple_handle(
+    *,
+    handle_id: str = "",
+    name: str = "",
+    domain: str = "tool",
+    control_handles: Optional[List[str]] = None,
+    observable_surface: Optional[List[str]] = None,
+    opaque_non_self: str = "",
+) -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        op_res = _DEFAULT_COMPANION.neural_spine.couple_external_handle(
+            handle_id=handle_id,
+            name=name,
+            domain=domain,
+            control_handles=control_handles,
+            observable_surface=observable_surface,
+            opaque_non_self=opaque_non_self,
+        )
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["topology_result"] = op_res
+        return snap
+
+
+def handle_spine_actuate_handle(
+    *,
+    handle_id: str,
+    action_label: str = "",
+    intensity: float = 0.55,
+) -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        op_res = _DEFAULT_COMPANION.neural_spine.actuate_external_handle(
+            handle_id=handle_id,
+            action_label=action_label,
+            intensity=intensity,
+        )
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["topology_result"] = op_res
+        return snap
+
+
+def handle_spine_detach_handle(*, handle_id: str) -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        op_res = _DEFAULT_COMPANION.neural_spine.detach_external_handle(handle_id=handle_id)
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["principled_spectrum"] = _DEFAULT_COMPANION.principled_spectrum.get_public_state()
+        snap["topology_result"] = op_res
+        return snap
+
+
+def handle_spine_run_friction_experiment(
+    *,
+    experiment_id: str = "memory_hierarchy",
+    params: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        exp_res = _DEFAULT_COMPANION.principled_spectrum.run_friction_experiment(
+            experiment_id=experiment_id,
+            params=params,
+        )
+        for cid in exp_res.get("touched_crystals", []):
+            c = _DEFAULT_COMPANION.principled_spectrum.crystals.get(cid)
+            if c:
+                _DEFAULT_COMPANION.neural_spine.sync_spectrum_crystal(c)
+        _DEFAULT_COMPANION.neural_spine.record_experience(
+            obj=f"실측 마찰 실험: {experiment_id}",
+            self_lens="하나↔전체 원리 스펙트럼 실측 검증 (내부 공회전 중단)",
+            inter_space=exp_res["finding"][:120],
+            relation_state="invariant",
+            attribution=(0.40, 0.36, 0.08, 0.16),
+        )
+        _DEFAULT_COMPANION.neural_spine.step_vertical_cycle(
+            trigger=f"실측 마찰 검증({experiment_id})",
+            external_novelty=min(0.85, 0.25 + float(exp_res["metrics"].get("prediction_error", 0.2))),
+        )
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["principled_spectrum"] = _DEFAULT_COMPANION.principled_spectrum.get_public_state()
+        snap["friction_result"] = exp_res
+        return snap
+
+
+def handle_spine_refine_unit_division(
+    *,
+    domain_id: str = "driving_pedal",
+    steps: int = 1,
+) -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        res = _DEFAULT_COMPANION.principled_spectrum.refine_unit_division(
+            domain_id=domain_id,
+            steps=steps,
+        )
+        # Project the refined unit-division boundary directly onto the live Scale-Rotor Spine!
+        did = res["domain_id"]
+        depth = int(res["depth"])
+        nid = f"unitdiv::{did}_d{depth}"
+        _DEFAULT_COMPANION.neural_spine.upsert_node(
+            node_id=nid,
+            scale=max(-6, 1 - depth),
+            kind="unit_division",
+            label=f"1:{res['addressable_resolution']:,} 분화 ({res['name'][:14]})",
+            flux=0.44,
+            order=0.42,
+            entropy=max(0.06, min(0.55, float(res["error_after"]) * 4.0 + 0.08)),
+            meta={
+                "domain_id": did,
+                "depth": depth,
+                "addressable_resolution": res["addressable_resolution"],
+                "stored_nodes": res["stored_nodes"],
+                "compression_ratio": res["compression_ratio"],
+                "active_interval": res["active_interval"],
+                "extra_spectrum": {"단위분별해상도": min(0.99, depth / 6.0)},
+                "role": "1,000,000 데이터를 저장하지 않고 '1'을 재귀 분할·분화·연결해 얻은 고해상도 경계",
+            },
+            auto_dock=True,
+        )
+        _DEFAULT_COMPANION.neural_spine.record_experience(
+            obj=f"1→{res['addressable_resolution']:,} 단위 분화 ({res['name'][:18]})",
+            self_lens=f"저장 노드 {res['stored_nodes']}개 · 압축률 {res['compression_ratio']:,.1f}:1 (데이터 폭증 0)",
+            inter_space=f"오차 {res['error_before']:.5f} → {res['error_after']:.5f} (구간 {res['active_interval'][0]:.4f}~{res['active_interval'][1]:.4f})",
+            relation_state="invariant",
+            attribution=(0.48, 0.28, 0.08, 0.16),
+        )
+        _DEFAULT_COMPANION.neural_spine.step_vertical_cycle(
+            trigger=f"단위 분화 1:{res['addressable_resolution']:,} ({did})",
+            external_novelty=min(0.85, 0.16 + float(res["error_after"]) * 2.0),
+        )
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["principled_spectrum"] = _DEFAULT_COMPANION.principled_spectrum.get_public_state()
+        snap["division_result"] = res
+        return snap
+
+
+def handle_spine_actuate_perceptual_unit(
+    *,
+    unit_id: str = "hand_rig",
+    action: str = "",
+    target: float = 0.78,
+) -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        traj = _DEFAULT_COMPANION.principled_spectrum.actuate_perceptual_unit(
+            unit_id=unit_id,
+            action=action,
+            target=target,
+        )
+        nid = f"punit::{traj['unit_id']}"
+        _DEFAULT_COMPANION.neural_spine.upsert_node(
+            node_id=nid,
+            scale=2,
+            kind="perceptual_unit",
+            label=f"지각단위:{traj['perceptual_unit'][:14]}",
+            flux=0.52,
+            order=0.38,
+            entropy=0.10,
+            meta={
+                "unit_id": traj["unit_id"],
+                "media_domain": traj["media_domain"],
+                "bound_hierarchy": traj["bound_hierarchy"],
+                "static_raw_elements_bound": traj["static_raw_elements_bound"],
+                "raw_identity_recomputations": 0,
+                "last_action": traj["action_label"],
+                "extra_spectrum": {"지각구조결합도": 0.96},
+                "role": "인지 단위 = 지각 단위: 이미 정적 결합된 구조를 원시 재계산 0회로 과정 궤적 구동",
+            },
+            auto_dock=True,
+        )
+        _DEFAULT_COMPANION.neural_spine.record_experience(
+            obj=f"지각 단위 '{traj['perceptual_unit']}' ({traj['media_domain']})",
+            self_lens=f"정적 결합 {traj['static_raw_elements_bound']:,}개 · 정체성 재계산 0회 · 조작 1개",
+            inter_space=f"{traj['action_label']} → {traj['coupled_links_moved']}단계 구조 연쇄 궤적 (이동 {traj['tip_travel_distance']})",
+            relation_state="invariant",
+            attribution=(0.50, 0.28, 0.06, 0.16),
+        )
+        _DEFAULT_COMPANION.neural_spine.step_vertical_cycle(
+            trigger=f"지각 단위 궤적({traj['perceptual_unit']}·{traj['action_label']})",
+            external_novelty=0.22,
+        )
+        _DEFAULT_COMPANION.save_memory()
+        snap = _DEFAULT_COMPANION.neural_spine.get_reality_view_snapshot()
+        snap["principled_spectrum"] = _DEFAULT_COMPANION.principled_spectrum.get_public_state()
+        snap["trajectory_result"] = traj
+        return snap
+
+
+_WORLD_ROTOR_INSTANCE: Any = None
+
+
+def _get_world_rotor():
+    global _WORLD_ROTOR_INSTANCE
+    if _WORLD_ROTOR_INSTANCE is None:
+        from core.orchestration.scale_hierarchy_world_rotor import ScaleHierarchyWorldRotor
+
+        _WORLD_ROTOR_INSTANCE = ScaleHierarchyWorldRotor()
+    return _WORLD_ROTOR_INSTANCE
+
+
+def handle_world_rotor_state() -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        return _get_world_rotor().get_snapshot()
+
+
+def handle_world_rotor_action(
+    *,
+    action: str = "step",
+    params: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        wr = _get_world_rotor()
+        snap = wr.apply_action(action=action, params=params)
+        s4 = snap["layers"]["S4_celestial"]
+        s0 = snap["layers"]["S0_micro_boundary"]
+        if action in (
+            "inject_unknown_shock",
+            "run_benchmark",
+            "refine_to_million",
+            "experience_cycle",
+            "ingest_real_media_spectrum",
+            "recombine_media_spectra",
+        ):
+            exp_res = snap.get("experience_result") or {}
+            new_ice = exp_res.get("new_ice_crystal")
+            if isinstance(new_ice, dict):
+                _DEFAULT_COMPANION.neural_spine.upsert_node(
+                    node_id=new_ice["id"],
+                    scale=3,
+                    kind="ice_crystal",
+                    label=f"얼음결정:{new_ice['title'][:14]}",
+                    flux=0.22,
+                    order=0.68,
+                    entropy=0.10,
+                    meta={
+                        "unified_principle": new_ice["unified_principle"],
+                        "verified_facets": new_ice["verified_facets"],
+                        "error_reduction": new_ice["error_reduction"],
+                        "extra_spectrum": {"통합결정일관성": 0.98},
+                        "role": "구름(미지)→물(4면 관측)→얼음(t=0 정적 통합 인지) 결정체",
+                    },
+                    auto_dock=True,
+                )
+            _DEFAULT_COMPANION.neural_spine.upsert_node(
+                node_id="worldrotor::s4_celestial",
+                scale=4,
+                kind="macro_rotor",
+                label=f"S4 천체 광원 ({s4['solar_hour']:.1f}h)",
+                flux=0.32,
+                order=0.58,
+                entropy=0.10,
+                meta={
+                    "solar_hour": s4["solar_hour"],
+                    "shadow_skew": s4["shadow_skew"],
+                    "extra_spectrum": {"거시위상일관성": 1.0},
+                    "role": "1개 거시 천체 로터가 태양·달·광원·그림자 기준축을 하위 레이어 전체로 상속",
+                },
+                auto_dock=True,
+            )
+            _DEFAULT_COMPANION.neural_spine.record_experience(
+                obj=(
+                    f"구름→물→얼음 통합 경험: {exp_res.get('cloud_event', action)}"
+                    if action == "experience_cycle"
+                    else f"거시↔미시 세계 로터 ({action})"
+                ),
+                self_lens=f"얼음 결정 {len(snap['phase_states']['ice']['crystals'])}개 · S0 1:{s0['addressable_resolution']:,} ({s0['stored_nodes']}노드)",
+                inter_space=(
+                    new_ice["unified_principle"]
+                    if isinstance(new_ice, dict)
+                    else (
+                        snap["benchmark"]["verdict"]
+                        if action == "run_benchmark" and snap.get("benchmark")
+                        else snap["rotor_triad"]["unknown_rotor"]["state"]
+                    )
+                ),
+                relation_state="invariant",
+                attribution=(0.46, 0.30, 0.08, 0.16),
+            )
+            _DEFAULT_COMPANION.neural_spine.step_vertical_cycle(
+                trigger=f"세계 로터({action})",
+                external_novelty=0.35 if action in ("inject_unknown_shock", "experience_cycle") else 0.18,
+            )
+            _DEFAULT_COMPANION.save_memory()
+        return snap
+
+
+_DYNAMIC_ENGINE_INSTANCE = None
+
+
+def _get_dynamic_engine():
+    global _DYNAMIC_ENGINE_INSTANCE
+    if _DYNAMIC_ENGINE_INSTANCE is None:
+        from core.orchestration.dynamic_stream_imagination_engine import DynamicStreamImaginationEngine
+
+        _DYNAMIC_ENGINE_INSTANCE = DynamicStreamImaginationEngine()
+    return _DYNAMIC_ENGINE_INSTANCE
+
+
+def handle_dynamic_engine_state() -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        return _get_dynamic_engine().get_snapshot()
+
+
+def handle_dynamic_engine_action(
+    *,
+    action: str = "state",
+    params: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    with _DEFAULT_COMPANION._lock:
+        eng = _get_dynamic_engine()
+        res = eng.apply_action(action=action, params=params)
+        if action == "record_stream_learning" and isinstance(res.get("recorded_law"), dict):
+            law = res["recorded_law"]
+            _DEFAULT_COMPANION.neural_spine.upsert_node(
+                node_id=law["id"],
+                scale=3,
+                kind="dynamic_law",
+                label=f"동적법칙:{law['law_label_ko'][:14]}",
+                flux=0.34,
+                order=0.58,
+                entropy=0.08,
+                meta={
+                    "source_name": law["source_name"],
+                    "causal_mechanism": law["causal_mechanism"],
+                    "error_reduction_pct": law["error_reduction_pct"],
+                    "psnr_adapted": law["psnr_adapted"],
+                },
+                auto_dock=True,
+            )
+            _DEFAULT_COMPANION.neural_spine.record_experience(
+                obj=f"동적 스트림 예측·자가보정 ({law['source_name']})",
+                self_lens=f"RMSE {law['rmse_initial']:.4f} → {law['rmse_adapted']:.4f} (-{law['error_reduction_pct']}%)",
+                inter_space=law["causal_mechanism"],
+                relation_state="invariant",
+                attribution=(0.40, 0.35, 0.08, 0.17),
+            )
+            _DEFAULT_COMPANION.save_memory()
+        elif action == "apply_intent" and isinstance(res.get("creation_result"), dict):
+            cr = res["creation_result"]
+            _DEFAULT_COMPANION.neural_spine.upsert_node(
+                node_id=cr["id"],
+                scale=4,
+                kind="intentional_creation",
+                label=f"의도창조:{cr['intent'][:14]}",
+                flux=0.45,
+                order=0.45,
+                entropy=0.10,
+                meta={
+                    "source_name": cr["source_name"],
+                    "rationale": cr["rationale"],
+                    "autonomous": cr["autonomous"],
+                },
+                auto_dock=True,
+            )
+            _DEFAULT_COMPANION.neural_spine.record_experience(
+                obj=f"의도 기반 장면 재창조 ({cr['source_name']})",
+                self_lens=cr["intent"],
+                inter_space=cr["rationale"],
+                relation_state="resonant",
+                attribution=(0.52, 0.28, 0.06, 0.14),
+            )
+            _DEFAULT_COMPANION.save_memory()
+        elif action == "harvest_entity" and isinstance(res.get("harvested_entity"), dict):
+            ent = res["harvested_entity"]
+            _DEFAULT_COMPANION.neural_spine.upsert_node(
+                node_id=ent["id"],
+                scale=2,
+                kind="harvested_entity",
+                label=f"수확실체:{ent['name'][:14]}",
+                flux=0.25,
+                order=0.65,
+                entropy=0.10,
+                meta={"role": ent["role"], "origin": ent["origin"]},
+                auto_dock=True,
+            )
+            _DEFAULT_COMPANION.save_memory()
+        elif action == "ingest_real_corpus_batch" and isinstance(res.get("corpus_batch_result"), dict):
+            pr = res["corpus_batch_result"]
+            _DEFAULT_COMPANION.neural_spine.upsert_node(
+                node_id="corpus::real_optical_priors",
+                scale=4,
+                kind="real_corpus_law",
+                label=f"실세계광학({pr.get('corpus_count', 0)}자산)",
+                flux=0.30,
+                order=0.62,
+                entropy=0.08,
+                meta=pr,
+                auto_dock=True,
+            )
+            _DEFAULT_COMPANION.neural_spine.record_experience(
+                obj=f"실세계 다중 미디어 코퍼스 자율 학습 ({pr.get('corpus_count', 0)}개 자산)",
+                self_lens=f"총 {int(pr.get('total_pixels_studied', 0)):,}px 직접 분해",
+                inter_space=str(pr.get("summary", "")),
+                relation_state="invariant",
+                attribution=(0.35, 0.45, 0.06, 0.14),
+            )
+            _DEFAULT_COMPANION.save_memory()
+        elif action == "extract_motion_dna" and isinstance(res.get("extracted_motion_dna"), dict):
+            dna = res["extracted_motion_dna"]
+            _DEFAULT_COMPANION.neural_spine.upsert_node(
+                node_id=dna["id"],
+                scale=2,
+                kind="motion_dna",
+                label=f"동작DNA:{dna['gait_label_ko'][:12]}",
+                flux=0.52,
+                order=0.38,
+                entropy=0.10,
+                meta={
+                    "source_name": dna["source_name"],
+                    "dominant_freq_hz": dna["dominant_freq_hz"],
+                    "gait_regime": dna["gait_regime"],
+                },
+                auto_dock=True,
+            )
+            _DEFAULT_COMPANION.neural_spine.record_experience(
+                obj=f"영상 A 동작 리듬 DNA 추출 ({dna['source_name']})",
+                self_lens=f"{dna['gait_label_ko']} · {dna['dominant_freq_hz']}Hz",
+                inter_space="실제 프레임 시계열에서 무게중심·보폭·관성 기울기 24위상 로터 추출",
+                relation_state="invariant",
+                attribution=(0.38, 0.42, 0.06, 0.14),
+            )
+            _DEFAULT_COMPANION.save_memory()
+        elif action == "transplant_living_actor" and isinstance(res.get("transplant_result"), dict):
+            tr = res["transplant_result"]
+            _DEFAULT_COMPANION.neural_spine.upsert_node(
+                node_id=tr["id"],
+                scale=3,
+                kind="living_transplant",
+                label=f"교차이식:{tr['entity_name'][:12]}",
+                flux=0.46,
+                order=0.44,
+                entropy=0.10,
+                meta=tr,
+                auto_dock=True,
+            )
+            _DEFAULT_COMPANION.neural_spine.record_experience(
+                obj=f"교차 환경 살아있는 개체 이식 (A→B)",
+                self_lens=f"{tr['source_dna_name']} → {tr['target_world_name']}",
+                inter_space=tr["summary"],
+                relation_state="resonant",
+                attribution=(0.48, 0.32, 0.06, 0.14),
+            )
+            _DEFAULT_COMPANION.save_memory()
+        elif action == "tactile_interaction" and isinstance(res.get("tactile_result"), dict):
+            tr = res["tactile_result"]
+            rel = tr.get("relation") or {}
+            _DEFAULT_COMPANION.neural_spine.upsert_node(
+                node_id=f"bond::{tr['entity_id']}",
+                scale=1,
+                kind="relational_touch",
+                label=f"관계:{tr['entity_name'][:10]}({rel.get('bond_stage_ko', '')})",
+                flux=float(rel.get("warmth", 0.35)),
+                order=float(rel.get("trust", 0.35)),
+                entropy=0.10,
+                meta={
+                    "zone": tr["zone_ko"],
+                    "gesture": tr["gesture_ko"],
+                    "trust": rel.get("trust"),
+                    "warmth": rel.get("warmth"),
+                },
+                auto_dock=True,
+            )
+            _DEFAULT_COMPANION.neural_spine.record_experience(
+                obj=f"유기적 촉감 상호작용 ({tr['entity_name']} · {tr['zone_ko']})",
+                self_lens=f"{tr['gesture_ko']} → {rel.get('bond_stage_ko', '')}",
+                inter_space=tr["reaction_ko"],
+                relation_state="resonant",
+                attribution=(0.42, 0.42, 0.04, 0.12),
+            )
+            _DEFAULT_COMPANION.save_memory()
+        elif action == "set_world_social_field" and isinstance(res.get("world_social_field"), dict):
+            wf = res["world_social_field"]
+            _DEFAULT_COMPANION.neural_spine.upsert_node(
+                node_id="s4::world_social_field",
+                scale=4,
+                kind="social_field",
+                label=f"S4사회장:{wf.get('realm_label_ko', '')[:12]}",
+                flux=float(wf.get("regional_tension", 0.2)),
+                order=float(wf.get("authority", 0.3)),
+                entropy=max(0.05, 1.0 - abs(float(wf.get("reputation", 0.0)))),
+                meta=wf,
+                auto_dock=True,
+            )
+            _DEFAULT_COMPANION.neural_spine.record_experience(
+                obj=f"거시 S4 사회·권위·세력장 변조 ({wf.get('realm_label_ko', '')})",
+                self_lens=f"권위 {int(float(wf.get('authority', 0))*100)}% · 명성 {int(float(wf.get('reputation', 0))*100):+}% · 긴장 {int(float(wf.get('regional_tension', 0))*100)}%",
+                inter_space="거시 권위·평판·긴장도가 영수·반려동물·NPC·몬스터의 공간 거리·자세·촉감 반응을 일괄 변조",
+                relation_state="invariant",
+                attribution=(0.45, 0.35, 0.05, 0.15),
+            )
+            _DEFAULT_COMPANION.save_memory()
+        return res
+
+
+
+

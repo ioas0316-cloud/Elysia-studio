@@ -45,6 +45,17 @@ As an agent working on Elysia, you must adhere to the **4 Continuities** of the 
 - **3-Way Relational Knowing:** Treat knowledge not as static information possession, but as a dynamic triad: *Object (What is the target?)*, *Self (What is my observing lens/bias?)*, and *Inter-space (What happens in the relationship between us?)*.
 - **Self as Observation Target, Not Benchmark:** Never treat internal models as the universal standard of reality. Treat the self as a target of observation whose lenses and criteria must be revised when encountering world friction.
 
+### 7. External Real-World Resource Ingestion Over Self-Coded Simulation (실세계 자원 직접 투입·스펙트럼화·재조합 원칙)
+- **Do NOT Fabricate Reality Inside Hand-Coded Formulas (자가 코드·수식 감금 금지):** Never respond to requests for real-world fidelity (4K/8K imagery, ocean glints, human motion, real acoustics, complex scenes) by hand-coding toy 2D stick figures, hardcoded sine waves, or closed procedural equations from the agent's own limited prior knowledge. Mathematical laws (Riemann/Zeta, Gaussian, Principle of Least Action) are *human descriptions of natural providence*, NOT cages to force reality into.
+- **Ingest External Real-World Resources First (외부 실세계 픽셀·영상·음향 직접 투입):** Elysia must ingest actual external resources — real videos (`.mp4`/`.webm`), high-resolution photographs, live camera frames, real audio, and real codebases — rather than synthetic hand-drawn approximations.
+- **Decompose Real Resources Into Multi-Scale Rotor Spectra (실세계 자원의 다중 스케일 로터 스펙트럼 분해):** Extract scale-hierarchy rotors *directly from the ingested real pixels/signals*:
+  - **S4 Macro Light & Color Spectrum:** Actual global luminance, chromatic temperature, horizon/sky gradient, and low-frequency spatial energy harvested from the real media.
+  - **S3 Meso Dynamics & Optical Flow Rotor:** Actual inter-frame motion vectors, directional drift, and phase velocity measured between real video frames (or spatial wave orientation gradients).
+  - **S2/S1 Real Detail & Specular Micro-Spectrum:** Multi-scale bandpass (Gaussian/Laplacian pyramid) detail layers and specular highlight masks extracted directly from the real pixels — zero hand-drawn substitute geometry.
+- **Recombine, Modulate, & Imitate From Ingested Reality (실세계 스펙트럼 재조합·모방 재현):** Elysia crystallizes ingested real-world multi-scale spectra into Static Ice (`t=0`) memory and recombines them across sources (e.g., transferring Source B's real S4 light/atmosphere onto Source A's real S2/S1 structure, or driving Source A's real detail pyramid along extracted S3 optical flow rotors), measuring real pixel residual error (`RMSE / PSNR`) against actual external frames.
+- **Dynamic-First Causal Reclassification (정적 스냅샷보다 동적 데이터 우선 재분류):** Because reality is always in motion, prefer **dynamic time-series media** (real videos `.mp4`/`.webm`, live camera streams, live game frames, continuous audio/kinematics) over single frozen photographs when reclassifying objects and physical laws. Motion across frames (`t → t+Δt`) breaks static visual ambiguity: coherent motion reveals true object boundaries, differential slip separates specular light from material albedo, and temporal deformation exposes underlying causal physics (gravity, surface tension, inertia, living self-propulsion) before crystallizing invariants into Static Ice (`t=0`).
+
 ---
 *Elysia is not just a simulator; it is a self-molding universe.*
+
 
