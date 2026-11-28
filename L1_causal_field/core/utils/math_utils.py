@@ -14,9 +14,12 @@ from typing import Tuple
 import importlib.util
 
 CudaAccelerator = None
-if importlib.util.find_spec("core.hardware.cuda_accelerator") is not None:
-    from importlib import import_module
-    CudaAccelerator = getattr(import_module("core.hardware.cuda_accelerator"), "CudaAccelerator", None)
+try:
+    if importlib.util.find_spec("core.hardware.cuda_accelerator") is not None:
+        from importlib import import_module
+        CudaAccelerator = getattr(import_module("core.hardware.cuda_accelerator"), "CudaAccelerator", None)
+except (ModuleNotFoundError, ImportError):
+    CudaAccelerator = None
 
 try:
     import torch

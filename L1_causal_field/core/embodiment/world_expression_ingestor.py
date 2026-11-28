@@ -670,3 +670,266 @@ def ingest_local_world_media(
             collected.extend(extract_dialogues_from_literature(txt, source_title=fpath.stem, source_kind="book"))
             scanned += 1
     return collected
+
+
+def _clean_vtt_dedup_cues(raw_cues: Sequence[Tuple[float, float, str]]) -> List[Tuple[float, float, str]]:
+    """Cleans rolling YouTube auto-caption duplicates into distinct time-aligned Korean utterances."""
+    cleaned: List[Tuple[float, float, str]] = []
+    prev_norm = ""
+    for s_sec, e_sec, txt in raw_cues:
+        t = re.sub(r"\[[^\]]*\]", "", txt)
+        t = re.sub(r"\s+", " ", t).strip()
+        if len(t) < 4:
+            continue
+        if prev_norm and (t == prev_norm or t in prev_norm):
+            continue
+        if prev_norm and prev_norm in t and cleaned:
+            # Replace partial rolling prefix with the completed caption line
+            ps, _pe, _pt = cleaned[-1]
+            cleaned[-1] = (ps, max(e_sec, ps + 0.3), t)
+            prev_norm = t
+            continue
+        cleaned.append((float(s_sec), max(float(e_sec), float(s_sec) + 0.3), t))
+        prev_norm = t
+    return cleaned
+
+
+def ingest_youtube_multimodal_episode(
+    url_or_query: str,
+    out_dir: Path | str,
+    max_duration_s: int = 75,
+    max_rotors: int = 60,
+    lang: str = "ko",
+) -> Dict[str, Any]:
+    """
+    Ingests a REAL YouTube video's synchronized triad — Video (.mp4), Audio (.wav),
+    and Time-Aligned Subtitles (.vtt / transcript API) — so Elysia grounds spoken
+    language directly onto real visual motion & acoustic vocal prosody on the same timeline!
+    """
+    import shutil
+    import subprocess
+
+    dest = Path(out_dir)
+    dest.mkdir(parents=True, exist_ok=True)
+    yt_dlp_bin = shutil.which("yt-dlp")
+    ffmpeg_bin = shutil.which("ffmpeg")
+    if not yt_dlp_bin:
+        return {"status": "error", "reason": "yt-dlp not installed", "rotors": [], "utterances": []}
+
+    target = (url_or_query or "").strip()
+    if not target:
+        return {"status": "error", "reason": "empty youtube url or query", "rotors": [], "utterances": []}
+    if not target.startswith(("http://", "https://")):
+        target = f"ytsearch1:{target}"
+
+    # 1. Probe metadata (video_id, title, duration) quickly without downloading full huge stream
+    meta_cmd = [
+        yt_dlp_bin,
+        "--no-playlist",
+        "--dump-single-json",
+        "--skip-download",
+        target,
+    ]
+    meta_proc = subprocess.run(meta_cmd, capture_output=True, text=True, timeout=35, encoding="utf-8", errors="replace")
+    if meta_proc.returncode != 0 or not meta_proc.stdout.strip():
+        return {
+            "status": "error",
+            "reason": f"yt-dlp metadata failed: {(meta_proc.stderr or '')[:240]}",
+            "rotors": [],
+            "utterances": [],
+        }
+    try:
+        meta_json = json.loads(meta_proc.stdout)
+        if "entries" in meta_json and meta_json["entries"]:
+            meta_json = meta_json["entries"][0]
+    except Exception as exc:
+        return {"status": "error", "reason": f"metadata parse error: {exc}", "rotors": [], "utterances": []}
+
+    video_id = str(meta_json.get("id") or "yt_clip")
+    title = str(meta_json.get("title") or video_id)
+    webpage_url = str(meta_json.get("webpage_url") or target)
+    full_duration = float(meta_json.get("duration") or 0.0)
+    clip_end = min(int(max_duration_s), max(15, int(full_duration) if full_duration > 0 else int(max_duration_s)))
+
+    ep_dir = dest / video_id
+    ep_dir.mkdir(parents=True, exist_ok=True)
+    mp4_path = ep_dir / f"{video_id}.mp4"
+    wav_path = ep_dir / f"{video_id}.wav"
+    vtt_path = ep_dir / f"{video_id}.{lang}.vtt"
+
+    # 2A. Download progressive MP4 cleanly (separated from subtitles so subtitle 429 never aborts video!)
+    if not mp4_path.is_file() or mp4_path.stat().st_size < 4096:
+        dl_video_cmd = [
+            yt_dlp_bin,
+            "--no-playlist",
+            "-f", "18/b[height<=480][ext=mp4]/b[ext=mp4]/b",
+            "-o", str(ep_dir / f"{video_id}.%(ext)s"),
+            webpage_url,
+        ]
+        subprocess.run(dl_video_cmd, capture_output=True, text=True, timeout=120, encoding="utf-8", errors="replace")
+
+    # 2B. Download Korean subtitles separately when not already cached
+    existing_subs = (
+        sorted(ep_dir.glob(f"{video_id}*{lang}*.vtt"))
+        + sorted(ep_dir.glob(f"{video_id}*{lang}*.srt"))
+    )
+    if not existing_subs:
+        dl_sub_cmd = [
+            yt_dlp_bin,
+            "--no-playlist",
+            "--skip-download",
+            "--ignore-errors",
+            "--write-sub",
+            "--write-auto-sub",
+            "--sub-lang", f"{lang},{lang}-orig",
+            "--sub-format", "vtt/srt/best",
+            "-o", str(ep_dir / f"{video_id}.%(ext)s"),
+            webpage_url,
+        ]
+        subprocess.run(dl_sub_cmd, capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace")
+
+    # Trim full MP4 cleanly to bounded `clip_end` seconds via local ffmpeg for fast multimodal observation
+    if ffmpeg_bin and mp4_path.is_file() and full_duration > clip_end + 5:
+        clip_mp4 = ep_dir / f"{video_id}_clip_{clip_end}s.mp4"
+        if not clip_mp4.is_file() or clip_mp4.stat().st_size < 4096:
+            subprocess.run(
+                [ffmpeg_bin, "-y", "-i", str(mp4_path), "-t", str(clip_end), "-c", "copy", str(clip_mp4)],
+                capture_output=True,
+                timeout=45,
+            )
+        if clip_mp4.is_file() and clip_mp4.stat().st_size >= 4096:
+            mp4_path = clip_mp4
+
+    # Locate downloaded video & subtitle files
+    if not mp4_path.is_file():
+        vids = sorted(ep_dir.glob(f"{video_id}*.mp4")) + sorted(ep_dir.glob(f"{video_id}*.mkv")) + sorted(ep_dir.glob(f"{video_id}*.webm"))
+        if vids:
+            mp4_path = vids[0]
+
+    sub_candidates = (
+        sorted(ep_dir.glob(f"{video_id}*{lang}*.vtt"))
+        + sorted(ep_dir.glob(f"{video_id}*{lang}*.srt"))
+        + sorted(ep_dir.glob(f"{video_id}*.vtt"))
+        + sorted(ep_dir.glob(f"{video_id}*.srt"))
+    )
+    sub_path: Optional[Path] = sub_candidates[0] if sub_candidates else None
+
+    # 3. Fallback subtitle fetch via `youtube_transcript_api` if yt-dlp didn't save a .vtt
+    if sub_path is None:
+        try:
+            from youtube_transcript_api import YouTubeTranscriptApi  # type: ignore
+
+            api = YouTubeTranscriptApi()
+            if hasattr(api, "fetch"):
+                fetched = api.fetch(video_id, languages=[lang, "en"])
+                raw_items = [{"start": getattr(x, "start", 0.0), "duration": getattr(x, "duration", 1.5), "text": getattr(x, "text", "")} for x in fetched]
+            else:
+                raw_items = YouTubeTranscriptApi.get_transcript(video_id, languages=[lang, "en"])
+            if raw_items:
+                vtt_lines = ["WEBVTT", ""]
+                for item in raw_items:
+                    s0 = float(item.get("start", 0.0))
+                    if s0 > clip_end + 1.0:
+                        break
+                    e0 = s0 + float(item.get("duration", 1.5))
+                    txt = str(item.get("text", "")).replace("\n", " ").strip()
+                    if txt:
+                        s_h, s_rem = divmod(s0, 3600)
+                        s_m, s_s = divmod(s_rem, 60)
+                        e_h, e_rem = divmod(e0, 3600)
+                        e_m, e_s = divmod(e_rem, 60)
+                        vtt_lines.append(f"{int(s_h):02d}:{int(s_m):02d}:{s_s:06.3f} --> {int(e_h):02d}:{int(e_m):02d}:{e_s:06.3f}")
+                        vtt_lines.append(txt)
+                        vtt_lines.append("")
+                vtt_path.write_text("\n".join(vtt_lines), encoding="utf-8")
+                sub_path = vtt_path
+        except Exception:
+            pass
+
+    # 4. Extract synchronized 16kHz mono PCM WAV from MP4 via ffmpeg
+    if ffmpeg_bin and mp4_path.is_file() and (not wav_path.is_file() or wav_path.stat().st_size < 1024):
+        ff_cmd = [
+            ffmpeg_bin, "-y", "-i", str(mp4_path),
+            "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1",
+            "-t", str(clip_end),
+            str(wav_path),
+        ]
+        subprocess.run(ff_cmd, capture_output=True, timeout=45)
+
+    # 5. Parse subtitle cues & pair EACH utterance with exact synchronized WAV prosody + MP4 visual motion!
+    raw_cues: List[Tuple[float, float, str]] = []
+    if sub_path is not None and sub_path.is_file():
+        raw_text = sub_path.read_text(encoding="utf-8", errors="replace").lstrip("\ufeff")
+        ts_pat = re.compile(r"([\d:,.]+)\s*-->\s*([\d:,.]+)")
+        for blk in re.split(r"\r?\n\s*\r?\n", raw_text):
+            lines = [ln.strip() for ln in blk.splitlines() if ln.strip()]
+            if not lines or lines[0].upper().startswith(("WEBVTT", "NOTE", "STYLE")):
+                continue
+            ts_idx = -1
+            m = None
+            for idx, ln in enumerate(lines):
+                m = ts_pat.search(ln)
+                if m:
+                    ts_idx = idx
+                    break
+            if m is None or ts_idx < 0:
+                continue
+            s_sec = _parse_timestamp_to_s(m.group(1))
+            e_sec = _parse_timestamp_to_s(m.group(2))
+            if s_sec > clip_end + 1.0:
+                continue
+            t_lines = [re.sub(r"<[^>]+>", "", ln).strip() for ln in lines[ts_idx + 1 :]]
+            cue_txt = " ".join(t for t in t_lines if t).strip()
+            if cue_txt:
+                raw_cues.append((s_sec, e_sec, cue_txt))
+
+    cues = _clean_vtt_dedup_cues(raw_cues)[:max_rotors]
+    rotors: List[SituatedExpressionRotor] = []
+    utterances_payload: List[Dict[str, Any]] = []
+    for i, (s_sec, e_sec, expr) in enumerate(cues):
+        prev_two = [cues[j][2] for j in range(max(0, i - 2), i)]
+        situation = f"[YouTube:{title[:40]}] " + (" / ".join(prev_two) if prev_two else "영상 시작")
+        cause = cues[i - 1][2] if i > 0 else title[:80]
+        prosody = _measure_wav_prosody(wav_path, s_sec, e_sec) if wav_path.is_file() else None
+        vis_mot = _measure_video_motion(mp4_path, s_sec, e_sec) if mp4_path.is_file() else None
+        chroma, signals, intent = infer_emotion_and_intent(situation, cause, expr, voice_prosody=prosody)
+        verbs = _extract_process_verbs(f"{situation} {cause} {expr}")
+        rot = SituatedExpressionRotor(
+            rotor_id=f"yt::{video_id}::{i}",
+            source_title=title[:80],
+            source_kind="audio_video_scene",
+            situation=situation[:280],
+            cause=cause[:220],
+            process_verbs=verbs,
+            emotion_chroma=chroma,
+            emotion_signals=signals,
+            intent_purpose=intent,
+            expression_text=expr[:260],
+            voice_prosody=prosody,
+            visual_motion=vis_mot,
+        )
+        rot.ensure_vector()
+        rotors.append(rot)
+        utterances_payload.append({
+            "t_start": round(s_sec, 3),
+            "t_end": round(e_sec, 3),
+            "speaker": title[:28],
+            "text": expr,
+            "voice_prosody": prosody,
+            "visual_motion": vis_mot,
+            "emotion_chroma": chroma,
+        })
+
+    return {
+        "status": "ok" if (mp4_path.is_file() or wav_path.is_file() or rotors) else "partial",
+        "video_id": video_id,
+        "title": title,
+        "webpage_url": webpage_url,
+        "clip_duration_s": clip_end,
+        "mp4_path": str(mp4_path) if mp4_path.is_file() else "",
+        "wav_path": str(wav_path) if wav_path.is_file() else "",
+        "subtitle_path": str(sub_path) if (sub_path and sub_path.is_file()) else "",
+        "cues_count": len(cues),
+        "rotors": rotors,
+        "utterances": utterances_payload,
+    }

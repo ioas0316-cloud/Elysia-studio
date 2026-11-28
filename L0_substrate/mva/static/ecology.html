@@ -239,6 +239,7 @@
       <span id="autoPulseBadge" class="badge growth">자율 실행 중 · 사이클 #0</span>
       <span id="activeWorldBadge" class="badge invariant">WORLD: HOME</span>
       <button id="btnToggleAuto" class="btn emerald">자율 순환: ON</button>
+      <a class="nav-link" href="/story-world">★ 스토리 디지털 월드 (/story-world)</a>
       <a class="nav-link" href="/">← 메인 스튜디오 (/)</a>
       <button id="btnProbeHost" class="btn primary">호스트 OS 경계 재탐색</button>
     </div>
@@ -487,6 +488,16 @@
 
       <div class="panel">
         <div class="panel-head">
+          <h2>8. 통합 스케일 로터 · 체득 프리즘 · 대조 검증</h2>
+          <button id="btnRefreshUnifiedWorld" class="btn primary">실측 갱신</button>
+        </div>
+        <div id="unifiedWorldSummary" class="scroll-list" style="max-height: 420px;">
+          <div class="kv">실측 통합 세계 상태를 불러오는 중...</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
           <h2>7. 실시간 호스트 OS 프로토콜 경계</h2>
           <span id="hostStatusBadge" class="badge">탐색 중...</span>
         </div>
@@ -498,5 +509,121 @@
   </main>
 
   <script src="/static/ecology.js"></script>
+  <script>
+    (function () {
+      async function renderUnifiedWorld() {
+        const box = document.getElementById('unifiedWorldSummary');
+        if (!box) return;
+        try {
+          const res = await fetch('/api/ecology/scale-rotor-world');
+          const d = await res.json();
+          const parts = [];
+
+          const evo = d.capability_boundary_evolution;
+          if (evo && evo.executed_acquisitions) {
+            const sum = evo.evolution_summary || {};
+            const rows = evo.executed_acquisitions
+              .map((a) => `<div>• <strong>${a.gap_id}</strong>: ${a.before_status} ⇒ <strong>${a.after_status}</strong></div>`)
+              .join('');
+            const fu = evo.closed_phase_and_homography_followup || {};
+            const f1 = fu.part1_intrinsic_period_closed_phase_av || {};
+            const f2 = fu.part2_moving_camera_homography_stabilization || {};
+            const extraFu = (f1.status === 'ok' || f2.status === 'ok')
+              ? `<div class="kv" style="margin-top:4px;">• <strong>2π 고유주기 유성 직조</strong>: r=${(f1.before_vs_after_av_corr || {}).before_arbitrary_16f} → <strong>${(f1.before_vs_after_av_corr || {}).after_closed_2pi_intrinsic_period}</strong> (이음새 비율 ${(f1.circular_seam_continuity || {}).seam_ratio_to_mean})</div>` +
+                `<div class="kv">• <strong>이동 카메라 호모그래피 안정화 (${f2.source_panning_video || '-'})</strong>: 배경 PSNR ${(f2.pass1_naive_stationary_median || {}).background_match_psnr_db} → <strong>${(f2.pass2_homography_stabilized || {}).background_match_psnr_db} dB</strong></div>` +
+                `<video src="/data/open_sandbox/woven_world/elysia_closed_phase_3d_world_av.mp4" controls loop playsinline style="width:100%;margin-top:4px;border:1px solid var(--border-hair);"></video>` +
+                `<img src="/data/open_sandbox/contrast_verification/moving_camera_homography_proof.png" style="width:100%;margin-top:4px;border:1px solid var(--border-hair);" onerror="this.style.display='none'">`
+              : `<video src="/data/open_sandbox/woven_world/elysia_woven_3d_world_av.mp4" controls loop playsinline style="width:100%;margin-top:4px;border:1px solid var(--border-hair);"></video>`;
+            parts.push(
+              `<div class="trace-item"><div class="trace-top"><strong>자기 능력 대조(CAN↔CANNOT) → 원인 진단 → 자가 획득</strong><span class="badge growth">해결 ${sum.cannot_turned_into_verified_can}/${sum.acquisitions_attempted}</span></div>${rows}${extraFu}</div>`
+            );
+          }
+
+          const woven = d.control_weave_and_multimodal_prism;
+          if (woven && woven.part1_closed_loop_3d_pbr_weaving) {
+            const p1w = woven.part1_closed_loop_3d_pbr_weaving;
+            const ver = p1w.closed_loop_verification_on_woven_mp4 || {};
+            const p6 = ver.visual_prism_6d || {};
+            const avs = (woven.part2_synchronized_audiovisual_multimodal_prism || [])
+              .map((tr) => `<div>• <strong>${tr.file}</strong>: 영상-음향 상관 r=${tr.visual_motion_vs_audio_rms_corr}, 침묵=${(tr.silence_ratio * 100).toFixed(0)}%, 스펙트럼중심=${tr.mean_audio_spectral_centroid_hz}Hz</div>`)
+              .join('');
+            parts.push(
+              `<div class="trace-item"><div class="trace-top"><strong>관측→제어→직조(Weave) 3D PBR/리깅 세계 영상 & 폐루프 검증</strong><span class="badge growth">${ver.all_target_laws_satisfied ? '목표 법칙 전체 충족' : '보정 필요'}</span></div>` +
+              `<div class="kv">직조 산출물: ${(p1w.woven_mp4_bytes / 1024).toFixed(1)}KB · H=${ver.manifold_10d_head_entropy} · 운동=${p6.temporal_motion} · 포개기 PSNR=${p6.overlay_psnr_db}dB</div>` +
+              `<video src="/data/open_sandbox/woven_world/elysia_woven_3d_world.mp4" controls loop muted autoplay playsinline style="width:100%;margin-top:4px;border:1px solid var(--border-hair);"></video>` +
+              `<div class="kv" style="margin-top:4px;"><strong>동기화 멀티모달(시각 ∩ 음향/운율/침묵 · 비스칼라 상태)</strong></div>${avs}</div>`
+            );
+          }
+
+          const reclass = d.universal_cross_intersection_reclassification;
+          if (reclass && reclass.emergent_reclassified_manifolds) {
+            const astR = reclass.generalized_ast_reclassifier_80_20 || {};
+            const inter = (reclass.discovered_cross_domain_intersections || [])
+              .map((x) => `<div><strong>${x.emergent_manifold}</strong> ⇐ ${x.converging_domains.join(' ∩ ')} (H=${x.shared_physical_law.entropy_head}, ΔH=${x.shared_physical_law.entropy_gradient}, zlib=${x.shared_physical_law.zlib_compressibility})</div>`)
+              .join('');
+            const vcls = ((reclass.multi_video_visual_physics_reclassification || {}).clusters || [])
+              .map((vc) => `<div>• <strong>${vc.visual_physics_class}</strong> (${vc.video_count}편 · ${Object.keys(vc.intersecting_games || {}).join(', ')})</div>`)
+              .join('');
+            parts.push(
+              `<div class="trace-item"><div class="trace-top"><strong>범용 교차 판별·재분류 (${reclass.total_real_objects_ingested}개 실물 이기종 대상)</strong><span class="badge growth">미관측 20% 검증 ${astR.unseen_heldout_test_accuracy || '-'}</span></div>${inter}${vcls}</div>`
+            );
+          }
+
+          const prism = d.embodied_prism_vision;
+          if (prism && prism.experiments) {
+            const ast = prism.induced_prism_discernment_ast || {};
+            const exps = Object.entries(prism.experiments)
+              .map(([k, v]) => `<div><strong>${k}</strong>: border=${v.mean_prism_signature.border_env_shift}, center=${v.mean_prism_signature.center_obj_shift}, edge=${v.mean_prism_signature.edge_structure_shift}, lum_dx=${v.mean_prism_signature.luminance_centroid_dx}</div>`)
+              .join('');
+            parts.push(
+              `<div class="trace-item"><div class="trace-top"><strong>시각·각도·시간 프리즘 분별 (Blender 3D 실측)</strong><span class="badge growth">AST ${ast.live_verified || '-'}</span></div>${exps}<img src="/data/open_sandbox/prism_vision/prism_vision_3x3_proof.png" style="width:100%;margin-top:4px;border:1px solid var(--border-hair);" onerror="this.style.display='none'"></div>`
+            );
+          }
+
+          const cv = d.conservation_contrast_verification;
+          if (cv && cv.pass2_contrast_refined) {
+            const p1 = cv.pass1_naive_baseline || {};
+            const p2 = cv.pass2_contrast_refined || {};
+            parts.push(
+              `<div class="trace-item"><div class="trace-top"><strong>이터널 리턴 양방향 포개기 대조</strong><span class="badge invariant">PSNR ${p1.forward_overlay_psnr_db} → ${p2.forward_overlay_psnr_db} dB</span></div>` +
+              `<div class="kv">놓친 움직임: <strong>${(p1.missed_motion_energy_ratio * 100).toFixed(1)}% → ${(p2.missed_motion_energy_ratio * 100).toFixed(1)}%</strong> · 움직임 보존: <strong>${(p2.temporal_motion_conservation * 100).toFixed(1)}%</strong> · 배경 누수: ${(p2.inverse_bg_leakage_ratio * 100).toFixed(1)}%</div>` +
+              `<img src="/data/open_sandbox/contrast_verification/eternal_return_overlay_contrast_proof.png" style="width:100%;margin-top:4px;border:1px solid var(--border-hair);" onerror="this.style.display='none'"></div>`
+            );
+          }
+
+          const games = (d.holistic_game_causality_contrast || {}).cross_game_structural_contrast;
+          if (Array.isArray(games) && games.length) {
+            const rows = games
+              .map((g) => `<div><strong>${g.game}</strong> (${g.total_size_gb}GB · ${g.engine}) — 메타 H=${g.metadata_entropy_4kb}, 컨테이너 ${g.container_share_pct}%, 오디오 ${g.audio_share_pct}%, 영상 ${g.video_share_pct}%</div>`)
+              .join('');
+            parts.push(`<div class="trace-item"><div class="trace-top"><strong>상용 게임 3종 총체적 구조 대조</strong><span class="badge">읽기 전용 실측</span></div>${rows}</div>`);
+          }
+
+          const soc = d.dynamic_rotor_society;
+          if (soc) {
+            parts.push(
+              `<div class="trace-item"><div class="trace-top"><strong>3단계 동적 모순 로터 사회</strong><span class="badge variable">분열 ${soc.rotors_dynamically_spawned} · 재흡수 ${soc.rotors_converged_and_reabsorbed} · 열린탐구 ${soc.rotors_still_in_open_inquiry}</span></div>` +
+              `<div class="kv">부모 인과장 의미 질량: <strong>${(soc.parent_field_after_convergence || {}).total_semantic_mass}</strong></div></div>`
+            );
+          }
+
+          const nonScalar = (d.control_weave_and_multimodal_prism || {}).part3_non_scalar_structural_self_state;
+          if (nonScalar) {
+            parts.push(
+              `<div class="trace-item"><div class="trace-top"><strong>비스칼라 통합 인지 상태 (숫자 감정 폐기)</strong><span class="badge growth">멀티모달 ${nonScalar.multimodal_clips_bound}편 결합</span></div>` +
+              `<div class="kv">관측 위상 군집: <strong>${(nonScalar.dominant_situational_phase_clusters || []).join(', ')}</strong></div></div>`
+            );
+          }
+
+          box.innerHTML = parts.length ? parts.join('') : '<div class="kv">표시할 실측 데이터가 아직 없습니다.</div>';
+        } catch (err) {
+          box.innerHTML = `<div class="kv">로드 실패: ${err}</div>`;
+        }
+      }
+      document.getElementById('btnRefreshUnifiedWorld')?.addEventListener('click', renderUnifiedWorld);
+      renderUnifiedWorld();
+      setInterval(renderUnifiedWorld, 15000);
+    })();
+  </script>
 </body>
 </html>

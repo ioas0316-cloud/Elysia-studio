@@ -209,6 +209,19 @@ def repair_korean_particles(text: str) -> Tuple[str, List[str]]:
     return out, repairs
 
 
+_INTRANSITIVE_OR_PASSIVE_ENDINGS: Tuple[str, ...] = (
+    "된다", "됩니다", "됐다", "되었다", "되었습니다",
+    "이다", "입니다", "였다", "이었다",
+    "있다", "있습니다", "없다", "없습니다",
+    "나타난다", "나타납니다", "이어진다", "이어집니다",
+    "커진다", "커집니다", "줄어든다", "줄어듭니다",
+    "변한다", "변합니다", "흐른다", "흐릅니다",
+    "생긴다", "생깁니다", "일어난다", "일어납니다",
+    "열린다", "열립니다", "닫힌다", "닫힙니다",
+    "보인다", "보입니다", "들린다", "들립니다",
+)
+
+
 @dataclass
 class CausalPropositionFrame:
     """
@@ -225,15 +238,27 @@ class CausalPropositionFrame:
     causal_connector: str = ""
     verified_numbers: Dict[str, Any] = field(default_factory=dict)
 
+    def _predicate_is_intransitive_or_passive(self) -> bool:
+        pred = (self.action_mechanism or self.effect or "").strip().rstrip(".!?")
+        if not pred:
+            return False
+        return any(pred.endswith(end) for end in _INTRANSITIVE_OR_PASSIVE_ENDINGS)
+
     def realize_korean(self) -> str:
-        """Realizes 100% particle-exact Korean strictly from structural causal roles."""
+        """Realizes 100% particle-exact Korean strictly from structural causal roles (honoring transitive vs passive/intransitive valency)."""
         parts: List[str] = []
+        is_intrans = self._predicate_is_intransitive_or_passive()
         if self.context:
             parts.append(f"{self.context}에서")
         if self.subject:
             parts.append(attach_particle(self.subject, "은/는"))
         if self.obj:
-            parts.append(attach_particle(self.obj, "을/를"))
+            if is_intrans:
+                # Passive/intransitive/copula predicates take nominative (`이/가`) or directional (`(으)로`), never accusative (`을/를`)
+                obj_pair = "(으)로" if not self.instrument else "이/가"
+                parts.append(attach_particle(self.obj, obj_pair))
+            else:
+                parts.append(attach_particle(self.obj, "을/를"))
         if self.instrument:
             parts.append(attach_particle(self.instrument, "(으)로"))
         if self.action_mechanism:
@@ -268,8 +293,12 @@ def parse_korean_causal_frame(sentence: str) -> CausalPropositionFrame:
             frame.context = tok[:-2]
             continue
         if (tok.endswith("은") or tok.endswith("는")) and len(tok) >= 2 and not frame.subject:
-            # Avoid picking verb adnominals like "하는", "되는", "있는" as subject
-            if not tok.endswith(("하는", "되는", "있는", "없는", "가는", "오는", "보는", "돌아가는")):
+            # Avoid picking verb/adjective adnominals like "하는", "되는", "짙은", "깊은" as subject
+            if not tok.endswith((
+                "하는", "되는", "있는", "없는", "가는", "오는", "보는", "돌아가는",
+                "짙은", "깊은", "높은", "낮은", "밝은", "맑은", "작은", "적은", "많은",
+                "같은", "다른", "좋은", "넓은", "짧은", "어두운", "새로운", "모든", "어떤",
+            )):
                 frame.subject = tok[:-1]
                 continue
         if (tok.endswith("이") or tok.endswith("가")) and len(tok) >= 2 and not frame.subject:

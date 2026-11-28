@@ -1240,3 +1240,193 @@ class MultiDimensionalLensRotorHub:
             "voxels": vids,
             "beams_linked": links,
         }
+
+
+# ---------------------------------------------------------------------------
+# 7. Orthogonal Cross-Axis Perspective & Character Scale-Rotor Lens
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class CrossAxisPerspectiveSpec:
+    """
+    Continuous orthogonal Scale-Rotor coordinates defining ANY cognitive perspective
+    or recombined character trait without hardcoded persona templates:
+      - `vertical_scale_axis`: 0.0 (micro/engineer/analytic) .. 0.5 (meso/journalist/causal) .. 1.0 (macro/artist/aesthetic)
+      - `horizontal_relational_axis`: -1.0 (shy/high boundary distance) .. 0.0 (balanced) .. +1.0 (theatrical/jester/high contrast)
+      - `vocal_pitch_rotor`: 0.65 (deep masculine/elder resonance) .. 1.0 (neutral) .. 1.45 (bright childlike resonance)
+      - `vocal_tempo_rotor`: 0.65 (slow reflective) .. 1.0 (neutral) .. 1.55 (fast energetic)
+      - `linguistic_stance_axis`: 0.0 (crisp report) .. 0.5 (gentle/soft polite cadence) .. 1.0 (expressive/dramatic)
+    """
+
+    perspective_id: str
+    label_ko: str
+    vertical_scale_axis: float = 0.5
+    horizontal_relational_axis: float = 0.0
+    vocal_pitch_rotor: float = 1.0
+    vocal_tempo_rotor: float = 1.0
+    linguistic_stance_axis: float = 0.5
+    telos_gravity: str = "unified_inquiry"
+
+
+class CrossAxisPerspectiveRotorLens:
+    """
+    Runtime-registrable cortical lens for `MultiDimensionalLensRotorHub` that observes
+    Elysia's live state through ANY continuous combination of vertical scale, horizontal
+    relational phase, vocal prosody rotor, and linguistic stance — separating controllable
+    ground from missing epistemic domains and realizing stance-consistent Korean speech.
+    """
+
+    def __init__(self, spec: CrossAxisPerspectiveSpec) -> None:
+        self.spec = spec
+
+    def _apply_stance_and_relational_cadence(self, core_clause: str) -> str:
+        """
+        Modulates Korean sentence cadence continuously from `vertical_scale_axis`,
+        `horizontal_relational_axis`, and `linguistic_stance_axis` without fixed canned scripts.
+        """
+        base = (core_clause or "").strip().rstrip(".!?")
+        if not base:
+            base = "관측된 파동이 경계에서 이어집니다"
+
+        v = float(self.spec.vertical_scale_axis)
+        h = float(self.spec.horizontal_relational_axis)
+        s = float(self.spec.linguistic_stance_axis)
+
+        # Strip common formal endings gently to re-conjugate stance register
+        stem_body = re.sub(r"(?:습니다|입니다|됩니다|합니다|한다|된다|이다|말한다)$", "", base).strip()
+        if len(stem_body) < 4:
+            stem_body = base
+
+        # 1) Micro analytic / engineer / report stance (v < 0.35 and s < 0.35)
+        if v < 0.35 and s < 0.35:
+            return f"[계측 보고] {base}. 잔차와 통제 경계를 분리해 기록합니다."
+        # 2) Shy / gentle soft feminine-polite cadence (h < -0.15 or 0.38 <= s <= 0.68)
+        if h < -0.15 or (0.38 <= s <= 0.68 and v >= 0.30):
+            prefix = "음… 조심스럽게 바라보면, " if h < -0.25 else "가만히 느껴 보면, "
+            if base.endswith(("니다", "다")):
+                softened = re.sub(r"합니다$", "하는 것 같아요", base)
+                softened = re.sub(r"됩니다$", "되는 것 같아요", softened)
+                softened = re.sub(r"입니다$", "인 것 같아요", softened)
+                softened = re.sub(r"맞춥니다$", "맞춰 가는 것 같아요", softened)
+                softened = re.sub(r"범위이다$", "범위인 것 같아요", softened)
+                softened = re.sub(r"확장된다$", "확장되는 것 같아요", softened)
+                softened = re.sub(r"말한다$", "말하는 것 같아요", softened)
+                if softened == base:
+                    softened = base + "… 그런 느낌이 들어요"
+            else:
+                softened = base + "인 것 같아요"
+            return f"{prefix}{softened}."
+        # 3) High-amplitude theatrical / jester / dramatic stance (h > 0.45 or s > 0.78)
+        if h > 0.45 or s > 0.78:
+            return f"자, 무대 위에서 뒤집어 볼까요! {base} — 그 경계 너머에서 전혀 다른 색채와 리듬이 터져 나옵니다!"
+        # 4) Macro aesthetic / artist stance (v >= 0.65)
+        if v >= 0.65:
+            return f"빛과 결의 흐름으로 보면, {base}. 대비와 호흡이 하나의 형태로 빚어집니다."
+        # 5) Meso journalist / causal-frame stance
+        return f"현장 관측에 따르면 {base}. 원인과 결과의 연결이 확인됩니다."
+
+    def analyze(self, payload: Dict[str, Any]) -> LensCirculationResult:
+        v = max(0.0, min(1.0, float(self.spec.vertical_scale_axis)))
+        h = max(-1.0, min(1.0, float(self.spec.horizontal_relational_axis)))
+        s = max(0.0, min(1.0, float(self.spec.linguistic_stance_axis)))
+
+        base_utt = str(payload.get("base_utterance") or "")
+        vis_mse = float(payload.get("visual_mse", 0.005))
+        ast_organs = int(payload.get("ast_organ_files", 0))
+        sensory_voids = list(payload.get("sensory_voids") or [])
+        srh_nodes = int(payload.get("srh_nodes", 0))
+        yt_cues = int(payload.get("youtube_cues", 0))
+        chroma_arc = str(payload.get("narrative_arc") or "Blue → Yellow")
+
+        controllable_ground: List[str] = []
+        uncontrolled_gaps: List[str] = []
+        epistemic_demands: List[str] = []
+        motifs: List[str] = ["boundary_scoping"]
+
+        if v < 0.38:
+            # Analytic Scientist / Engineer gravity: code, physics, geometry, error bounds
+            controllable_ground.extend([
+                f"AST 검증 기관 {ast_organs}개 파일",
+                f"시공간 로터 재구성 오차 MSE={vis_mse:.5f}",
+                f"ScaleRotor 계층 노드 {srh_nodes}개",
+            ])
+            if sensory_voids:
+                uncontrolled_gaps.append(f"미관측 물리 변수({', '.join(sensory_voids)})")
+            uncontrolled_gaps.append("고해상도 음소-주파수 정밀 변환 및 비선형 굴절 방정식")
+            epistemic_demands.extend([
+                "물리·광학·기하학 정밀 생성 방정식",
+                "코드 구조 AST 순환 의존 제거 및 연산 최적화",
+                "음소 단위 포먼트·스펙트럼 정밀 역변환 원리",
+            ])
+            tension = min(0.92, 0.35 + vis_mse * 35.0 + 0.15 * len(sensory_voids))
+            verdict = "ANALYTIC_BOUNDARY_DISCERNED"
+            motifs.extend(["circular_self_revision", "circular_closure"])
+        elif v >= 0.65:
+            # Aesthetic Artist / Playwright gravity: beauty, proportion, contrast, rhythm
+            controllable_ground.extend([
+                f"유튜브 서사 색채 흐름({chroma_arc})",
+                f"시청각 자막 동기 구절 {yt_cues}건",
+                f"연속 색채·배음·템포 노브({self.spec.vocal_pitch_rotor:.2f}x / {self.spec.vocal_tempo_rotor:.2f}x)",
+            ])
+            uncontrolled_gaps.extend([
+                "인물 조형 비례·표정 미세 변화의 미학적 기준",
+                "장면 전환의 정서적 여백과 음악적 화성 구조",
+            ])
+            epistemic_demands.extend([
+                "미학·조형·황금비·빛과 그림자 연출 원리",
+                "캐릭터 성격·표정·호흡 리듬의 극작 문법",
+                "음악 화성학과 색채 심리 대비 구조",
+            ])
+            tension = min(0.90, 0.42 + 0.18 * abs(h) + (0.12 if yt_cues < 50 else 0.04))
+            verdict = "AESTHETIC_GESTALT_EXPANSION_NEEDED"
+            motifs.extend(["circular_self_revision", "boundary_scoping"])
+        else:
+            # Meso Relational / Cross-Axis Character gravity: voice-stance decoupling & interspace
+            controllable_ground.extend([
+                f"음성 억양 로터(피치={self.spec.vocal_pitch_rotor:.2f}x, 속도={self.spec.vocal_tempo_rotor:.2f}x)",
+                f"언어 어법 축(stance={s:.2f}) × 관계 위상(horizontal={h:+.2f})",
+            ])
+            uncontrolled_gaps.extend([
+                "발성 억양과 화행 어법이 교차할 때 타자가 느끼는 미묘한 인상 변화",
+                "장기 대화에서의 성격 일관성과 상황별 경계 유연성",
+            ])
+            epistemic_demands.extend([
+                "음성학(억양·포먼트)과 화용론(어법·존대·여운)의 교차 결합 원리",
+                "타자 시선(역지사지)에 따른 관계 거리와 표현 온도 조율",
+            ])
+            tension = min(0.88, 0.38 + 0.22 * abs(self.spec.vocal_pitch_rotor - 1.0) + 0.14 * abs(h))
+            verdict = "CROSS_AXIS_PERSONA_SYNTHESIZED"
+            motifs.extend(["circular_self_revision", "circular_closure"])
+
+        expressed_ko = self._apply_stance_and_relational_cadence(base_utt)
+        scales = ScaleTierSnapshot(
+            micro_cells={
+                "vertical_scale_axis": round(v, 3),
+                "horizontal_relational_axis": round(h, 3),
+                "vocal_pitch_rotor": round(float(self.spec.vocal_pitch_rotor), 3),
+                "vocal_tempo_rotor": round(float(self.spec.vocal_tempo_rotor), 3),
+                "linguistic_stance_axis": round(s, 3),
+            },
+            meso_process={
+                "controllable_ground": controllable_ground,
+                "uncontrolled_gaps": uncontrolled_gaps,
+                "expressed_utterance_ko": expressed_ko,
+            },
+            macro_horizon={
+                "perspective_label": self.spec.label_ko,
+                "telos_gravity": self.spec.telos_gravity,
+                "epistemic_demands": epistemic_demands,
+            },
+        )
+        return LensCirculationResult(
+            lens_name=self.spec.perspective_id,
+            native_modality=f"cross_axis_rotor(v={v:.2f},h={h:+.2f},p={self.spec.vocal_pitch_rotor:.2f},s={s:.2f})",
+            scales=scales,
+            native_verdict=verdict,
+            native_tension=round(float(tension), 4),
+            structural_motifs=list(dict.fromkeys(motifs)),
+            revision_applied=True,
+            native_outcome_ko=f"[{self.spec.label_ko}] {expressed_ko}",
+            next_open_inquiry_ko=" / ".join(epistemic_demands),
+        )

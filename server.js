@@ -5526,12 +5526,23 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (method === 'POST' && pathname === '/api/ecology/outward-grow') {
-      const body = await readJsonBody(req);
+      // Stage 1 Unification: Replaced legacy 4-template dispenser with genuine template-free Self-Teleology loop
       try {
-        const result = await warmSensory.call('outward_grow', body || {}, 15000);
-        return sendJson(res, 200, result);
+        const scriptPath = path.join(ROOT_DIR, 'L1_causal_field', 'core', 'embodiment', 'autonomous_self_teleology_loop.py');
+        const out = await new Promise((resolve, reject) => {
+          execFile(PYTHON_BIN, [scriptPath], { cwd: ROOT_DIR, timeout: 60000, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
+            if (err) return reject(new Error(stderr || err.message));
+            try {
+              resolve(JSON.parse(stdout));
+            } catch (parseErr) {
+              reject(new Error(`Invalid JSON from autonomous_self_teleology_loop: ${parseErr.message}`));
+            }
+          });
+        });
+        engine.evolveScaleRotors(0.06);
+        return sendJson(res, 200, { status: 'ok', mode: 'template_free_self_teleology', result: out });
       } catch (gErr) {
-        return sendJson(res, 502, { status: 'error', message: gErr instanceof Error ? gErr.message : '외부 감각 기관 자가성장 실패' });
+        return sendJson(res, 502, { status: 'error', message: gErr instanceof Error ? gErr.message : '자율 자가목적 성장 루프 실행 실패' });
       }
     }
 
@@ -5627,6 +5638,216 @@ const server = http.createServer(async (req, res) => {
           status: 'error',
           message: ecoErr instanceof Error ? ecoErr.message : '원리→로터 결합 실패',
         });
+      }
+    }
+
+    if (method === 'GET' && pathname === '/api/ecology/scale-rotor-world') {
+      const unifiedPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'scale_rotor_unified_world.json');
+      const nervousPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'three_layer_nervous_state.json');
+      const manifestPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'index_manifest.json');
+      const teleologyPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'self_teleology_state.json');
+      const multistepPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'multistep_embodied_synthesis.json');
+      const societyPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'dynamic_rotor_society.json');
+      const contrastPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'conservation_contrast_verification.json');
+      const holisticGamePath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'holistic_game_causality_contrast.json');
+      const prismVisionPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'embodied_prism_vision.json');
+      const universalReclassPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'universal_cross_intersection_reclassification.json');
+      const wovenPrismPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'control_weave_and_multimodal_prism.json');
+      const capabilityEvoPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'cognitive_world', 'capability_boundary_evolution.json');
+      const readSafe = (p) => {
+        try {
+          return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+        } catch {
+          return null;
+        }
+      };
+      return sendJson(res, 200, {
+        status: 'ok',
+        manifest: readSafe(manifestPath),
+        three_layer_nervous_state: readSafe(nervousPath),
+        scale_rotor_unified_world: readSafe(unifiedPath),
+        self_teleology_state: readSafe(teleologyPath),
+        multistep_embodied_synthesis: readSafe(multistepPath),
+        dynamic_rotor_society: readSafe(societyPath),
+        conservation_contrast_verification: readSafe(contrastPath),
+        holistic_game_causality_contrast: readSafe(holisticGamePath),
+        embodied_prism_vision: readSafe(prismVisionPath),
+        universal_cross_intersection_reclassification: readSafe(universalReclassPath),
+        control_weave_and_multimodal_prism: readSafe(wovenPrismPath),
+        capability_boundary_evolution: readSafe(capabilityEvoPath),
+      });
+    }
+
+    if (method === 'POST' && pathname === '/api/ecology/scale-rotor-world') {
+      try {
+        const scriptPath = path.join(ROOT_DIR, 'L1_causal_field', 'core', 'embodiment', 'scale_rotor_multi_branch_engine.py');
+        const out = await new Promise((resolve, reject) => {
+          execFile(PYTHON_BIN, [scriptPath, '--cycles', '2'], { cwd: ROOT_DIR, timeout: 90000, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
+            if (err) return reject(new Error(stderr || err.message));
+            try {
+              resolve(JSON.parse(stdout));
+            } catch (parseErr) {
+              reject(new Error(`Invalid JSON from scale_rotor_multi_branch_engine: ${parseErr.message}`));
+            }
+          });
+        });
+        engine.evolveScaleRotors(0.08);
+        return sendJson(res, 200, { status: 'ok', scale_rotor_unified_world: out });
+      } catch (srErr) {
+        return sendJson(res, 502, { status: 'error', message: srErr instanceof Error ? srErr.message : '스케일 로터 다중 분기 실행 실패' });
+      }
+    }
+
+    if (method === 'GET' && pathname === '/story-world') {
+      const htmlPath = path.join(ROOT_DIR, 'L0_substrate', 'mva', 'static', 'story_world.html');
+      if (fs.existsSync(htmlPath)) {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        return res.end(fs.readFileSync(htmlPath));
+      }
+      return sendJson(res, 404, { status: 'error', message: 'story_world.html not found' });
+    }
+
+    if (method === 'GET' && pathname === '/api/story-world/state') {
+      const stPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'story_world', 'story_world_state.json');
+      try {
+        const world = fs.existsSync(stPath) ? JSON.parse(fs.readFileSync(stPath, 'utf8')) : null;
+        return sendJson(res, 200, { status: 'ok', world });
+      } catch (err) {
+        return sendJson(res, 500, { status: 'error', message: err instanceof Error ? err.message : 'read failed' });
+      }
+    }
+
+    if (method === 'POST' && pathname === '/api/story-world/create') {
+      const body = await readJsonBody(req);
+      try {
+        const storyDir = path.join(ROOT_DIR, 'data', 'open_sandbox', 'story_world');
+        fs.mkdirSync(storyDir, { recursive: true });
+        const tmpStory = path.join(storyDir, 'user_story_input.txt');
+        fs.writeFileSync(tmpStory, String((body && body.story_text) || ''), 'utf8');
+        const generations = Math.min(6, Math.max(1, Number((body && body.generations) || 3)));
+        const scriptPath = path.join(ROOT_DIR, 'L1_causal_field', 'core', 'embodiment', 'story_scale_rotor_world_engine.py');
+        const out = await new Promise((resolve, reject) => {
+          execFile(PYTHON_BIN, [scriptPath, '--story-file', tmpStory, '--generations', String(generations)], { cwd: ROOT_DIR, timeout: 120000, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
+            if (err) return reject(new Error(stderr || err.message));
+            try {
+              resolve(JSON.parse(stdout));
+            } catch (pErr) {
+              reject(new Error(`Invalid JSON from story_scale_rotor_world_engine: ${pErr.message}`));
+            }
+          });
+        });
+        return sendJson(res, 200, { status: 'ok', world: out });
+      } catch (swErr) {
+        return sendJson(res, 502, { status: 'error', message: swErr instanceof Error ? swErr.message : '스토리 디지털 월드 생성 실패' });
+      }
+    }
+
+    if (method === 'POST' && pathname === '/api/story-world/advance-rotor') {
+      try {
+        const scriptPath = path.join(ROOT_DIR, 'L1_causal_field', 'core', 'embodiment', 'story_scale_rotor_world_engine.py');
+        const out = await new Promise((resolve, reject) => {
+          execFile(PYTHON_BIN, [scriptPath, '--advance'], { cwd: ROOT_DIR, timeout: 120000, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
+            if (err) return reject(new Error(stderr || err.message));
+            try {
+              resolve(JSON.parse(stdout));
+            } catch (pErr) {
+              reject(new Error(`Invalid JSON from advance-rotor: ${pErr.message}`));
+            }
+          });
+        });
+        return sendJson(res, 200, { status: 'ok', world: out });
+      } catch (advErr) {
+        return sendJson(res, 502, { status: 'error', message: advErr instanceof Error ? advErr.message : '다음 시간 로터 전개 실패' });
+      }
+    }
+
+    if (method === 'GET' && pathname === '/api/story-world/multiverse') {
+      const mvPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'story_world', 'multiverse_and_language_prism.json');
+      try {
+        const data = fs.existsSync(mvPath) ? JSON.parse(fs.readFileSync(mvPath, 'utf8')) : null;
+        return sendJson(res, 200, { status: 'ok', multiverse: data });
+      } catch (err) {
+        return sendJson(res, 500, { status: 'error', message: err instanceof Error ? err.message : 'read failed' });
+      }
+    }
+
+    if (method === 'POST' && pathname === '/api/story-world/language-ground') {
+      const body = await readJsonBody(req);
+      try {
+        const q = String((body && body.utterance) || '').trim();
+        const scriptPath = path.join(ROOT_DIR, 'L1_causal_field', 'core', 'embodiment', 'unit_branch_language_cortex.py');
+        const args = q ? [scriptPath, '--utterance', q] : [scriptPath];
+        const out = await new Promise((resolve, reject) => {
+          execFile(PYTHON_BIN, args, { cwd: ROOT_DIR, timeout: 45000, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
+            if (err) return reject(new Error(stderr || err.message));
+            try {
+              resolve(JSON.parse(stdout));
+            } catch (pErr) {
+              reject(new Error(`Invalid JSON from unit_branch_language_cortex: ${pErr.message}`));
+            }
+          });
+        });
+        return sendJson(res, 200, { status: 'ok', unit_branch_result: out });
+      } catch (lgErr) {
+        return sendJson(res, 502, { status: 'error', message: lgErr instanceof Error ? lgErr.message : '언어 단위-분기 실행 실패' });
+      }
+    }
+
+    if (method === 'POST' && pathname === '/api/story-world/knob-recreate') {
+      const body = await readJsonBody(req);
+      try {
+        const scriptPath = path.join(ROOT_DIR, 'L1_causal_field', 'core', 'embodiment', 'unit_branch_language_cortex.py');
+        const args = [scriptPath, '--knob-recreate'];
+        if (body && body.utterance) args.push('--utterance', String(body.utterance));
+        if (body && body.youtube_url) args.push('--youtube', String(body.youtube_url));
+        if (body && body.tempo_knob !== undefined) args.push('--tempo-knob', String(body.tempo_knob));
+        if (body && body.pitch_knob !== undefined) args.push('--pitch-knob', String(body.pitch_knob));
+        if (body && body.warmth_knob !== undefined) args.push('--warmth-knob', String(body.warmth_knob));
+        if (body && body.tension_knob !== undefined) args.push('--tension-knob', String(body.tension_knob));
+        if (body && body.order_knob !== undefined) args.push('--order-knob', String(body.order_knob));
+        if (body && body.law_damping_knob !== undefined) args.push('--law-damping-knob', String(body.law_damping_knob));
+        if (body && body.skip_whisper) args.push('--skip-whisper');
+        const out = await new Promise((resolve, reject) => {
+          execFile(PYTHON_BIN, args, { cwd: ROOT_DIR, timeout: 150000, maxBuffer: 6 * 1024 * 1024 }, (err, stdout, stderr) => {
+            if (err) return reject(new Error(stderr || err.message));
+            try {
+              resolve(JSON.parse(stdout));
+            } catch (pErr) {
+              reject(new Error(`Invalid JSON from knob-recreate: ${pErr.message}`));
+            }
+          });
+        });
+        return sendJson(res, 200, { status: 'ok', knob_recreation: out });
+      } catch (krErr) {
+        return sendJson(res, 502, { status: 'error', message: krErr instanceof Error ? krErr.message : '스케일 로터 노브 재창조 실패' });
+      }
+    }
+
+    if (method === 'POST' && pathname === '/api/story-world/parallel-self') {
+      const body = await readJsonBody(req);
+      try {
+        const scriptPath = path.join(ROOT_DIR, 'L1_causal_field', 'core', 'embodiment', 'unit_branch_language_cortex.py');
+        const args = [scriptPath, '--parallel-self'];
+        if (body && body.utterance) args.push('--utterance', String(body.utterance));
+        if (body && body.persona_label) args.push('--persona-label', String(body.persona_label));
+        if (body && body.vertical_axis !== undefined) args.push('--vertical-axis', String(body.vertical_axis));
+        if (body && body.horizontal_axis !== undefined) args.push('--horizontal-axis', String(body.horizontal_axis));
+        if (body && body.vocal_pitch !== undefined) args.push('--vocal-pitch', String(body.vocal_pitch));
+        if (body && body.vocal_tempo !== undefined) args.push('--vocal-tempo', String(body.vocal_tempo));
+        if (body && body.stance_axis !== undefined) args.push('--stance-axis', String(body.stance_axis));
+        const out = await new Promise((resolve, reject) => {
+          execFile(PYTHON_BIN, args, { cwd: ROOT_DIR, timeout: 120000, maxBuffer: 6 * 1024 * 1024 }, (err, stdout, stderr) => {
+            if (err) return reject(new Error(stderr || err.message));
+            try {
+              resolve(JSON.parse(stdout));
+            } catch (pErr) {
+              reject(new Error(`Invalid JSON from parallel-self: ${pErr.message}`));
+            }
+          });
+        });
+        return sendJson(res, 200, { status: 'ok', parallel_self: out });
+      } catch (psErr) {
+        return sendJson(res, 502, { status: 'error', message: psErr instanceof Error ? psErr.message : '평행 자아 다관점 통합 실패' });
       }
     }
 

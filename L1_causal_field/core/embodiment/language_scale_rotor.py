@@ -255,6 +255,93 @@ class ExpressiveDeficit:
     reason_ko: str
 
 
+_CANONICAL_KOREAN_PARTICLES: Tuple[str, ...] = (
+    "에서는", "으로는", "에게서", "까지도", "에서", "에게", "으로", "부터", "까지", "처럼", "보다",
+    "은", "는", "이", "가", "을", "를", "과", "와", "로", "에", "의", "도", "만",
+)
+
+_PARTICLE_TO_ROLE: Dict[str, str] = {
+    "은": "TOPIC_CORE",
+    "는": "TOPIC_CORE",
+    "이": "SUBJECT_CORE",
+    "가": "SUBJECT_CORE",
+    "을": "OBJECT_CORE",
+    "를": "OBJECT_CORE",
+    "과": "COUPLED_LINK",
+    "와": "COUPLED_LINK",
+    "에": "CONTEXT_LOC",
+    "에서": "CONTEXT_LOC",
+    "에서는": "CONTEXT_LOC",
+    "으로": "CONTEXT_LOC",
+    "으로는": "CONTEXT_LOC",
+    "로": "CONTEXT_LOC",
+    "에게": "CONTEXT_LOC",
+    "부터": "CONTEXT_LOC",
+    "까지": "CONTEXT_LOC",
+    "처럼": "CONTEXT_LOC",
+    "보다": "CONTEXT_LOC",
+    "의": "ATTR_MOD",
+}
+
+_KOREAN_FINAL_ENDINGS: Tuple[str, ...] = (
+    "습니다", "입니다", "합니다", "됩니다", "한다", "된다", "있다", "없다",
+    "는다", "ㄴ다", "이다", "였다", "했다", "졌다", "났다", "간다", "온다", "본다",
+    "일까", "할까", "될까", "인가", "는가", "나요", "해요", "돼요", "다", "요", "까",
+)
+
+_NON_NOMINAL_TOKENS: set[str] = {
+    "만약", "어떻게", "무엇", "어디", "언제", "누구", "왜", "매우", "이미", "서로", "바로",
+    "항상", "가장", "모두", "다시", "함께", "아직", "결국", "그러나", "하지만", "그래서",
+    "또는", "그리고", "또한", "즉", "혹은", "만일", "비록", "더욱", "아주", "너무",
+    "하나", "하나의", "모든", "어떤", "이런", "그런", "저런", "어느", "다른", "같은",
+    "짙은", "깊은", "높은", "낮은", "밝은", "맑은", "작은", "적은", "많은", "좋은", "넓은",
+    "짧은", "어두운", "새로운", "오랜", "큰", "긴", "검은", "붉은", "푸른", "흰",
+    "하는", "되는", "있는", "없는", "가는", "오는", "보는", "쓰는", "맞는", "아닌",
+    "가진", "따른", "통한", "대한", "대해", "대해서", "위한", "관한", "인한", "의한",
+    "뭐냐면", "뭐냐", "자", "이제", "그럼", "그러면", "그런데", "이렇게", "그렇게", "저렇게",
+}
+
+_NON_NOMINAL_SUFFIXES: Tuple[str, ...] = (
+    "하는", "되는", "있는", "없는", "가는", "오는", "보는", "나타나는", "연결되는",
+    "흐르는", "움직이는", "변하는", "줄이고", "가린다면", "다면", "라면", "하면", "되면",
+    "이면", "이고", "하고", "되고", "되며", "하며", "지만", "거나", "도록", "면서",
+    "될까", "할까", "을까", "는가", "인가", "하게", "되게", "있게", "없게",
+    "할", "될", "갈", "올", "볼", "냐면", "냐",
+)
+
+_ALLOWED_ONE_CHAR_NOUNS: set[str] = {
+    "빛", "밤", "낮", "길", "말", "눈", "귀", "손", "별", "해", "달", "물", "불", "힘", "숨", "꿈", "뇌", "땅", "산", "강", "숲", "꽃", "집", "몸", "맘", "삶", "죽",
+}
+
+
+def _is_pure_hangul(s: str) -> bool:
+    return bool(s) and all("가" <= ch <= "힣" for ch in s)
+
+
+def _is_valid_korean_predicate_word(word: str) -> bool:
+    if len(word) < 2 or not _is_pure_hangul(word):
+        return False
+    return any(word.endswith(e) for e in _KOREAN_FINAL_ENDINGS)
+
+
+def _is_valid_nominal_stem(stem: str, raw_word: str = "") -> bool:
+    s = (stem or "").strip()
+    rw = (raw_word or s).strip()
+    if not s or not _is_pure_hangul(s):
+        return False
+    if len(s) == 1 and s not in _ALLOWED_ONE_CHAR_NOUNS:
+        return False
+    if len(s) > 7:
+        return False
+    if s in _NON_NOMINAL_TOKENS or rw in _NON_NOMINAL_TOKENS:
+        return False
+    if any(s.endswith(suf) for suf in _NON_NOMINAL_SUFFIXES) or any(rw.endswith(suf) for suf in _NON_NOMINAL_SUFFIXES):
+        return False
+    if _is_valid_korean_predicate_word(s):
+        return False
+    return True
+
+
 def _strip_word_edge_punct(token: str) -> Tuple[str, str]:
     m = re.match(r"^([가-힣a-zA-Z0-9]+)([?!….,\"'”’」』]*)$", token.strip())
     if not m:
@@ -274,7 +361,10 @@ class LanguageScaleRotor:
     def __init__(self) -> None:
         self.surface_vocab: Counter[str] = Counter()
         self.stem_counts: Counter[str] = Counter()
+        self.nominal_stems: Counter[str] = Counter()
         self.predicate_stems: Counter[str] = Counter()
+        self.predicate_surfaces: Counter[str] = Counter()
+        self.predicate_cooccurrence: Dict[str, Dict[str, int]] = defaultdict(dict)
         self.operator_counts: Counter[str] = Counter()
         self.operator_spectrum: Dict[str, List[float]] = {}
         self.stance_endings: Counter[str] = Counter()
@@ -319,35 +409,38 @@ class LanguageScaleRotor:
                     self.operator_counts[suf] += 0
 
     def _split_word_distributional(self, word: str, is_final: bool) -> Tuple[str, str]:
-        """Splits a surface word using induced stems/operators or terminal morphology."""
+        """Splits a surface word honoring genuine Korean particle & verbal-ending morphology."""
         if not word:
             return "", ""
-        if len(word) <= 1 or not any("가" <= c <= "힣" for c in word):
+        if len(word) <= 1 or not _is_pure_hangul(word):
             return word, ""
 
-        # Prefer known longest induced stem that leaves a known or plausible short operator
-        best_stem = ""
-        best_op = ""
-        for plen in range(min(len(word) - 1, 5), 0, -1):
+        if is_final:
+            for end in _KOREAN_FINAL_ENDINGS:
+                if word.endswith(end) and len(word) - len(end) >= 1:
+                    return word[: -len(end)], end
+            return (word[:-1], word[-1]) if len(word) >= 3 else (word, "")
+
+        # Protect adverbs, adnominal modifiers (짙은, 깊은, 하는, 되는), and clause connectives from particle-splitting
+        if word in _NON_NOMINAL_TOKENS or any(word.endswith(suf) for suf in _NON_NOMINAL_SUFFIXES):
+            return word, ""
+
+        # Prefer genuine Korean case/connective particles (allow 1-char roots like 빛/밤/낮/말/길)
+        for part in _CANONICAL_KOREAN_PARTICLES:
+            min_root = 1 if part in ("의", "이", "가", "은", "는", "을", "를", "과", "와", "에", "로", "도", "만") else 2
+            if word.endswith(part) and len(word) - len(part) >= min_root:
+                cand_stem = word[: -len(part)]
+                if len(cand_stem) == 1 and cand_stem not in _ALLOWED_ONE_CHAR_NOUNS:
+                    continue
+                return cand_stem, part
+
+        # Fallback: previously induced prefix stem if suffix is a real Hangul particle/connective
+        for plen in range(min(len(word) - 1, 5), 1, -1):
             cand_s = word[:plen]
             cand_op = word[plen:]
-            if len(cand_op) > 3:
-                continue
-            if cand_s in self.stem_counts and (cand_op in self.operator_counts or cand_op in _OPERATOR_ALLOMORPHS or is_final):
-                best_stem, best_op = cand_s, cand_op
-                break
-        if best_stem:
-            return best_stem, best_op
+            if cand_s in self.stem_counts and cand_op in _PARTICLE_TO_ROLE:
+                return cand_s, cand_op
 
-        # Dual axis: decompose along previously induced suffix operators
-        for slen in (2, 1):
-            if len(word) - slen >= 2:
-                cand_op = word[-slen:]
-                if cand_op in self.operator_counts or cand_op in _OPERATOR_ALLOMORPHS:
-                    return word[:-slen], cand_op
-
-        if is_final and len(word) >= 3:
-            return word[:-1], word[-1]
         return word, ""
 
     def induce_from_utterances(self, samples: Sequence[Dict[str, Any]]) -> Dict[str, int]:
@@ -399,14 +492,22 @@ class LanguageScaleRotor:
             for i, (w, p) in enumerate(clean_words):
                 is_final = i == n_words - 1
                 stem, op = self._split_word_distributional(w, is_final=is_final)
-                if not stem:
+                if not stem or not _is_pure_hangul(stem):
                     continue
                 self.stem_counts[stem] += 1
                 utt_stems.append(stem)
 
                 if is_final:
-                    ending_tok = (op + p).strip() or (w[-1] + p)
+                    if not _is_valid_korean_predicate_word(w):
+                        continue
+                    ending_tok = (op + (p or ".")).strip()
+                    pred_full = w + (p if p in (".", "?", "!") else ".")
                     self.predicate_stems[stem] += 1
+                    self.predicate_surfaces[pred_full] += 1
+                    for prev_st in utt_stems[:-1]:
+                        self.predicate_cooccurrence[prev_st][pred_full] = (
+                            self.predicate_cooccurrence[prev_st].get(pred_full, 0) + 1
+                        )
                     self.stance_endings[ending_tok] += 1
                     self.stance_ending_spectrum[ending_tok] = self._update_centroid(
                         self.stance_ending_spectrum.get(ending_tok),
@@ -422,22 +523,28 @@ class LanguageScaleRotor:
                         )
                     slots.extend(["PREDICATE_CORE", "STANCE_END"])
                 else:
-                    if op:
+                    if _is_valid_nominal_stem(stem, w):
+                        self.nominal_stems[stem] += 1
+                    if op and op in _PARTICLE_TO_ROLE:
                         self.operator_counts[op] += 1
                         self.operator_spectrum[op] = self._update_centroid(
                             self.operator_spectrum.get(op),
                             self.operator_counts[op],
                             spec,
                         )
-                    if i == 0 and any(cs in stem or stem in cs for cs in ctx_stems if len(cs) >= 2):
+                    if op in _PARTICLE_TO_ROLE:
+                        role = _PARTICLE_TO_ROLE[op]
+                    elif w.endswith(("고", "며", "면", "면서", "서")) and len(w) >= 3:
+                        role = "CLAUSE_BRIDGE"
+                    elif i == 0 and any(cs in stem or stem in cs for cs in ctx_stems if len(cs) >= 2):
                         role = "CAUSE_LINK"
-                    elif len(slots) == 0 or "TOPIC_CORE" not in slots:
+                    elif "TOPIC_CORE" not in slots:
                         role = "TOPIC_CORE"
                     else:
                         role = "FOCUS_CORE"
-                    if len(slots) < 4:
+                    if len(slots) < 4 and (not slots or slots[-1] != role):
                         slots.append(role)
-                    if op:
+                    if op and op in _PARTICLE_TO_ROLE:
                         slot_ops[role].append(op)
 
             # Update co-occurrence topology across stems in scene + utterance
@@ -456,7 +563,7 @@ class LanguageScaleRotor:
                 if sl == "FOCUS_CORE" and compact_slots and compact_slots[-1] == "FOCUS_CORE":
                     continue
                 compact_slots.append(sl)
-            if not compact_slots:
+            if not compact_slots or "PREDICATE_CORE" not in compact_slots:
                 continue
 
             schema_id = "+".join(compact_slots)
@@ -564,18 +671,23 @@ class LanguageScaleRotor:
         return endings[pick_idx]
 
     def _select_companion_stems(self, active_stems: Sequence[str], limit: int = 5) -> List[str]:
-        cand_scores: Counter[str] = Counter()
+        cand_scores: Dict[str, float] = {}
         for a in active_stems:
             for nb, wt in self.stem_cooccurrence.get(a, {}).items():
-                if nb not in active_stems and nb in self.stem_counts:
-                    cand_scores[nb] += wt
-        # Fallback to induced concept stems (excluding pure predicate stems when nominal candidates exist)
-        non_pred = [st for st, _ in self.stem_counts.most_common(limit * 3) if st not in self.predicate_stems]
-        ordered = [s for s, _ in cand_scores.most_common(limit)]
+                if nb in active_stems or nb not in self.stem_counts:
+                    continue
+                if not _is_valid_nominal_stem(nb):
+                    continue
+                # IDF anti-hub weighting so domain-specific partners beat generic high-frequency hubs
+                idf = 1.0 / math.sqrt(1.0 + self.stem_counts.get(nb, 1))
+                cand_scores[nb] = cand_scores.get(nb, 0.0) + float(wt) * idf
+        ordered = [s for s, _ in sorted(cand_scores.items(), key=lambda kv: -kv[1])[:limit]]
+        # Fallback to valid induced nominal stems
+        non_pred = [
+            st for st, _ in self.nominal_stems.most_common(limit * 4)
+            if _is_valid_nominal_stem(st) and st not in self.predicate_stems
+        ]
         for st in non_pred:
-            if st not in ordered and st not in active_stems:
-                ordered.append(st)
-        for st, _ in self.stem_counts.most_common(limit * 2):
             if st not in ordered and st not in active_stems:
                 ordered.append(st)
         return ordered[:limit]
@@ -625,21 +737,42 @@ class LanguageScaleRotor:
 
         schema = self._pick_best_schema(target_spec)
 
-        user_words = [w for w, _ in (_strip_word_edge_punct(t) for t in (user_text or "").split()) if len(w) >= 2]
+        user_words = [w for w, _ in (_strip_word_edge_punct(t) for t in (user_text or "").split()) if len(w) >= 1]
         active_stems: List[str] = []
         for idx, w in enumerate(user_words):
             st, _op = self._split_word_distributional(w, is_final=(idx == len(user_words) - 1))
-            if st and st not in active_stems and len(st) >= 2:
+            if st and st not in active_stems and _is_valid_nominal_stem(st, w):
                 active_stems.append(st)
 
         companions = self._select_companion_stems(active_stems, limit=6)
-        nominal_pool = [s for s in [*active_stems, *companions] if s not in self.predicate_stems]
+        nominal_pool = [
+            s for s in [*active_stems, *companions]
+            if _is_valid_nominal_stem(s) and (s in self.nominal_stems or s not in self.predicate_stems)
+        ]
         if not nominal_pool:
-            nominal_pool = [*active_stems, *companions]
+            nominal_pool = [s for s, _ in self.nominal_stems.most_common(8) if _is_valid_nominal_stem(s)] or [*active_stems, *companions]
 
-        pred_pool = [p for p, _ in self.predicate_stems.most_common(12) if len(p) >= 2]
+        # Select context-resonant complete Korean verbal predicates via IDF-weighted co-occurrence!
+        is_user_question = "?" in (user_text or "")
+        pred_scores: Dict[str, float] = {}
+        for st_idx, st in enumerate([*active_stems, *companions[:4]]):
+            w_mult = 4.0 if st_idx < len(active_stems) else 1.8
+            for pf, wt in self.predicate_cooccurrence.get(st, {}).items():
+                if is_user_question and pf.rstrip(".?!").endswith(("까", "인가", "는가", "나요")):
+                    continue
+                idf_p = 1.0 / math.sqrt(1.0 + self.predicate_surfaces.get(pf, 1))
+                # Penalize ultra-generic copula/existential stubs when richer action verbs exist
+                generic_pen = 0.35 if pf.rstrip(".?!") in ("있다", "없다", "이다", "된다", "한다") else 1.0
+                pred_scores[pf] = pred_scores.get(pf, 0.0) + float(wt) * w_mult * idf_p * generic_pen
+        for pf, cnt in self.predicate_surfaces.most_common(20):
+            if is_user_question and pf.rstrip(".?!").endswith(("까", "인가", "는가", "나요")):
+                continue
+            generic_pen = 0.25 if pf.rstrip(".?!") in ("있다", "없다", "이다", "된다", "한다") else 1.0
+            pred_scores[pf] = pred_scores.get(pf, 0.0) + 0.15 * generic_pen
+        pred_surface_pool = [pf for pf, _ in sorted(pred_scores.items(), key=lambda kv: -kv[1])[:12]]
+        pred_pool = [p for p, _ in self.predicate_stems.most_common(12) if _is_pure_hangul(p) and len(p) >= 2]
         if not pred_pool:
-            pred_pool = [s for s, _ in self.stem_counts.most_common(6)]
+            pred_pool = ["이어지"]
 
         # Try up to 3 ending/stem perturbations so output is non-verbatim whenever multiple axes exist
         best_sentence = ""
@@ -659,16 +792,21 @@ class LanguageScaleRotor:
                 if sl == "STANCE_END":
                     continue
                 if sl == "PREDICATE_CORE":
-                    p_stem = pred_pool[min(attempt, len(pred_pool) - 1)] if pred_pool else (last_stem or "이어지")
-                    if p_stem == last_stem and len(pred_pool) > 1:
-                        p_stem = pred_pool[(attempt + 1) % len(pred_pool)]
-                    # Strip accidental trailing punct on stem before attaching stance ending
-                    clean_p = re.sub(r"[?!….,]+$", "", p_stem)
-                    bound_pred = clean_p + cand_ending if not clean_p.endswith(cand_ending) else clean_p
-                    words_out.append(bound_pred)
-                    cand_stems.append(clean_p)
-                    cand_ops.append(cand_ending)
-                    last_stem = clean_p
+                    if pred_surface_pool:
+                        bound_pred = pred_surface_pool[min(attempt, len(pred_surface_pool) - 1)]
+                        clean_p, p_end = self._split_word_distributional(bound_pred.rstrip(".?!"), is_final=True)
+                        words_out.append(bound_pred)
+                        cand_stems.append(clean_p or bound_pred)
+                        cand_ops.append(p_end or cand_ending)
+                        last_stem = clean_p or bound_pred
+                    else:
+                        p_stem = pred_pool[min(attempt, len(pred_pool) - 1)]
+                        clean_p = re.sub(r"[?!….,]+$", "", p_stem)
+                        bound_pred = clean_p + cand_ending if not clean_p.endswith(cand_ending) else clean_p
+                        words_out.append(bound_pred)
+                        cand_stems.append(clean_p)
+                        cand_ops.append(cand_ending)
+                        last_stem = clean_p
                 else:
                     if not nominal_pool:
                         continue
@@ -678,6 +816,16 @@ class LanguageScaleRotor:
                     if n_stem == last_stem and len(nominal_pool) > 1:
                         n_stem = nominal_pool[(pick_idx + 1) % len(nominal_pool)]
                     op = self._best_operator_for_slot(schema, sl, target_spec)
+                    if op not in _PARTICLE_TO_ROLE:
+                        default_op_by_role = {
+                            "TOPIC_CORE": "은/는",
+                            "SUBJECT_CORE": "이/가",
+                            "OBJECT_CORE": "을/를",
+                            "COUPLED_LINK": "과/와",
+                            "CONTEXT_LOC": "에서",
+                            "ATTR_MOD": "의",
+                        }
+                        op = default_op_by_role.get(sl, "은/는")
                     word_bound = bind_korean_operator(n_stem, op) if op else n_stem
                     words_out.append(word_bound)
                     cand_stems.append(n_stem)

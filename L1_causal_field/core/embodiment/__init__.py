@@ -28,11 +28,6 @@ from core.topology.self_expanding_spectrum import (
     EmergentSpectrumAxis,
     SelfExpandingSpectrumCortex,
 )
-from core.topology.unified_scale_rotor_hierarchy import (
-    ScaleRotorHierarchy,
-    ScaleRotorLink,
-    ScaleRotorNode,
-)
 from core.embodiment.boundary_tension_avatar_body import (
     ArticulatedTensionChain,
     BodyPoseSnapshot,
@@ -53,6 +48,16 @@ from core.embodiment.language_scale_rotor import (
     decompose_hangul_jamo,
     has_jongseong,
 )
+try:
+    from core.topology.unified_scale_rotor_hierarchy import (
+        ScaleRotorHierarchy,
+        ScaleRotorLink,
+        ScaleRotorNode,
+    )
+except ImportError:
+    ScaleRotorHierarchy = None  # type: ignore
+    ScaleRotorLink = None  # type: ignore
+    ScaleRotorNode = None  # type: ignore
 from core.embodiment.pc_sensory_motor_body import (
     AgencyMode,
     AudioSnapshot,
@@ -64,12 +69,18 @@ from core.embodiment.pc_sensory_motor_body import (
     WindowsIdleSensor,
     extract_live_sensory_observables,
 )
-from core.embodiment.scale_rotor_embodied_field import (
-    CausalTransitionRotor,
-    ObservationRotor,
-    ScaleRotorEmbodiedMind,
-    ScaleRotorTransitionMemory,
-)
+try:
+    from core.embodiment.scale_rotor_embodied_field import (
+        CausalTransitionRotor,
+        ObservationRotor,
+        ScaleRotorEmbodiedMind,
+        ScaleRotorTransitionMemory,
+    )
+except ImportError:
+    CausalTransitionRotor = None  # type: ignore
+    ObservationRotor = None  # type: ignore
+    ScaleRotorEmbodiedMind = None  # type: ignore
+    ScaleRotorTransitionMemory = None  # type: ignore
 from core.embodiment.world_expression_ingestor import (
     SituatedExpressionField,
     SituatedExpressionRotor,

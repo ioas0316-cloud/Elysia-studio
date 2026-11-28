@@ -22,12 +22,41 @@ from typing import Dict, List, Tuple, Any, Optional
 from dataclasses import dataclass, field
 
 from core.physics.clifford_fourier_mellin_engine import Multivector, CliffordMultivectorEngine
-from elysia_core.unified_system_architecture import ComplexPhasor, MacroRotor
+try:
+    from elysia_core.unified_system_architecture import ComplexPhasor, MacroRotor
+except ModuleNotFoundError:
+    @dataclass
+    class ComplexPhasor:
+        amplitude: float = 1.0
+        phase: float = 0.0
+        frequency: float = 1.0
+
+        @property
+        def complex_value(self) -> complex:
+            return complex(self.amplitude * math.cos(self.phase), self.amplitude * math.sin(self.phase))
+
+        @classmethod
+        def from_complex(cls, z: complex, frequency: float = 1.0) -> "ComplexPhasor":
+            return cls(amplitude=abs(z), phase=math.atan2(z.imag, z.real), frequency=frequency)
+
+        def __add__(self, other: "ComplexPhasor") -> "ComplexPhasor":
+            return ComplexPhasor.from_complex(
+                self.complex_value + other.complex_value,
+                frequency=0.5 * (self.frequency + other.frequency),
+            )
+
+    @dataclass
+    class MacroRotor:
+        rotor_id: str
+        layer_level: int
+        aggregated_phasor: ComplexPhasor
+        constituent_count: int
+        spatiotemporal_harmonics: List[float] = field(default_factory=list)
 
 
 @dataclass
 class VolumetricPhaseState:
-    """
+    r"""
     Unified state representation spanning all scale layers:
     - micro_phasor: S^1 complex phasor
     - quaternion_q: S^3 4D unit quaternion [q_r, q_i, q_j, q_k]

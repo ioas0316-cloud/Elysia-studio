@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elysia Story Scale-Rotor Digital World</title>
+  <style>
+    :root {
+      --bg: #0c1018;
+      --panel: #131a27;
+      --inset: #0e1420;
+      --border: #25324a;
+      --text: #e6edf7;
+      --muted: #8ea0bc;
+      --accent: #4cc9f0;
+      --gold: #f6bd60;
+      --emerald: #38d9a9;
+      --crimson: #ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', -apple-system, sans-serif;
+      font-size: 13px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #0f1624;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { margin: 0; font-size: 15px; font-weight: 700; }
+    .nav { display: flex; gap: 8px; align-items: center; }
+    .nav a, .btn {
+      background: #1b2538;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .btn.primary { background: #1e4b7a; border-color: #3678ba; }
+    .btn.emerald { background: #164e3f; border-color: #2b8a6e; }
+    main {
+      display: grid;
+      grid-template-columns: 330px 1fr 350px;
+      gap: 10px;
+      padding: 10px;
+      height: calc(100vh - 50px);
+    }
+    .col { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .panel h2 { margin: 0; font-size: 13px; color: var(--accent); display: flex; justify-content: space-between; align-items: center; }
+    .badge { font-size: 11px; padding: 2px 6px; border-radius: 3px; background: #1c2940; color: var(--gold); }
+    textarea {
+      width: 100%;
+      min-height: 155px;
+      background: var(--inset);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px;
+      font-size: 12px;
+      line-height: 1.45;
+      resize: vertical;
+    }
+    canvas {
+      width: 100%;
+      height: 360px;
+      background: #090d14;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .log-list { display: flex; flex-direction: column; gap: 6px; max-height: 290px; overflow-y: auto; }
+    .card {
+      background: var(--inset);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 7px 8px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .muted { color: var(--muted); font-size: 11px; }
+    pre {
+      margin: 4px 0 0;
+      padding: 6px;
+      background: #080c13;
+      border: 1px solid #1e2a3f;
+      border-radius: 4px;
+      font-size: 11px;
+      overflow-x: auto;
+      color: #a5f3fc;
+    }
+    .tag-have { color: var(--emerald); }
+    .tag-acq { color: var(--gold); }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1 id="worldTitle">Elysia Story Scale-Rotor Digital World</h1>
+      <span class="muted" id="solarHud">2π 주야 위상 로딩 중...</span>
+    </div>
+    <div class="nav">
+      <a href="/ecology">← 생태계 대시보드 (/ecology)</a>
+      <a href="/">메인 스튜디오 (/)</a>
+      <button id="btnReload" class="btn">상태 새로고침</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="col">
+      <div class="panel">
+        <h2>1. 소설 · 스토리 → 디지털 월드 창조 <span class="badge">비각본 인과 추출</span></h2>
+        <textarea id="storyInput" placeholder="여기에 원하는 소설 줄거리나 등장인물 설정을 입력하세요..."></textarea>
+        <button id="btnCreateWorld" class="btn primary">스토리로 3D 디지털 월드 직조 (R1→R2→R3)</button>
+        <button id="btnAdvanceRotor" class="btn emerald">다음 시간 로터 재귀 연결 (과거 R_k ⊗ 현재 R_{k+1})</button>
+        <div id="createStatus" class="muted"></div>
+      </div>
+
+      <div class="panel">
+        <h2>2. 재귀 시간 스케일 로터 계보 (R_1 → R_2 → R_k) <span id="macroEpochBadge" class="badge">0 세대</span></h2>
+        <div id="rotorChainBox" class="log-list" style="max-height: 220px;"></div>
+      </div>
+
+      <div class="panel">
+        <h2>3. 학제간 융합: 가진 것(HAVE) ∩ 확장(ACQUIRE)</h2>
+        <div id="haveAcquireBox" class="log-list" style="max-height: 240px;"></div>
+      </div>
+    </section>
+
+    <section class="col">
+      <div class="panel">
+        <h2>3. 살아있는 NPC 3계층 인과장 & 2π 광원 순환 <span id="tickBadge" class="badge">Tick #0</span></h2>
+        <canvas id="worldCanvas" width="760" height="360"></canvas>
+        <div class="muted">NPC를 클릭하면 해당 주체의 스케일 로터 내부(가치 축 · 관계 기억 · 자가 수초화 AST 습관)가 펼쳐집니다.</div>
+      </div>
+
+      <div class="panel">
+        <h2>4. 스케일 경계 전개 — Blender 5.3 PBR/리깅 3D 실물 스냅샷 <span id="vertsBadge" class="badge">0 verts</span></h2>
+        <img id="blenderImg" src="/data/open_sandbox/story_world/story_world_embodied_3d.png" style="width:100%;border:1px solid var(--border);border-radius:4px;" onerror="this.style.opacity=0.25">
+      </div>
+    </section>
+
+    <section class="col">
+      <div class="panel">
+        <h2>5. 선택된 NPC 내부 스케일 로터 전개 <span id="selNpcBadge" class="badge">선택 대기</span></h2>
+        <div id="npcInspector" class="card muted">캔버스에서 NPC를 클릭하거나 아래 목록에서 확인하세요.</div>
+      </div>
+
+      <div class="panel">
+        <h2>6. 평행우주 분기(M0 → U_A/B/C) & 언어↔통합감각 프리즘 접지</h2>
+        <div style="display:flex;gap:6px;">
+          <input id="langQueryInput" type="text" placeholder="한국어 문장 입력 (예: 어두운 밤에 경계 마찰이 커지면?)" style="flex:1;background:var(--inset);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-size:12px;">
+          <button id="btnGroundLang" class="btn primary">감각 접지</button>
+        </div>
+        <div id="multiverseBox" class="log-list" style="max-height: 220px;"></div>
+      </div>
+
+      <div class="panel">
+        <h2>7. 창발적 NPC 상호작용 · 마찰 · 공명 로그</h2>
+        <div id="eventList" class="log-list" style="max-height: 230px;"></div>
+      </div>
+
+      <div class="panel">
+        <h2>8. 스케일 로터 노브 · 유튜브 양방향 재창조 스튜디오 <span class="badge">영상↔음성↔자막↔원리</span></h2>
+        <input id="ytInput" type="text" placeholder="유튜브 URL 또는 한국어 검색어 (비우면 흡수된 영상 사용)" style="width:100%;background:var(--inset);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-size:12px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;">
+          <label>시간/속도 노브: <span id="vTempo">1.0</span>×<input id="kTempo" type="range" min="0.5" max="1.8" step="0.05" value="1.0" style="width:100%"></label>
+          <label>음정/피치 노브: <span id="vPitch">1.0</span>×<input id="kPitch" type="range" min="0.75" max="1.4" step="0.05" value="1.0" style="width:100%"></label>
+          <label>색채 온냉 노브: <span id="vWarmth">0.0</span><input id="kWarmth" type="range" min="-0.9" max="0.9" step="0.1" value="0.0" style="width:100%"></label>
+          <label>언어 긴장 노브: <span id="vTension">0.45</span><input id="kTension" type="range" min="0.1" max="0.9" step="0.05" value="0.45" style="width:100%"></label>
+          <label>배음/질서 노브: <span id="vOrder">0.85</span><input id="kOrder" type="range" min="0.25" max="1.0" step="0.05" value="0.85" style="width:100%"></label>
+          <label>원리(여기↔감쇠): <span id="vLaw">0.0</span><input id="kLaw" type="range" min="-0.5" max="0.7" step="0.1" value="0.0" style="width:100%"></label>
+        </div>
+        <button id="btnKnobRecreate" class="btn emerald">노브 변조 → 영상·음성·자막 양방향 재창조 + 자가 청취 검산</button>
+        <div id="knobStatus" class="muted"></div>
+        <video id="knobVideo" controls style="width:100%;border:1px solid var(--border);border-radius:4px;display:none;"></video>
+        <div id="knobAudioRow" style="display:none;flex-direction:column;gap:4px;font-size:11px;">
+          <div>원본 한국어 음성 (Heami ko-KR): <audio id="knobAudioRaw" controls style="width:100%;height:28px;"></audio></div>
+          <div>스케일 로터 변조 음성 (AcousticScaleRotor): <audio id="knobAudioMod" controls style="width:100%;height:28px;"></audio></div>
+        </div>
+        <pre id="knobReportBox" style="max-height:180px;display:none;"></pre>
+      </div>
+
+      <div class="panel">
+        <h2>9. 수직·수평 중력 로터 · 평행 자아 분기 & 교차 축 캐릭터 창조 <span class="badge">과학자 ⊕ 예술가 ⊕ 교차 캐릭터</span></h2>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button type="button" class="btn" id="presetMascFem" style="font-size:11px;padding:4px 8px;">남성 저음 × 부드러운 여성 어법</button>
+          <button type="button" class="btn" id="presetChildElder" style="font-size:11px;padding:4px 8px;">어린아이 고음 × 노인 느린 성찰</button>
+          <button type="button" class="btn" id="presetJester" style="font-size:11px;padding:4px 8px;">광대·배우 극적 반전</button>
+        </div>
+        <input id="personaLabelInput" type="text" value="남성적 저음 억양 × 부드러운 여성 어법" style="width:100%;background:var(--inset);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:5px 8px;font-size:12px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;">
+          <label>수직 축(엔지니어↔예술가): <span id="vVert">0.52</span><input id="pVert" type="range" min="0.05" max="0.95" step="0.05" value="0.52" style="width:100%"></label>
+          <label>수평 축(수줍음↔광대): <span id="vHoriz">-0.35</span><input id="pHoriz" type="range" min="-0.9" max="0.9" step="0.05" value="-0.35" style="width:100%"></label>
+          <label>음성 억양 피치(남성↔아이): <span id="vVPitch">0.74</span>×<input id="pVPitch" type="range" min="0.65" max="1.45" step="0.02" value="0.74" style="width:100%"></label>
+          <label>어법 축(보고서↔부드러움↔극적): <span id="vStance">0.56</span><input id="pStance" type="range" min="0.05" max="0.95" step="0.05" value="0.56" style="width:100%"></label>
+        </div>
+        <button id="btnParallelSelf" class="btn primary">평행 자아 3분기 실행 (과학자 ⊕ 예술가 ⊕ 교차 캐릭터) → 재통합</button>
+        <div id="parallelSelfStatus" class="muted"></div>
+        <div id="parallelSelfBox" class="log-list" style="max-height:300px;"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let worldState = null;
+    let selectedNpcId = null;
+
+    function drawWorld() {
+      const canvas = document.getElementById('worldCanvas');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      if (!worldState) return;
+
+      const sun = worldState.solar_state || { daylight_intensity: 0.5, visibility_radius: 4.0, solar_phase_rad: 0 };
+      const day = sun.daylight_intensity;
+      // Background shifts smoothly with real 2π daylight intensity
+      const rBg = Math.round(10 + 18 * day), gBg = Math.round(14 + 26 * day), bBg = Math.round(24 + 38 * day);
+      ctx.fillStyle = `rgb(${rBg},${gBg},${bBg})`;
+      ctx.fillRect(0, 0, W, H);
+
+      const cx = W / 2, cy = H / 2, scale = 28;
+      const toXY = (p) => [cx + p[0] * scale, cy - p[1] * scale];
+
+      // Subtle valley rings
+      ctx.strokeStyle = 'rgba(140,180,220,0.12)';
+      for (const rr of [2, 4, 5.5]) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, rr * scale, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Draw landmarks
+      for (const lm of worldState.landmarks || []) {
+        const [lx, ly] = toXY(lm.position);
+        ctx.fillStyle = lm.id === 'lm_lantern_core' ? '#f6bd60' : '#4cc9f0';
+        ctx.beginPath();
+        ctx.arc(lx, ly, lm.id === 'lm_lantern_core' ? 8 : 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(230,237,247,0.75)';
+        ctx.font = '11px sans-serif';
+        ctx.fillText(lm.name, lx + 10, ly + 4);
+      }
+
+      // Draw relational ConnectivityBeams between NPCs
+      const npcs = worldState.npcs || [];
+      for (const a of npcs) {
+        const [ax, ay] = toXY(a.position);
+        for (const [bid, rel] of Object.entries(a.relational_memory || {})) {
+          const b = npcs.find((n) => n.id === bid);
+          if (!b || a.id > b.id) continue;
+          const [bx, by] = toXY(b.position);
+          ctx.strokeStyle = rel.phase_alignment >= 0.85 ? 'rgba(56,217,169,0.75)' : 'rgba(246,189,96,0.65)';
+          ctx.lineWidth = Math.min(4, 1 + rel.encounters * 0.4);
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.lineTo(bx, by);
+          ctx.stroke();
+        }
+      }
+
+      // Draw NPCs + real optical visibility radius + facing arrow
+      for (const n of npcs) {
+        const [nx, ny] = toXY(n.position);
+        const isSel = n.id === selectedNpcId;
+
+        // Optical visibility radius modulated by 2π solar angle
+        ctx.strokeStyle = isSel ? 'rgba(76,201,240,0.55)' : 'rgba(255,255,255,0.09)';
+        ctx.lineWidth = isSel ? 1.5 : 1;
+        ctx.beginPath();
+        ctx.arc(nx, ny, sun.visibility_radius * scale, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Chromatic fill from NPC's real value_axis [Red, Blue, Yellow]
+        const [vr, vb, vy] = n.value_axis || [0.5, 0.5, 0.5];
+        const col = `rgb(${Math.round(90 + vr * 160)},${Math.round(90 + vy * 150)},${Math.round(90 + vb * 165)})`;
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.arc(nx, ny, isSel ? 12 : 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = isSel ? 2.5 : 1;
+        ctx.stroke();
+
+        // Facing vector
+        const fx = nx + Math.cos(n.facing_rad || 0) * 18;
+        const fy = ny - Math.sin(n.facing_rad || 0) * 18;
+        ctx.strokeStyle = '#ffffff';
+        ctx.beginPath(); ctx.moveTo(nx, ny); ctx.lineTo(fx, fy); ctx.stroke();
+
+        ctx.fillStyle = '#e6edf7';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(n.name, nx + 13, ny - 6);
+        ctx.fillStyle = '#8ea0bc';
+        ctx.font = '10px sans-serif';
+        ctx.fillText(n.avatar_glb, nx + 13, ny + 7);
+      }
+    }
+
+    function renderInspector() {
+      const box = document.getElementById('npcInspector');
+      const badge = document.getElementById('selNpcBadge');
+      if (!worldState || !worldState.npcs || !worldState.npcs.length) return;
+      const npc = worldState.npcs.find((n) => n.id === selectedNpcId) || worldState.npcs[0];
+      selectedNpcId = npc.id;
+      badge.textContent = `${npc.name} (${npc.avatar_glb})`;
+      const rels = Object.values(npc.relational_memory || {})
+        .map((r) => `<div>• ${r.partner}: 만남 ${r.encounters}회 · 가치 정렬 ${r.phase_alignment} (${(r.outcomes || []).slice(-2).join(', ')})</div>`)
+        .join('') || '<div class="muted">아직 근접 만남 기록 없음</div>';
+      const ast = npc.myelinated_habit_ast;
+      box.innerHTML =
+        `<div><strong>서사 역할:</strong> ${npc.story_role}</div>` +
+        `<div class="muted" style="margin-top:4px;">가치 축 [흐름, 질서, 경계]: [${(npc.value_axis || []).join(', ')}] · 위치: [${(npc.position || []).join(', ')}]</div>` +
+        `<div style="margin-top:6px;"><strong>관계 기억 (ConnectivityBeams):</strong>${rels}</div>` +
+        (ast ? `<div style="margin-top:6px;"><strong>자가 수초화 AST 습관 (${ast.examples_passed}):</strong><pre>${ast.source_code}</pre></div>` : '');
+    }
+
+    function renderAll(data) {
+      worldState = data;
+      document.getElementById('worldTitle').textContent = data.world_title || 'Story Scale-Rotor World';
+      const sun = data.solar_state || {};
+      document.getElementById('solarHud').textContent = `2π 태양 위상: ${sun.solar_phase_rad} rad (${sun.diurnal_phase}) · 광량 ${sun.daylight_intensity} · 시야 반경 ${sun.visibility_radius}m`;
+      document.getElementById('tickBadge').textContent = `Tick #${data.tick} · 압축 청크 ${((data.world_reintegration || {}).compressed_world_chunk || {}).compressed_bytes || 0}B`;
+      document.getElementById('vertsBadge').textContent = `${(data.blender_3d_embodiment || {}).total_vertices || 0} verts (Blender 5.3)`;
+
+      const si = document.getElementById('storyInput');
+      if (!si.value.trim() && data.source_story) si.value = data.source_story;
+
+      const img = document.getElementById('blenderImg');
+      img.src = `/data/open_sandbox/story_world/story_world_embodied_3d.png?t=${Date.now()}`;
+
+      // Recursive Temporal Rotor Chain (R_1 -> R_2 -> R_k)
+      const chain = data.temporal_rotor_chain || [];
+      const macro = data.macro_epoch_rotor || {};
+      document.getElementById('macroEpochBadge').textContent = `${macro.generations_folded || chain.length}세대 · 미시 ${macro.total_micro_zoom_steps || 0} / 거시 ${macro.total_macro_leap_steps || 0}`;
+      document.getElementById('rotorChainBox').innerHTML = chain.length
+        ? chain.slice().reverse().map((r) => {
+            const c = r.temporal_overlay_contrast || {};
+            return `<div class="card"><div><strong>${r.rotor_id}</strong> ⇐ ${r.parent_past_rotor} (2π · 적응 ${r.adaptive_steps_taken}스텝: 미시 ${r.micro_zoom_steps} / 거시 ${r.macro_leap_steps})</div>` +
+              `<div class="muted">과거 연속성(0000): <strong>${c.invariant_continuity_0000}</strong> · 공간 잔차: ${c.mean_spatial_residual_vs_past} · 신규 관계(1): ${(c.newly_emerged_relations_1 || []).length}건</div></div>`;
+          }).join('')
+        : '<div class="muted">시간 로터 기록 대기 중</div>';
+
+      // Have vs Acquire bridge
+      const br = data.have_vs_acquire_interdisciplinary_bridge || {};
+      const haveHtml = (br.fused_now_HAVE || []).map((x) => `<div class="card"><span class="tag-have">● [HAVE]</span> ${x}</div>`).join('');
+      const acqHtml = (br.next_expansion_ACQUIRE || []).map((x) => `<div class="card"><span class="tag-acq">○ [ACQUIRE]</span> ${x}</div>`).join('');
+      document.getElementById('haveAcquireBox').innerHTML = haveHtml + acqHtml;
+
+      // Emergent events
+      const evs = (data.recent_emergent_events || []).slice().reverse();
+      document.getElementById('eventList').innerHTML = evs.length
+        ? evs.map((e) => `<div class="card"><div><strong>Tick #${e.tick}</strong> [${e.diurnal_phase}] · ${e.kind}</div><div class="muted">${e.grounded_trace}</div></div>`).join('')
+        : '<div class="muted">아직 기록된 근접 사건이 없습니다.</div>';
+
+      renderInspector();
+      drawWorld();
+    }
+
+    function renderMultiverse(mv) {
+      const box = document.getElementById('multiverseBox');
+      if (!box || !mv) return;
+      const p1 = mv.part1_cow_parallel_universes || {};
+      const us = (p1.parallel_universes || [])
+        .map((u) => `<div class="card"><div><strong>${u.universe_id}</strong> (${u.description})</div><div class="muted">M0 대비 변위 Δ=${u.divergence_vs_baseline_M0}m · 공명=${u.resonant_events} · 마찰=${u.friction_events} · AST=${u.myelinated_ast_habits}/4</div></div>`)
+        .join('');
+      const p3 = (mv.part3_bidirectional_language_grounding_probes || [])[0];
+      const langHtml = p3
+        ? `<div class="card"><div><strong>언어↔통합감각 접지 (${(p3.activated_modalities || []).join(' ∩ ')})</strong></div><pre style="white-space:pre-wrap;">${p3.grounded_structural_response}</pre></div>`
+        : '';
+      box.innerHTML = langHtml + us;
+    }
+
+    async function loadState() {
+      const [res, resMv] = await Promise.all([fetch('/api/story-world/state'), fetch('/api/story-world/multiverse')]);
+      const d = await res.json();
+      if (d.status === 'ok' && d.world) renderAll(d.world);
+      const dm = await resMv.json();
+      if (dm.status === 'ok' && dm.multiverse) renderMultiverse(dm.multiverse);
+    }
+
+    document.getElementById('btnGroundLang').addEventListener('click', async () => {
+      const q = document.getElementById('langQueryInput').value;
+      const box = document.getElementById('multiverseBox');
+      box.innerHTML = '<div class="muted">한국어 문장에서 단위체계 분별 → 실시간 CoW 평행우주 분기 및 통합감각 접지 중...</div>';
+      const res = await fetch('/api/story-world/language-ground', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ utterance: q }),
+      });
+      const d = await res.json();
+      if (d.status === 'ok' && d.unit_branch_result) {
+        const r = d.unit_branch_result;
+        box.innerHTML = `<div class="card"><div><strong>단위체계 → 실시간 분기 실행 결과</strong></div><pre style="white-space:pre-wrap;">${r.unified_grounded_response}</pre></div>` + box.innerHTML.replace(/<div class="muted">.*?<\/div>/, '');
+      } else if (d.status === 'ok' && d.multiverse) {
+        renderMultiverse(d.multiverse);
+      }
+    });
+
+    document.getElementById('worldCanvas').addEventListener('click', (e) => {
+      if (!worldState) return;
+      const rect = e.target.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (e.target.width / rect.width);
+      const y = (e.clientY - rect.top) * (e.target.height / rect.height);
+      const cx = e.target.width / 2, cy = e.target.height / 2, scale = 28;
+      let best = null, bestD = 30;
+      for (const n of worldState.npcs || []) {
+        const nx = cx + n.position[0] * scale, ny = cy - n.position[1] * scale;
+        const d = Math.hypot(x - nx, y - ny);
+        if (d < bestD) { bestD = d; best = n; }
+      }
+      if (best) { selectedNpcId = best.id; renderInspector(); drawWorld(); }
+    });
+
+    document.getElementById('btnReload').addEventListener('click', loadState);
+    document.getElementById('btnCreateWorld').addEventListener('click', async () => {
+      const st = document.getElementById('createStatus');
+      st.textContent = '스토리 인과 분해 + 3계층 NPC 시뮬레이션 + Blender 5.3 3D 직조 중... (약 15~25초)';
+      try {
+        const res = await fetch('/api/story-world/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ story_text: document.getElementById('storyInput').value, generations: 3 }),
+        });
+        const d = await res.json();
+        if (d.status === 'ok' && d.world) {
+          renderAll(d.world);
+          st.textContent = '3세대 재귀 시간 로터(R1→R2→R3) + 3D 직조 완료!';
+        } else {
+          st.textContent = '오류: ' + (d.message || 'unknown');
+        }
+      } catch (err) {
+        st.textContent = '요청 실패: ' + err;
+      }
+    });
+
+    document.getElementById('btnAdvanceRotor').addEventListener('click', async () => {
+      const st = document.getElementById('createStatus');
+      st.textContent = '과거 로터 R_k ⊗ 현재 로터 R_{k+1} 재귀 전개 + 3D 갱신 중...';
+      try {
+        const res = await fetch('/api/story-world/advance-rotor', { method: 'POST' });
+        const d = await res.json();
+        if (d.status === 'ok' && d.world) {
+          renderAll(d.world);
+          st.textContent = `새 시간 로터 ${(d.world.macro_epoch_rotor || {}).macro_scale_span || ''} 재귀 연결 완료!`;
+        } else {
+          st.textContent = '오류: ' + (d.message || 'unknown');
+        }
+      } catch (err) {
+        st.textContent = '요청 실패: ' + err;
+      }
+    });
+
+    for (const [id, lbl] of [['kTempo','vTempo'],['kPitch','vPitch'],['kWarmth','vWarmth'],['kTension','vTension'],['kOrder','vOrder'],['kLaw','vLaw'],['pVert','vVert'],['pHoriz','vHoriz'],['pVPitch','vVPitch'],['pStance','vStance']]) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => { document.getElementById(lbl).textContent = el.value; });
+    }
+
+    function applyPersonaPreset(label, v, h, p, s) {
+      document.getElementById('personaLabelInput').value = label;
+      for (const [id, lbl, val] of [['pVert','vVert',v],['pHoriz','vHoriz',h],['pVPitch','vVPitch',p],['pStance','vStance',s]]) {
+        document.getElementById(id).value = val;
+        document.getElementById(lbl).textContent = val;
+      }
+    }
+    document.getElementById('presetMascFem').addEventListener('click', () => applyPersonaPreset('남성적 저음 억양 × 부드러운 여성 어법', 0.52, -0.35, 0.74, 0.56));
+    document.getElementById('presetChildElder').addEventListener('click', () => applyPersonaPreset('어린아이 고음 × 노인의 느린 성찰 호흡', 0.85, -0.25, 1.38, 0.62));
+    document.getElementById('presetJester').addEventListener('click', () => applyPersonaPreset('광대·배우 극적 반전 캐릭터', 0.78, 0.85, 1.22, 0.90));
+
+    document.getElementById('btnParallelSelf').addEventListener('click', async () => {
+      const st = document.getElementById('parallelSelfStatus');
+      const box = document.getElementById('parallelSelfBox');
+      st.textContent = 'MultiDimensionalLensRotorHub 평행 자아 3분기 + 음성 로터 합성 + CausalField 재통합 실행 중...';
+      try {
+        const res = await fetch('/api/story-world/parallel-self', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            utterance: document.getElementById('langQueryInput').value || '파동이 굴절할 때 속력과 각도는 어떻게 변할까?',
+            persona_label: document.getElementById('personaLabelInput').value,
+            vertical_axis: parseFloat(document.getElementById('pVert').value),
+            horizontal_axis: parseFloat(document.getElementById('pHoriz').value),
+            vocal_pitch: parseFloat(document.getElementById('pVPitch').value),
+            vocal_tempo: document.getElementById('personaLabelInput').value.includes('노인') ? 0.72 : 0.95,
+            stance_axis: parseFloat(document.getElementById('pStance').value),
+          }),
+        });
+        const d = await res.json();
+        if (d.status === 'ok' && d.parallel_self) {
+          const r = d.parallel_self;
+          const ts = '?t=' + Date.now();
+          st.textContent = `세대 #${r.generation} 재통합 완료 (${r.elapsed_s}s) | 혈류 집중: ${r.blood_pulse.dominant_lens} | 공명 다리 ${r.cross_lens_resonance_bridges.length}개 | CausalField 복셀 ${r.reintegrated_causal_field.voxels_synced}·빔 ${r.reintegrated_causal_field.beams_linked}`;
+          box.innerHTML = r.parallel_self_branches.map((b) => `
+            <div class="card">
+              <div><strong>${b.label_ko}</strong> <span class="badge">혈류 ${b.blood_flow_pct}%</span> <span class="badge">${b.verdict}</span></div>
+              <div style="margin:4px 0;color:#e6edf7;">"${b.expressed_utterance_ko}"</div>
+              ${b.voice_rotor && b.voice_rotor.ok ? `<div class="muted">음성 로터(피치 ${b.voice_rotor.pitch_rotor}× · F0=${b.voice_rotor.mean_pitch_hz}Hz): <audio controls src="${b.voice_rotor.wav_url}${ts}" style="width:100%;height:26px;"></audio></div>` : ''}
+              <div class="muted">• 통제 가능: ${(b.controllable_ground || []).join(' / ')}</div>
+              <div class="muted">• 요구 확장 영역: ${(b.epistemic_demands || []).join(' / ')}</div>
+            </div>
+          `).join('') + `<div class="card"><strong>통합 다음 계층 확장 지평 (${r.accumulated_epistemic_frontier.length}개)</strong><div class="muted">${r.accumulated_epistemic_frontier.join(' · ')}</div></div>`;
+        } else {
+          st.textContent = '오류: ' + (d.message || 'unknown');
+        }
+      } catch (err) {
+        st.textContent = '요청 실패: ' + err;
+      }
+    });
+
+    document.getElementById('btnKnobRecreate').addEventListener('click', async () => {
+      const st = document.getElementById('knobStatus');
+      const box = document.getElementById('knobReportBox');
+      st.textContent = '유튜브 영상·음성 로터 학습 → 노브 변조 → 한국어 음성 합성 + Whisper 자가 청취 검산 + 재창조 .mp4 직조 중...';
+      try {
+        const res = await fetch('/api/story-world/knob-recreate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            utterance: document.getElementById('langQueryInput').value || '파동이 굴절할 때 속력과 각도는 어떻게 변할까?',
+            youtube_url: document.getElementById('ytInput').value.trim(),
+            tempo_knob: parseFloat(document.getElementById('kTempo').value),
+            pitch_knob: parseFloat(document.getElementById('kPitch').value),
+            warmth_knob: parseFloat(document.getElementById('kWarmth').value),
+            tension_knob: parseFloat(document.getElementById('kTension').value),
+            order_knob: parseFloat(document.getElementById('kOrder').value),
+            law_damping_knob: parseFloat(document.getElementById('kLaw').value),
+          }),
+        });
+        const d = await res.json();
+        if (d.status === 'ok' && d.knob_recreation) {
+          const r = d.knob_recreation;
+          const ts = '?t=' + Date.now();
+          const v = document.getElementById('knobVideo');
+          if (r.video_av_knob_recreation && r.video_av_knob_recreation.recreated_mp4_url) {
+            v.src = r.video_av_knob_recreation.recreated_mp4_url + ts;
+            v.style.display = 'block';
+          }
+          const ar = document.getElementById('knobAudioRow');
+          if (r.acoustic_scale_rotor_modulation && r.acoustic_scale_rotor_modulation.ok) {
+            document.getElementById('knobAudioRaw').src = r.acoustic_scale_rotor_modulation.raw_voice_url + ts;
+            document.getElementById('knobAudioMod').src = r.acoustic_scale_rotor_modulation.modulated_voice_url + ts;
+            ar.style.display = 'flex';
+          }
+          box.style.display = 'block';
+          box.textContent = JSON.stringify({
+            knobs: r.knobs,
+            spoken_ko: r.knob_modulated_language.spoken_korean_chosen,
+            youtube_blind_whisper_stt: (r.youtube_blind_whisper_stt || {}).text,
+            self_hearing_whisper_stt: (r.self_hearing_whisper_stt || {}).text,
+            video_mse_drop_pct: (r.video_av_knob_recreation || {}).visual_mse_drop_pct,
+            self_verified_summary_ko: (r.video_av_knob_recreation || {}).self_verified_summary_ko,
+          }, null, 2);
+          st.textContent = `재창조 + 자가 청취·재관측 완료 (${r.elapsed_s}s)!`;
+        } else {
+          st.textContent = '오류: ' + (d.message || 'unknown');
+        }
+      } catch (err) {
+        st.textContent = '요청 실패: ' + err;
+      }
+    });
+
+    loadState();
+  </script>
+</body>
+</html>

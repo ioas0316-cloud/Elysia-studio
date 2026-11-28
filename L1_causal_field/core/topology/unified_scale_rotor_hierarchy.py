@@ -35,11 +35,19 @@ import zlib
 import numpy as np
 
 from core.embodiment.language_scale_rotor import (
+    _CANONICAL_KOREAN_PARTICLES,
+    _is_pure_hangul,
+    _is_valid_korean_predicate_word,
     _strip_word_edge_punct,
     bind_korean_operator,
     decompose_hangul_jamo,
 )
 from core.orchestration.autonomous_open_explorer import _extract_lexical_tokens
+from core.topology.korean_causal_linguistics import (
+    CausalPropositionFrame,
+    attach_particle,
+    repair_korean_particles,
+)
 from core.topology.geometric_rotor_docking import (
     MV_DIM,
     batch_clifford_docking_affinity,
@@ -60,7 +68,28 @@ from core.topology.self_expanding_spectrum import (
 )
 
 
-_CANONICAL_ALLOMORPHS = {"이", "가", "은", "는", "을", "를", "과", "와", "으로", "로", "에", "도", "만", "고", "서", "면"}
+_CANONICAL_ALLOMORPHS = {
+    "이", "가", "은", "는", "을", "를", "과", "와", "으로", "로",
+    "에", "에서", "에서는", "에게", "의", "도", "만", "부터", "까지", "처럼", "보다",
+    "이자", "이며", "이나", "라도", "고", "서", "면",
+}
+
+_PROTECTED_NON_NOMINAL_ENDINGS: Tuple[str, ...] = (
+    "하는", "되는", "있는", "없는", "가는", "오는", "보는", "쓰는", "맞는", "같은", "높은", "낮은",
+    "깊은", "짧은", "많은", "작은", "적은", "좋은", "넓은", "맑은", "밝은", "다른", "모든", "어떤",
+    "이런", "그런", "짙은", "흐른", "나타나는", "연결되는", "변하는", "흐르는", "움직이는",
+    "다면", "라면", "하면", "되면", "이면", "이고", "하고", "되고", "며", "지만", "거나",
+    "될까", "할까", "을까", "는가", "인가", "어떻게", "무엇", "만약",
+    "대해", "대해서", "뭐냐면", "뭐냐", "할", "될", "갈", "올", "볼", "냐면",
+)
+
+_PROTECTED_WHOLE_NOUNS = {
+    "결과", "효과", "통과", "사과", "과거", "경과", "인과", "평화", "조화", "대화", "변화",
+    "마을", "가을", "하늘", "오늘", "거울", "구슬", "겨울", "마음", "소리", "거리", "자리",
+    "우리", "무리", "뿌리", "머리", "다리", "허리", "고리", "고민", "기억", "시야", "등대",
+    "안개", "각도", "리듬", "계층", "구조", "질서", "어둠", "광학", "시각", "시간", "언어",
+    "감정", "신경", "신경계", "파동", "위상", "공명", "연결", "세계", "자연", "인간", "의식",
+}
 
 
 @dataclass
@@ -406,21 +435,35 @@ class ScaleRotorHierarchy:
         return syl_ids
 
     def _split_word_using_hierarchy(self, word: str, is_final: bool) -> Tuple[str, str]:
-        if len(word) <= 2 or not any("가" <= c <= "힣" for c in word):
+        if len(word) < 2 or not any("가" <= c <= "힣" for c in word):
             return word, ""
-        # 1. Check longest existing unit:: stem node already differentiated in the hierarchy
+        # Keep genuine whole nouns and adnominal/connective verb forms intact before splitting
+        if word in _PROTECTED_WHOLE_NOUNS:
+            return word, ""
+        if not is_final and any(word.endswith(end) for end in _PROTECTED_NON_NOMINAL_ENDINGS):
+            return word, ""
+        # 1. Exact canonical Korean particles first (handles 1-char Hangul nouns like 빛+의, 밤+은, 길+로)
+        if not is_final and _is_pure_hangul(word):
+            for part in _CANONICAL_KOREAN_PARTICLES:
+                if word.endswith(part) and len(word) > len(part):
+                    stem = word[: -len(part)]
+                    if len(stem) >= 1 and _is_pure_hangul(stem):
+                        return stem, part
+        if len(word) <= 2:
+            return word, ""
+        # 2. Check longest existing unit:: stem node already differentiated in the hierarchy
         for plen in range(min(len(word) - 1, 5), 1, -1):
             pref = word[:plen]
             rem = word[plen:]
             if f"unit::{pref}" in self.nodes and 1 <= len(rem) <= 3:
                 return pref, rem
-        # 2. Check known op:: suffix operators in hierarchy or canonical Hangul allomorphs
+        # 3. Check known op:: suffix operators in hierarchy or canonical Hangul allomorphs
         for slen in (2, 1):
             if len(word) - slen >= 2:
                 suf = word[-slen:]
                 if f"op::{suf}" in self.nodes or suf in _CANONICAL_ALLOMORPHS:
                     return word[:-slen], suf
-        # 3. Distributional shared-prefix match against existing surf words in Scale 2 unit:: nodes
+        # 4. Distributional shared-prefix match against existing surf words in Scale 2 unit:: nodes
         for plen in range(min(len(word) - 1, 4), 1, -1):
             pref = word[:plen]
             rem = word[plen:]
@@ -455,6 +498,7 @@ class ScaleRotorHierarchy:
 
         unit_children: List[str] = []
         n_words = len(clean_words)
+        prev_unit_id: Optional[str] = None
         for i, (w, p) in enumerate(clean_words):
             is_final = i == n_words - 1
             stem, op = self._split_word_using_hierarchy(w, is_final=is_final)
@@ -470,12 +514,22 @@ class ScaleRotorHierarchy:
                 self.integrate(end_id, end_syls, scale=2, spectrum=spectrum, surface=end_surf)
                 unit_children.append(end_id)
                 self._add_or_reinforce_link(unit_id, end_id, "precedes", weight=0.9)
+                # Also differentiate complete Korean verbal predicates as Scale 2 `pred::` nodes
+                # so hierarchy-level composition preserves nominal vs predicate distinction!
+                if _is_valid_korean_predicate_word(w):
+                    pred_syls = self._differentiate_syllables(w, spectrum)
+                    pred_id = f"pred::{w}"
+                    self.integrate(pred_id, pred_syls, scale=2, spectrum=spectrum, surface=w, relation_between_children="precedes")
+                    unit_children.append(pred_id)
+                    if prev_unit_id:
+                        self._add_or_reinforce_link(prev_unit_id, pred_id, "precedes", weight=0.95)
             elif op:
                 op_syls = self._differentiate_syllables(op, spectrum)
                 op_id = f"op::{op}"
                 self.integrate(op_id, op_syls, scale=2, spectrum=spectrum, surface=op)
                 unit_children.append(op_id)
                 self._add_or_reinforce_link(unit_id, op_id, "precedes", weight=0.9)
+            prev_unit_id = unit_id
 
         utt_hash = zlib.crc32(clean_utt.encode("utf-8")) & 0xFFFFFFFF
         utt_id = f"utt::{utt_hash:08x}"
@@ -1124,18 +1178,48 @@ class ScaleRotorHierarchy:
                 return False
         return False
 
+    def _is_clean_nominal_unit(self, nd: ScaleRotorNode) -> bool:
+        surf = (nd.surface or "").strip()
+        if not surf or not _is_pure_hangul(surf):
+            return False
+        if len(surf) == 1 and surf not in ("빛", "밤", "낮", "길", "말", "눈", "귀", "손", "별", "해", "달", "물", "불", "힘", "숨", "꿈"):
+            return False
+        if len(surf) > 7:
+            return False
+        # Exclude sentence-final verbal predicates and adnominal/connective fragments
+        if _is_valid_korean_predicate_word(surf):
+            return False
+        if any(surf.endswith(end) for end in _PROTECTED_NON_NOMINAL_ENDINGS):
+            return False
+        # Exclude stems that still carry dangling case/genitive/connective suffixes (unless protected noun)
+        if surf not in _PROTECTED_WHOLE_NOUNS and surf.endswith(("의", "에서", "으로", "에게", "부터", "까지", "처럼", "보다", "하고", "되며", "하며", "이자", "이며", "이나", "라도")):
+            return False
+        # Exclude stems that only ever preceded `end::` (cropped final verb stems like `나타난`, `연결된`)
+        out_rels = self._out_adj.get(nd.node_id, ())
+        has_op_out = any(dst.startswith("op::") for dst, _r, _w in out_rels)
+        has_end_out = any(dst.startswith("end::") for dst, _r, _w in out_rels)
+        if has_end_out and not has_op_out and surf not in _PROTECTED_WHOLE_NOUNS:
+            return False
+        return True
+
     def compose_utterance_from_hierarchy(
         self,
         cue_node_ids: Sequence[str],
         user_text: str,
         target_spectrum: Sequence[float],
     ) -> Tuple[str, Dict[str, Any]]:
-        """Composes a novel non-verbatim utterance directly from resonated Scale 2/1/0 nodes."""
-        unit_matches = self.resonate(cue_node_ids, target_spectrum, target_scale=2, node_prefix="unit::", top_k=10)
-        op_matches = self.resonate(cue_node_ids, target_spectrum, target_scale=2, node_prefix="op::", top_k=4)
+        """
+        Composes a novel non-verbatim Korean causal proposition directly from
+        resonated Scale 0..3 nodes using Elysia's `CausalPropositionFrame`
+        (separating Scale 2 nominals, causal-role operators, and complete
+        verbal `pred::` predicates with Scale 0 Hangul coda harmony).
+        """
+        unit_matches = self.resonate(cue_node_ids, target_spectrum, target_scale=2, node_prefix="unit::", top_k=28)
+        pred_matches = self.resonate(cue_node_ids, target_spectrum, target_scale=2, node_prefix="pred::", top_k=12)
+        op_matches = self.resonate(cue_node_ids, target_spectrum, target_scale=2, node_prefix="op::", top_k=8)
         end_matches = self.resonate(cue_node_ids, target_spectrum, target_scale=2, node_prefix="end::", top_k=4)
 
-        if len(unit_matches) < 2 or not end_matches:
+        if len(unit_matches) < 2:
             return "", {
                 "grounded_in_real_world": False,
                 "novel_vs_corpus": True,
@@ -1143,15 +1227,156 @@ class ScaleRotorHierarchy:
                 "scale_counts": self.scale_summary(),
             }
 
-        user_toks = _extract_lexical_tokens(user_text)
-        chosen_units: List[ScaleRotorNode] = []
-        for nd, _sc in unit_matches:
-            if nd.surface and len(nd.surface) >= 2 and nd.surface not in [u.surface for u in chosen_units]:
-                chosen_units.append(nd)
-            if len(chosen_units) >= 3:
+        user_toks = set(_extract_lexical_tokens(user_text))
+        # Also collect clean stems from user_text via our hierarchy splitter
+        user_clean_stems: set[str] = set()
+        for raw_t in re.findall(r"[가-힣]+", user_text or ""):
+            st, _op = self._split_word_using_hierarchy(raw_t, is_final=False)
+            if st:
+                user_clean_stems.add(st)
+
+        # 1. Context-specific Scale 2 <-> Scale 3 episode resonance (prevents generic hub bias!)
+        #    Trace user's clean nominal stems -> shared real-world `utt::*` episodes -> their co-occurring `unit::*` and `pred::*`!
+        user_unit_ids = [
+            f"unit::{st}" for st in user_clean_stems
+            if f"unit::{st}" in self.nodes and self._is_clean_nominal_unit(self.nodes[f"unit::{st}"])
+        ]
+        ep_unit_boost: Dict[str, float] = defaultdict(float)
+        ep_pred_boost: Dict[str, float] = defaultdict(float)
+        shared_episodes: Dict[str, float] = defaultdict(float)
+        for uid in user_unit_ids:
+            u_nd = self.nodes[uid]
+            # Inverse-activation IDF weight so rare domain-specific terms (안개, 등대, 리듬, 기억) dominate hubs!
+            uid_idf = 1.0 / math.sqrt(1.0 + max(1, u_nd.activations))
+            for pid in u_nd.parents:
+                if pid.startswith("utt::") and pid not in cue_node_ids and pid in self.nodes:
+                    shared_episodes[pid] += uid_idf
+        # Also include top 1-hop docked utterance episodes from `cue_node_ids`
+        for cid in cue_node_ids:
+            for dst, rel, w in self._out_adj.get(cid, ()):
+                if rel == "docks" and dst.startswith("utt::") and dst in self.nodes:
+                    shared_episodes[dst] += 0.25 * w
+
+        for ep_id, ep_w in sorted(shared_episodes.items(), key=lambda kv: -kv[1])[:24]:
+            ep_node = self.nodes.get(ep_id)
+            if ep_node is None:
+                continue
+            for ch_id in ep_node.children:
+                ch_nd = self.nodes.get(ch_id)
+                if ch_nd is None:
+                    continue
+                ch_idf = 1.0 / math.sqrt(1.0 + max(1, ch_nd.activations))
+                if ch_id.startswith("unit::") and self._is_clean_nominal_unit(ch_nd):
+                    ep_unit_boost[ch_id] += ep_w * ch_idf
+                elif ch_id.startswith("pred::") and _is_valid_korean_predicate_word(ch_nd.surface):
+                    gen_pen = 0.35 if ch_nd.surface in ("있다", "없다", "이다", "된다", "한다") else 1.0
+                    ep_pred_boost[ch_id] += ep_w * ch_idf * gen_pen
+
+        # Combine episode-contextual boost + global hierarchy resonance (with anti-hub IDF)
+        ranked_nominals: Dict[str, float] = {}
+        for nd, sc in unit_matches:
+            if not self._is_clean_nominal_unit(nd):
+                continue
+            idf = 1.0 / math.sqrt(1.0 + max(1, nd.activations))
+            ranked_nominals[nd.node_id] = ranked_nominals.get(nd.node_id, 0.0) + float(sc) * idf * 0.65
+        for uid, bsc in ep_unit_boost.items():
+            ranked_nominals[uid] = ranked_nominals.get(uid, 0.0) + bsc * 2.5
+        for uid in user_unit_ids:
+            ranked_nominals[uid] = ranked_nominals.get(uid, 0.0) + 1.2
+
+        clean_nominals: List[ScaleRotorNode] = []
+        seen_surfs: set[str] = set()
+        for uid, _sc in sorted(ranked_nominals.items(), key=lambda kv: -kv[1]):
+            nd = self.nodes[uid]
+            if nd.surface not in seen_surfs:
+                clean_nominals.append(nd)
+                seen_surfs.add(nd.surface)
+            if len(clean_nominals) >= 8:
                 break
 
-        if not chosen_units:
+        # Keep at least one user-anchored nominal + at least one companion hierarchy nominal
+        chosen_nominals: List[ScaleRotorNode] = []
+        user_noms = [nd for nd in clean_nominals if nd.surface in user_clean_stems or nd.surface in user_toks]
+        world_noms = [nd for nd in clean_nominals if nd not in user_noms]
+        if user_noms:
+            chosen_nominals.append(user_noms[0])
+        for nd in world_noms:
+            if len(chosen_nominals) >= 3:
+                break
+            chosen_nominals.append(nd)
+        for nd in user_noms[1:]:
+            if len(chosen_nominals) >= 3:
+                break
+            chosen_nominals.append(nd)
+
+        # 2. Select context-specific resonated complete declarative Korean verbal predicate (Scale 2 `pred::`)
+        is_user_question = "?" in (user_text or "")
+        ranked_preds: Dict[str, float] = {}
+        for pnd, psc in pred_matches:
+            ps = (pnd.surface or "").strip()
+            if not _is_valid_korean_predicate_word(ps):
+                continue
+            if is_user_question and ps.endswith(("까", "인가", "는가", "나요")):
+                continue
+            idf_p = 1.0 / math.sqrt(1.0 + max(1, pnd.activations))
+            gen_pen = 0.35 if ps in ("있다", "없다", "이다", "된다", "한다") else 1.0
+            ranked_preds[pnd.node_id] = ranked_preds.get(pnd.node_id, 0.0) + float(psc) * idf_p * gen_pen * 0.5
+        for pid, bsc in ep_pred_boost.items():
+            pnd = self.nodes[pid]
+            if is_user_question and pnd.surface.endswith(("까", "인가", "는가", "나요")):
+                continue
+            ranked_preds[pid] = ranked_preds.get(pid, 0.0) + bsc * 3.5
+
+        chosen_pred: Optional[ScaleRotorNode] = None
+        if ranked_preds:
+            best_pid = max(ranked_preds.items(), key=lambda kv: kv[1])[0]
+            chosen_pred = self.nodes.get(best_pid)
+        if chosen_pred is None and pred_matches:
+            for pnd, _psc in pred_matches:
+                if _is_valid_korean_predicate_word(pnd.surface):
+                    chosen_pred = pnd
+                    break
+
+        # 3. Realize via `CausalPropositionFrame` when clean nominals + complete predicate resonated!
+        if len(chosen_nominals) >= 2 and chosen_pred is not None:
+            op_surfs = [nd.surface for nd, _sc in op_matches if nd.surface]
+            frame = CausalPropositionFrame(subject=chosen_nominals[0].surface)
+            if len(chosen_nominals) == 2:
+                if any(o in ("으로", "로") for o in op_surfs[:3]):
+                    frame.instrument = chosen_nominals[1].surface
+                elif any(o in ("에서", "에") for o in op_surfs[:3]):
+                    frame.context = chosen_nominals[1].surface
+                else:
+                    frame.obj = chosen_nominals[1].surface
+            else:
+                # 3 resonated nominals: assign [context/instrument, subject, obj] by resonated operators
+                if any(o in ("에서", "에") for o in op_surfs[:4]):
+                    frame.context = chosen_nominals[1].surface
+                    frame.obj = chosen_nominals[2].surface
+                elif any(o in ("으로", "로") for o in op_surfs[:4]):
+                    frame.obj = chosen_nominals[1].surface
+                    frame.instrument = chosen_nominals[2].surface
+                else:
+                    frame.obj = chosen_nominals[1].surface
+                    frame.instrument = chosen_nominals[2].surface
+
+            frame.action_mechanism = chosen_pred.surface
+            raw_utt = frame.realize_korean()
+            best_utt, particle_fixes = repair_korean_particles(raw_utt)
+            used_node_ids = [nd.node_id for nd in chosen_nominals] + [chosen_pred.node_id]
+            return best_utt, {
+                "grounded_in_real_world": bool(best_utt),
+                "novel_vs_corpus": bool(best_utt) and (best_utt.lower() not in self._seen_text_set),
+                "composition_mode": "CausalPropositionFrame_Scale0_to_3",
+                "causal_frame": frame.to_dict(),
+                "particle_repairs": particle_fixes,
+                "used_nodes": used_node_ids,
+                "used_predicates": [chosen_pred.surface],
+                "scale_counts": self.scale_summary(),
+            }
+
+        # Fallback (only if hierarchy has not yet absorbed any complete `pred::` predicates)
+        if not end_matches:
             return "", {
                 "grounded_in_real_world": False,
                 "novel_vs_corpus": True,
@@ -1159,16 +1384,11 @@ class ScaleRotorHierarchy:
                 "scale_counts": self.scale_summary(),
             }
 
-        # Ensure at least one companion unit beyond raw user tokens when available
-        non_user = [nd for nd, _sc in unit_matches if nd.surface and nd.surface not in user_toks]
-        if non_user and len(chosen_units) >= 2 and all(u.surface in user_toks for u in chosen_units):
-            chosen_units[-1] = non_user[0]
-
+        chosen_units: List[ScaleRotorNode] = chosen_nominals[:3] if chosen_nominals else [nd for nd, _ in unit_matches[:3] if nd.surface]
         ops = [nd.surface for nd, _sc in op_matches if nd.surface]
         endings = [nd.surface for nd, _sc in end_matches if nd.surface] or ["다."]
-
         best_utt = ""
-        used_node_ids: List[str] = []
+        used_node_ids = []
         for attempt in range(min(3, len(endings))):
             cand_end = endings[attempt]
             parts: List[str] = []
@@ -1182,26 +1402,12 @@ class ScaleRotorHierarchy:
                     c_ids.append(f"end::{cand_end}")
                 else:
                     op = ops[idx % len(ops)] if ops else ""
+                    word = attach_particle(unode.surface, op) if op in ("이/가", "은/는", "을/를", "과/와", "(으)로") else (bind_korean_operator(unode.surface, op) if op else unode.surface)
                     if op:
-                        # Use Scale 0 Jamo-grounded coda check before operator binding
-                        _coda_present = self._stem_has_coda_from_scale0(unode)
-                        if op in ("이", "가"):
-                            word = unode.surface + ("이" if _coda_present else "가")
-                        elif op in ("은", "는"):
-                            word = unode.surface + ("은" if _coda_present else "는")
-                        elif op in ("을", "를"):
-                            word = unode.surface + ("을" if _coda_present else "를")
-                        elif op in ("과", "와"):
-                            word = unode.surface + ("과" if _coda_present else "와")
-                        else:
-                            word = bind_korean_operator(unode.surface, op)
                         c_ids.append(f"op::{op}")
-                    else:
-                        word = unode.surface
                     parts.append(word)
                     c_ids.append(unode.node_id)
-
-            cand = re.sub(r"\s+", " ", " ".join(parts)).strip()
+            cand, _ = repair_korean_particles(re.sub(r"\s+", " ", " ".join(parts)).strip())
             if cand:
                 best_utt = cand
                 used_node_ids = c_ids
@@ -1211,6 +1417,7 @@ class ScaleRotorHierarchy:
         return best_utt, {
             "grounded_in_real_world": bool(best_utt),
             "novel_vs_corpus": bool(best_utt) and (best_utt.lower() not in self._seen_text_set),
+            "composition_mode": "fallback_operator_chain",
             "used_nodes": used_node_ids,
             "scale_counts": self.scale_summary(),
         }

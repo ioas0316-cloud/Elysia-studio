@@ -167,6 +167,71 @@ class SpatiotemporalScaleRotorSpectrum:
         rec = np.clip(rec * 255.0, 0.0, 255.0).astype(np.uint8)
         return rec
 
+    def recreate_with_knobs(
+        self,
+        times: np.ndarray,
+        *,
+        tempo_knob: float = 1.0,
+        phase_knob: float = 0.0,
+        chroma_warmth_knob: float = 0.0,
+        harmonic_order_knob: float = 1.0,
+        law_envelope: Optional[np.ndarray] = None,
+    ) -> np.ndarray:
+        """
+        Treats the learned `SpatiotemporalScaleRotorSpectrum` directly as a continuous
+        multi-knob instrument — modulating temporal velocity (`tempo_knob`), spectral
+        phase (`phase_knob`), chromatic warmth (`chroma_warmth_knob`), high-frequency
+        order detail (`harmonic_order_knob`), and external physical-law trajectories
+        (`law_envelope`) strictly in Fourier Scale-Rotor space!
+        """
+        t_arr = np.asarray(times, dtype=np.float64)
+        tempo = max(0.25, min(3.0, float(tempo_knob)))
+        warm = max(-1.0, min(1.0, float(chroma_warmth_knob)))
+        h_order = max(0.15, min(1.0, float(harmonic_order_knob)))
+
+        mod_freqs = self.temporal_freqs_hz * tempo
+        phases = 2.0 * math.pi * np.outer(t_arr, mod_freqs) + float(phase_knob)
+        basis = np.exp(1j * phases)
+
+        # Modulate higher-order temporal & spatial harmonics continuously via `harmonic_order_knob`
+        coeffs = self.rotor_coeffs.astype(np.complex128, copy=True)
+        k_t = coeffs.shape[0]
+        if k_t > 1:
+            t_weights = np.linspace(1.0, h_order, k_t)[:, None, None, None]
+            coeffs *= t_weights
+        # Modulate chromatic warmth in RGB Fourier space (R boost / B shift)
+        coeffs[..., 0] *= 1.0 + 0.28 * warm
+        coeffs[..., 2] *= 1.0 - 0.25 * warm
+
+        sub_spec = np.tensordot(basis, coeffs, axes=([1], [0]))
+
+        # Couple external physical-law envelope (e.g. damping/resonance wave from `digest_imitate_recreate`)
+        if law_envelope is not None and len(law_envelope) >= 2:
+            env = np.interp(np.linspace(0.0, 1.0, len(t_arr)), np.linspace(0.0, 1.0, len(law_envelope)), np.asarray(law_envelope, dtype=np.float64))
+            env_scale = np.clip(0.75 + 0.35 * env, 0.45, 1.35)
+            sub_spec *= env_scale[:, None, None, None]
+
+        if self.knot_corrections and self.frame_count > 1:
+            dt = self.duration_s / max(1, self.frame_count)
+            sigma = max(1e-4, 0.55 * dt)
+            t_scaled = t_arr * tempo
+            for k_idx, corr in self.knot_corrections.items():
+                t_knot = float(k_idx) * dt
+                w_t = np.exp(-0.5 * ((t_scaled - t_knot) / sigma) ** 2) * h_order
+                sub_spec += w_t[:, None, None, None] * corr[None, :, :, :]
+
+        n_t = len(t_arr)
+        full_spec = np.zeros((n_t, self.height, self.width // 2 + 1, 3), dtype=np.complex64)
+        sub_c64 = sub_spec.astype(np.complex64, copy=False)
+        half_h = self.kh_max // 2
+        rem_h = self.kh_max - half_h
+        full_spec[:, :rem_h, : self.kw_max, :] = sub_c64[:, :rem_h, :, :]
+        if half_h > 0:
+            full_spec[:, -half_h:, : self.kw_max, :] = sub_c64[:, -half_h:, :, :]
+
+        rec = np.fft.irfft2(full_spec, s=(self.height, self.width), axes=(1, 2))
+        return np.clip(rec * 255.0, 0.0, 255.0).astype(np.uint8)
+
 
 @dataclass
 class AcousticScaleRotorSpectrum:
@@ -223,6 +288,58 @@ class AcousticScaleRotorSpectrum:
         mx = float(np.max(np.abs(pcm)))
         if mx > 1.0:
             pcm = pcm / mx
+        return pcm.astype(np.float32)
+
+    def recreate_pcm_with_knobs(
+        self,
+        *,
+        pitch_shift_knob: float = 1.0,
+        harmonic_density_knob: float = 1.0,
+        law_envelope: Optional[np.ndarray] = None,
+    ) -> np.ndarray:
+        """
+        Treats the learned `AcousticScaleRotorSpectrum` as a continuous Scale-Rotor
+        vocal/acoustic knob instrument — shifting active spectral frequency bins
+        (`pitch_shift_knob`), modulating upper-harmonic density (`harmonic_density_knob`),
+        and coupling external physical-law envelopes directly into the STFT synthesis!
+        """
+        n_fft_bins = self.win_size // 2 + 1
+        p_shift = max(0.65, min(1.55, float(pitch_shift_knob)))
+        h_dens = max(0.2, min(1.0, float(harmonic_density_knob)))
+
+        shifted_bins = np.clip(np.round(self.bin_indices.astype(np.float64) * p_shift).astype(np.int64), 1, n_fft_bins - 1)
+        k_bins = self.rotor_complex.shape[1]
+        k_keep = max(2, int(round(k_bins * h_dens)))
+        mod_complex = self.rotor_complex.copy()
+        if k_keep < k_bins:
+            mod_complex[:, k_keep:] *= 0.15
+
+        stft = np.zeros((self.n_windows, n_fft_bins), dtype=np.complex128)
+        rows = np.arange(self.n_windows)[:, None]
+        np.add.at(stft, (rows, shifted_bins), mod_complex)
+
+        frames = np.fft.irfft(stft, n=self.win_size, axis=1)
+        window = np.hanning(self.win_size)
+        frames *= window[None, :]
+
+        out_len = (self.n_windows - 1) * self.hop_size + self.win_size
+        pcm = np.zeros(out_len, dtype=np.float64)
+        norm = np.zeros(out_len, dtype=np.float64)
+        win_sq = window ** 2
+        for i in range(self.n_windows):
+            s = i * self.hop_size
+            pcm[s : s + self.win_size] += frames[i]
+            norm[s : s + self.win_size] += win_sq
+
+        valid = norm > 1e-8
+        pcm[valid] /= norm[valid]
+        pcm = pcm[: self.total_samples]
+        if law_envelope is not None and len(law_envelope) >= 2 and len(pcm) > 2:
+            env = np.interp(np.linspace(0.0, 1.0, len(pcm)), np.linspace(0.0, 1.0, len(law_envelope)), np.asarray(law_envelope, dtype=np.float64))
+            pcm *= np.clip(0.75 + 0.35 * env, 0.35, 1.35)
+        mx = float(np.max(np.abs(pcm)))
+        if mx > 1e-8:
+            pcm = pcm / max(1.0, mx)
         return pcm.astype(np.float32)
 
 

@@ -653,13 +653,19 @@ class CompositionalCodeCortex:
         *,
         base_organ_source: str = "",
         purpose: str = "decision_tree",
+        min_accuracy: float = 1.0,
+        max_depth: int = 5,
     ) -> Optional[SynthesizedProgram]:
         """
         Synthesizes an `ast.If` decision tree strictly from discovered predicates and
         learned atoms, optionally splicing it directly into an existing `CognitiveOrgan` AST.
+        Supports noisy real-world generalization via weighted entropy split scoring,
+        majority-vote leaves, and configurable `min_accuracy`.
         """
         if not examples or not self.learned_atoms:
             return None
+
+        import math
 
         preds = self._discover_candidate_predicates(examples)
         used_atoms: List[str] = []
@@ -668,25 +674,44 @@ class CompositionalCodeCortex:
             first = subset[0][1]
             return all(item[1] == first for item in subset[1:])
 
+        def _majority_output(subset: Sequence[Tuple[Dict[str, Any], Dict[str, Any]]]) -> Dict[str, Any]:
+            counts: Dict[str, Tuple[int, Dict[str, Any]]] = {}
+            for _p, out_d in subset:
+                k = json.dumps(out_d, sort_keys=True, ensure_ascii=False)
+                if k not in counts:
+                    counts[k] = (1, out_d)
+                else:
+                    counts[k] = (counts[k][0] + 1, out_d)
+            return max(counts.values(), key=lambda item: item[0])[1]
+
+        def _subset_entropy(subset: Sequence[Tuple[Dict[str, Any], Dict[str, Any]]]) -> float:
+            n = len(subset)
+            if n <= 1:
+                return 0.0
+            counts: Dict[str, int] = {}
+            for _p, out_d in subset:
+                k = json.dumps(out_d, sort_keys=True, ensure_ascii=False)
+                counts[k] = counts.get(k, 0) + 1
+            return -sum((c / n) * math.log2(c / n) for c in counts.values() if c > 0)
+
         def _build_stmts(subset: Sequence[Tuple[Dict[str, Any], Dict[str, Any]]], depth: int) -> List[ast.stmt]:
-            if _all_equal_outputs(subset) or depth >= 5:
-                return [ast.Return(value=_dict_to_ast(subset[0][1]))]
+            if _all_equal_outputs(subset) or depth >= max_depth:
+                return [ast.Return(value=_dict_to_ast(_majority_output(subset)))]
 
             best_pred = None
             best_score = 1e9
             best_pos: List[Tuple[Dict[str, Any], Dict[str, Any]]] = []
             best_neg: List[Tuple[Dict[str, Any], Dict[str, Any]]] = []
+            n_sub = float(len(subset))
 
             for p_name, eval_fn, ast_fn, p_atoms in preds:
                 pos = [ex for ex in subset if eval_fn(ex[0])]
                 neg = [ex for ex in subset if not eval_fn(ex[0])]
                 if not pos or not neg:
                     continue
-                # Prefer pure splits; structurally anchored predicates (startswith / multi-char words) generalize better than lone punctuation
-                n_out_pos = len({json.dumps(x[1], sort_keys=True, ensure_ascii=False) for x in pos})
-                n_out_neg = len({json.dumps(x[1], sort_keys=True, ensure_ascii=False) for x in neg})
-                spec_bias = -0.05 if "startswith" in p_name else (0.04 if "':' in " in p_name or "'=' in " in p_name else 0.0)
-                score = float(n_out_pos + n_out_neg) + spec_bias + 0.002 * len(p_name)
+                weighted_h = (len(pos) / n_sub) * _subset_entropy(pos) + (len(neg) / n_sub) * _subset_entropy(neg)
+                spec_bias = -0.02 if "startswith" in p_name else (0.02 if "':' in " in p_name or "'=' in " in p_name else 0.0)
+                score = weighted_h + spec_bias + 0.001 * len(p_name)
                 if score < best_score:
                     best_score = score
                     best_pred = (eval_fn, ast_fn, p_atoms)
@@ -694,7 +719,7 @@ class CompositionalCodeCortex:
                     best_neg = neg
 
             if best_pred is None:
-                return [ast.Return(value=_dict_to_ast(subset[0][1]))]
+                return [ast.Return(value=_dict_to_ast(_majority_output(subset)))]
 
             _eval_fn, ast_fn, p_atoms = best_pred
             for a in p_atoms:
@@ -756,7 +781,7 @@ class CompositionalCodeCortex:
             out = dict(fn(copy.deepcopy(p_in), {"known_items": []}) or {})
             if out == exp_dict:
                 passed += 1
-        if passed != len(examples):
+        if (passed / max(1, len(examples))) < float(min_accuracy):
             return None
 
         prog = SynthesizedProgram(
