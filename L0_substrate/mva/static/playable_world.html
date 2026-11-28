@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ELYSIA · Video ≅ Game Playable Scale-Rotor World ([AZERIA])</title>
+  <style>
+    :root {
+      --bg: #0a0d14;
+      --panel: #121724;
+      --border: #24304a;
+      --text: #e6edf7;
+      --muted: #8ea0bd;
+      --cyan: #4cd7f6;
+      --violet: #b688ff;
+      --amber: #f7b955;
+      --green: #58e6a3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+      background: radial-gradient(circle at 20% 0%, #151e34, var(--bg) 60%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 13, 20, 0.85);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 { margin: 0; font-size: 16px; letter-spacing: 0.4px; }
+    header .nav { display: flex; gap: 10px; align-items: center; }
+    a.pill, button {
+      background: #1a2338;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 12.5px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    a.pill:hover, button:hover { border-color: var(--cyan); background: #212d47; }
+    button.primary { background: linear-gradient(135deg, #2563eb, #7c3aed); border-color: transparent; font-weight: 600; }
+    button.primary:hover { filter: brightness(1.12); }
+    button.active-actor { border-color: var(--cyan); box-shadow: 0 0 12px rgba(76, 215, 246, 0.35); }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(520px, 1.45fr) minmax(340px, 1fr);
+      gap: 16px;
+      padding: 16px 20px;
+      max-width: 1460px;
+      margin: 0 auto;
+    }
+    @media (max-width: 1020px) { .layout { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .panel h2 {
+      margin: 0 0 10px 0;
+      font-size: 13.5px;
+      color: var(--cyan);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .stage-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #2d3d61;
+      background: #06080e;
+      cursor: grab;
+      user-select: none;
+    }
+    .stage-wrap:active { cursor: grabbing; }
+    canvas#stageCanvas { width: 100%; height: 100%; display: block; }
+    .stage-hud {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      pointer-events: none;
+    }
+    .chip {
+      background: rgba(10, 14, 24, 0.78);
+      border: 1px solid rgba(76, 215, 246, 0.4);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: #dbe8ff;
+    }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .ctrl { font-size: 12px; color: var(--muted); }
+    .ctrl label { display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .ctrl input[type="range"] { width: 100%; accent-color: var(--cyan); }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .chat-log {
+      max-height: 240px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+      margin-bottom: 10px;
+    }
+    .msg {
+      background: #0d1220;
+      border: 1px solid #202b44;
+      border-radius: 9px;
+      padding: 8px 10px;
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+    .msg.viela { border-left: 3px solid var(--violet); }
+    .msg.kaio { border-left: 3px solid var(--cyan); }
+    .msg.player { border-left: 3px solid var(--green); background: #0f1b24; }
+    .msg .who { font-size: 11px; color: var(--muted); margin-bottom: 3px; display: flex; justify-content: space-between; }
+    .chat-input-row { display: flex; gap: 8px; }
+    .chat-input-row input {
+      flex: 1;
+      background: #0c101b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-size: 13px;
+    }
+    .diff-bars { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .bar-row { display: grid; grid-template-columns: 112px 1fr 48px; align-items: center; gap: 8px; font-size: 11.5px; color: var(--muted); }
+    .bar-track { height: 7px; background: #0b0f1a; border-radius: 99px; overflow: hidden; border: 1px solid #1e2940; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--violet)); width: 0%; transition: width 0.25s ease; }
+    .unit-list { display: grid; grid-template-columns: 1fr; gap: 6px; font-size: 11.5px; }
+    .unit-card { background: #0d1220; border: 1px solid #1f2b42; border-radius: 8px; padding: 7px 9px; }
+    .unit-card strong { color: var(--amber); }
+    video#origVideo { width: 100%; border-radius: 8px; border: 1px solid var(--border); display: none; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ELYSIA · Video ≅ Game Isomorphic Scale-Rotor World <span style="color:var(--cyan);font-weight:400;">[AZERIA]</span></h1>
+    <div class="nav">
+      <a class="pill" href="/story-world">Story World</a>
+      <a class="pill" href="/">Reality View</a>
+      <button id="btnToggleVideo">원본 영상 대조 보기</button>
+      <button id="btnReset">원본 궤적(Φ_video) 리셋</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div>
+      <div class="panel">
+        <h2>
+          <span>S4 선술집 무대 × S3 플레이어블 액터 (드래그 또는 WASD로 직접 개입)</span>
+          <span id="statusBadge" style="font-size:11px;color:var(--green);">로드 중...</span>
+        </h2>
+        <div class="stage-wrap" id="stageWrap">
+          <canvas id="stageCanvas" width="960" height="540"></canvas>
+          <div class="stage-hud">
+            <span class="chip" id="hudSelected">조종 중: 카이오</span>
+            <span class="chip" id="hudDist">개체 거리: 0.44</span>
+            <span class="chip" id="hudTension">인과장 긴장도: 0.35</span>
+            <span class="chip" id="hudDiv">Δ(Φ_game ⊖ Φ_video): 0.000</span>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px; justify-content:space-between;">
+          <div class="row">
+            <button id="btnSelectKaio" class="active-actor">카이오 조종/대화</button>
+            <button id="btnSelectViela">비엘라 조종/대화</button>
+            <button id="btnToggleOverlay">Blue 뼈대·시선 빔: ON</button>
+          </div>
+          <div class="row">
+            <button id="btnAutoTick" class="primary">자율 상호작용 (비엘라 ⇄ 카이오)</button>
+          </div>
+        </div>
+
+        <div class="controls-grid">
+          <div class="ctrl">
+            <label><span>S3 깊이/스케일 로터</span><span id="valDepth">1.00</span></label>
+            <input type="range" id="slDepth" min="0.65" max="1.45" step="0.02" value="1.00" />
+          </div>
+          <div class="ctrl">
+            <label><span>S3 고개/몸 회전 (Yaw°)</span><span id="valYaw">0°</span></label>
+            <input type="range" id="slYaw" min="-40" max="40" step="1" value="0" />
+          </div>
+          <div class="ctrl">
+            <label><span>S3 의상 색채 스펙트럼 회전 (Hue°)</span><span id="valHue">0°</span></label>
+            <input type="range" id="slHue" min="-180" max="180" step="5" value="0" />
+          </div>
+          <div class="ctrl">
+            <label><span>S4 장면 조명 온도 (달빛 ← 0 → 화톳불)</span><span id="valIllum">0.00</span></label>
+            <input type="range" id="slIllum" min="-1.0" max="1.0" step="0.05" value="0.0" />
+          </div>
+        </div>
+
+        <video id="origVideo" controls playsinline></video>
+      </div>
+
+      <div class="panel">
+        <h2>개념정의 단위 로터 네트워크 (Scale-Hierarchy Rotor Network)</h2>
+        <div class="unit-list" id="unitList"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h2>
+          <span>S2/S1 실시간 캐릭터 대화 & Praat 음성 응답</span>
+          <span id="talkTargetBadge" style="font-size:11px;color:var(--violet);">대상: 카이오</span>
+        </h2>
+        <div class="chat-log" id="chatLog"></div>
+        <div class="chat-input-row">
+          <input id="chatInput" type="text" placeholder="캐릭터에게 한국어로 직접 말을 걸어 개입하세요 (예: 마법과 로터로 시간을 바꿀 수 있어?)" />
+          <button id="btnSendTalk" class="primary">말 걸기</button>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <button class="quick-msg" data-msg="안녕, 지금 선술집 분위기가 어때?">인사하기</button>
+          <button class="quick-msg" data-msg="마물이 다가오고 있어! 어떻게 대응할까?">위기 개입</button>
+          <button class="quick-msg" data-msg="마법과 로터의 원리로 이 세계의 흐름을 바꿀 수 있을까?">원리 대화</button>
+        </div>
+        <div id="voicePlayerWrap" style="margin-top:10px; display:none;">
+          <div style="font-size:11px; color:var(--muted); margin-bottom:4px;" id="voiceMeta">Praat 음성 로터 출력:</div>
+          <audio id="voiceAudio" controls style="width:100%; height:30px;"></audio>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Δ 피타고라스 개입 프로토콜 차분 (Φ_game ⊖ Φ_video)</h2>
+        <div style="font-size:12px; color:var(--muted);">
+          원본 동영상 궤적에서 플레이어/엘리시아 개입으로 얼마나 분기되었는지 5개 직교 개념축으로 계측합니다.
+        </div>
+        <div class="diff-bars" id="diffBars"></div>
+        <pre id="cfSyncPre" style="margin-top:10px; font-size:11px; color:#9ec5ff; background:#0b0f1a; padding:8px; border-radius:8px; overflow:auto;"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('stageCanvas');
+    const ctx = canvas.getContext('2d');
+    let world = null;
+    let selectedActor = 'kaio';
+    let showOverlay = true;
+    let dragging = false;
+    let syncTimer = null;
+    let animT = 0;
+
+    const imgs = { stage: new Image(), viela: new Image(), kaio: new Image() };
+    let imgsLoaded = { stage: false, viela: false, kaio: false };
+    imgs.stage.onload = () => { imgsLoaded.stage = true; };
+    imgs.viela.onload = () => { imgsLoaded.viela = true; };
+    imgs.kaio.onload = () => { imgsLoaded.kaio = true; };
+
+    function setSelectedActor(id) {
+      selectedActor = id;
+      document.getElementById('btnSelectKaio').classList.toggle('active-actor', id === 'kaio');
+      document.getElementById('btnSelectViela').classList.toggle('active-actor', id === 'viela');
+      const label = id === 'kaio' ? '카이오 (젊은 검사)' : '비엘라 (엘프 마법사)';
+      document.getElementById('hudSelected').textContent = `조종 중: ${label}`;
+      document.getElementById('talkTargetBadge').textContent = `대상: ${label}`;
+      syncSlidersFromWorld();
+    }
+
+    function syncSlidersFromWorld() {
+      if (!world) return;
+      const a = world.actors[selectedActor];
+      document.getElementById('slDepth').value = a.depth_scale;
+      document.getElementById('valDepth').textContent = Number(a.depth_scale).toFixed(2);
+      document.getElementById('slYaw').value = a.yaw_deg;
+      document.getElementById('valYaw').textContent = `${Math.round(a.yaw_deg)}°`;
+      document.getElementById('slHue').value = a.garment_hue_deg;
+      document.getElementById('valHue').textContent = `${Math.round(a.garment_hue_deg)}°`;
+      document.getElementById('slIllum').value = world.stage.illum_temp;
+      document.getElementById('valIllum').textContent = Number(world.stage.illum_temp).toFixed(2);
+    }
+
+    function renderUI() {
+      if (!world) return;
+      const cc = world.causal_couplings || {};
+      const diff = world.intervention_protocol_diff || { pythagorean_total_divergence_c: 0, axis_deltas: {} };
+      document.getElementById('hudDist').textContent = `개체 거리: ${(cc.inter_actor_distance || 0).toFixed(2)}`;
+      document.getElementById('hudTension').textContent = `인과장 긴장도: ${(cc.causal_field_tension || 0).toFixed(2)}`;
+      document.getElementById('hudDiv').textContent = `Δ(Φ_game ⊖ Φ_video): ${(diff.pythagorean_total_divergence_c || 0).toFixed(3)}`;
+
+      // Rotor Network units
+      document.getElementById('unitList').innerHTML = (world.rotor_network_units || []).map(u => `
+        <div class="unit-card">
+          <strong>[${u.scale}] ${u.unit_id}</strong>
+          <div style="color:var(--muted); margin-top:2px;">${u.role}</div>
+        </div>
+      `).join('');
+
+      // Diff bars
+      const labels = {
+        spatial_shift: '공간 이동축',
+        pose_gaze_shift: '자세·시선축',
+        garment_shift: '의상 스펙트럼축',
+        illumination_shift: '조명 온도축',
+        dialogue_flux: '대화 인과 흐름축',
+      };
+      const ad = diff.axis_deltas || {};
+      document.getElementById('diffBars').innerHTML = Object.keys(labels).map(k => {
+        const val = Number(ad[k] || 0);
+        const pct = Math.min(100, Math.round(val * 100));
+        return `
+          <div class="bar-row">
+            <span>${labels[k]}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+            <span style="text-align:right; color:#dbe8ff;">${val.toFixed(3)}</span>
+          </div>`;
+      }).join('');
+
+      // Chat log
+      const logEl = document.getElementById('chatLog');
+      logEl.innerHTML = (world.dialogue_history || []).map(m => `
+        <div class="msg ${m.speaker}">
+          <div class="who">
+            <span>${m.speaker === 'viela' ? '비엘라' : m.speaker === 'kaio' ? '카이오' : m.speaker === 'player' ? '플레이어 개입' : '시스템'} → ${m.target}</span>
+            <span>${m.emotion ? `[${m.emotion}]` : ''} Turn #${m.turn}</span>
+          </div>
+          <div>${m.text}</div>
+        </div>
+      `).join('');
+      logEl.scrollTop = logEl.scrollHeight;
+
+      document.getElementById('cfSyncPre').textContent = JSON.stringify({
+        turn: world.turn_index,
+        total_pythagorean_divergence_c: diff.pythagorean_total_divergence_c,
+        viela: { x: world.actors.viela.x, y: world.actors.viela.y, roll: world.actors.viela.head_roll_deg, gaze_x: world.actors.viela.gaze_x, emotion: world.actors.viela.emotion_label },
+        kaio: { x: world.actors.kaio.x, y: world.actors.kaio.y, roll: world.actors.kaio.head_roll_deg, gaze_x: world.actors.kaio.gaze_x, emotion: world.actors.kaio.emotion_label },
+        causal_field: world.causal_field_sync || {},
+      }, null, 2);
+      syncSlidersFromWorld();
+    }
+
+    function drawStageLoop() {
+      animT += 0.03;
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+
+      if (world && imgsLoaded.stage) {
+        const temp = Number(world.stage.illum_temp || 0);
+        const bright = Number(world.stage.illum_brightness || 1.0);
+        ctx.save();
+        ctx.filter = `brightness(${bright}) saturate(${1.0 + Math.abs(temp) * 0.25})`;
+        ctx.drawImage(imgs.stage, 0, 0, W, H);
+        ctx.restore();
+
+        // S4 Scene Illumination Rotor color-temperature glaze
+        if (Math.abs(temp) > 0.02) {
+          ctx.fillStyle = temp < 0
+            ? `rgba(45, 95, 210, ${Math.min(0.42, Math.abs(temp) * 0.42)})`
+            : `rgba(235, 115, 35, ${Math.min(0.38, Math.abs(temp) * 0.36)})`;
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        // Draw CausalField Relational Beam between Viela & Kaio
+        const va = world.actors.viela, ka = world.actors.kaio;
+        const vx = va.x * W, vy = va.y * H;
+        const kx = ka.x * W, ky = ka.y * H;
+        if (showOverlay) {
+          ctx.save();
+          const tension = Number(world.stage.narrative_tension || 0.35);
+          const grad = ctx.createLinearGradient(kx, ky, vx, vy);
+          grad.addColorStop(0, 'rgba(76, 215, 246, 0.75)');
+          grad.addColorStop(0.5, `rgba(255, 190, 90, ${0.4 + tension * 0.5})`);
+          grad.addColorStop(1, 'rgba(182, 136, 255, 0.75)');
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 2 + tension * 3;
+          ctx.setLineDash([8, 6]);
+          ctx.lineDashOffset = -animT * 18;
+          ctx.beginPath();
+          ctx.moveTo(kx, ky - 40);
+          ctx.quadraticCurveTo((kx + vx) * 0.5, Math.min(ky, vy) - 90 - tension * 30, vx, vy - 40);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Depth-sort actors so nearer actor draws in front
+        const order = ['kaio', 'viela'].sort((a, b) => world.actors[a].depth_scale - world.actors[b].depth_scale);
+        order.forEach(id => {
+          const a = world.actors[id];
+          const im = imgs[id];
+          if (!imgsLoaded[id]) return;
+          const cx = a.x * W;
+          const cy = a.y * H;
+          const breath = Math.sin(animT * (id === 'viela' ? 1.4 : 1.7)) * 3.5;
+          const sc = Number(a.depth_scale || 1.0) * 1.15;
+          const drawW = im.width * sc;
+          const drawH = im.height * sc;
+          const yawScale = Math.max(0.72, Math.cos((Number(a.yaw_deg || 0) * Math.PI) / 180));
+          const rollRad = (Number(a.head_roll_deg || 0) * Math.PI) / 180;
+
+          ctx.save();
+          ctx.translate(cx, cy + breath);
+          ctx.rotate(rollRad);
+          ctx.scale(yawScale, 1.0);
+          const hue = Number(a.garment_hue_deg || 0);
+          const tempB = Number(world.stage.illum_temp || 0);
+          ctx.filter = `hue-rotate(${hue}deg) brightness(${0.96 + tempB * 0.08})`;
+          ctx.drawImage(im, -drawW * 0.5, -drawH * 0.55, drawW, drawH);
+          ctx.restore();
+
+          // Optional Blue Structural Cage + Gaze Rotor Overlay
+          if (showOverlay) {
+            ctx.save();
+            const isSel = id === selectedActor;
+            ctx.strokeStyle = isSel ? '#58e6a3' : (id === 'viela' ? '#b688ff' : '#4cd7f6');
+            ctx.lineWidth = isSel ? 2.2 : 1.3;
+            const bw = drawW * 0.58 * yawScale;
+            const bh = drawH * 0.72;
+            ctx.strokeRect(cx - bw * 0.5, cy - bh * 0.52, bw, bh);
+            // Gaze vector arrow from eyes
+            const gx = cx + Number(a.gaze_x || 0) * 75;
+            const gy = cy - bh * 0.22 + Number(a.gaze_y || 0) * 45;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - bh * 0.22);
+            ctx.lineTo(gx, gy);
+            ctx.strokeStyle = '#ffd84d';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#ffd84d';
+            ctx.beginPath();
+            ctx.arc(gx, gy, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Actor Name + Live Emotion Pill
+            ctx.fillStyle = 'rgba(10, 14, 24, 0.82)';
+            ctx.fillRect(cx - 76, cy + bh * 0.24, 152, 24);
+            ctx.fillStyle = isSel ? '#58e6a3' : '#e6edf7';
+            ctx.font = '12px Segoe UI, Malgun Gothic, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${id === 'viela' ? '비엘라' : '카이오'} · ${a.emotion_label}`, cx, cy + bh * 0.24 + 16);
+            ctx.restore();
+          }
+        });
+      }
+      requestAnimationFrame(drawStageLoop);
+    }
+
+    async function loadWorld() {
+      const st = document.getElementById('statusBadge');
+      st.textContent = 'S4/S3 프로토콜 월드 로드 중...';
+      const res = await fetch('/api/playable-world/state');
+      const d = await res.json();
+      if (d.status === 'ok' && d.world) {
+        world = d.world;
+        const ts = '?t=' + Date.now();
+        imgs.stage.src = world.stage.stage_url + ts;
+        imgs.viela.src = world.actors.viela.sprite_url + ts;
+        imgs.kaio.src = world.actors.kaio.sprite_url + ts;
+        document.getElementById('origVideo').src = world.stage.original_video_url;
+        setSelectedActor('kaio');
+        renderUI();
+        st.textContent = `로터 네트워크 활성 · Turn #${world.turn_index}`;
+      } else {
+        st.textContent = '로드 실패: ' + (d.message || 'error');
+      }
+    }
+
+    async function sendIntervention(payload) {
+      const st = document.getElementById('statusBadge');
+      st.textContent = payload.action === 'talk' || payload.action === 'autonomous_tick'
+        ? '인과 코텍스 + Praat 음성 로터 합성 중...'
+        : '로터 네트워크 동기화 중...';
+      try {
+        const res = await fetch('/api/playable-world/intervene', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const d = await res.json();
+        if (d.status === 'ok' && d.world) {
+          world = d.world;
+          renderUI();
+          st.textContent = `동기화 완료 (${d.elapsed_s}s) · Turn #${world.turn_index}`;
+          const active = world.actors[payload.actor_id || selectedActor];
+          if ((payload.action === 'talk' || payload.action === 'autonomous_tick') && active && active.last_voice_url) {
+            const wrap = document.getElementById('voicePlayerWrap');
+            const aud = document.getElementById('voiceAudio');
+            const meta = document.getElementById('voiceMeta');
+            const ac = (world.causal_field_sync || {}).praat_voice_acoustics || {};
+            meta.textContent = `${active.name_ko} Praat 음성 (F0=${ac.median_f0_hz || '?'}Hz · F3=${ac.F3_hz || '?'}Hz):`;
+            aud.src = active.last_voice_url + '?t=' + Date.now();
+            wrap.style.display = 'block';
+            aud.play().catch(() => {});
+          }
+        } else {
+          st.textContent = '오류: ' + (d.message || 'unknown');
+        }
+      } catch (err) {
+        st.textContent = '요청 실패: ' + err;
+      }
+    }
+
+    function schedulePhysicalSync() {
+      if (syncTimer) clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => {
+        if (!world) return;
+        const a = world.actors[selectedActor];
+        sendIntervention({
+          action: 'move',
+          actor_id: selectedActor,
+          x: a.x,
+          y: a.y,
+          depth_scale: a.depth_scale,
+          yaw_deg: a.yaw_deg,
+          garment_hue_deg: a.garment_hue_deg,
+          illum_temp: world.stage.illum_temp,
+          synthesize_voice: false,
+        });
+      }, 280);
+    }
+
+    // Mouse drag on canvas -> smooth 60fps local preview + debounced Rotor Network sync
+    function stageCoordsFromEvent(ev) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: Math.max(0.08, Math.min(0.92, (ev.clientX - rect.left) / rect.width)),
+        y: Math.max(0.28, Math.min(0.84, (ev.clientY - rect.top) / rect.height)),
+      };
+    }
+
+    canvas.addEventListener('mousedown', (ev) => {
+      if (!world) return;
+      const p = stageCoordsFromEvent(ev);
+      // Auto-select nearest actor if user clicks directly on them!
+      const dv = Math.hypot(p.x - world.actors.viela.x, p.y - world.actors.viela.y);
+      const dk = Math.hypot(p.x - world.actors.kaio.x, p.y - world.actors.kaio.y);
+      setSelectedActor(dv < dk ? 'viela' : 'kaio');
+      dragging = true;
+      world.actors[selectedActor].x = p.x;
+      world.actors[selectedActor].y = p.y;
+    });
+    window.addEventListener('mousemove', (ev) => {
+      if (!dragging || !world) return;
+      const p = stageCoordsFromEvent(ev);
+      const a = world.actors[selectedActor];
+      const other = world.actors[selectedActor === 'kaio' ? 'viela' : 'kaio'];
+      a.x = p.x;
+      a.y = p.y;
+      // Instant local gaze tracking preview!
+      other.gaze_x = Math.max(-0.85, Math.min(0.85, (a.x - other.x) * 1.4));
+      other.gaze_y = Math.max(-0.55, Math.min(0.55, (a.y - other.y) * 1.2));
+    });
+    window.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      schedulePhysicalSync();
+    });
+
+    // WASD / Arrow keyboard control (only when chat input not focused)
+    window.addEventListener('keydown', (ev) => {
+      if (!world || document.activeElement === document.getElementById('chatInput')) return;
+      const step = 0.035;
+      const a = world.actors[selectedActor];
+      let moved = false;
+      if (ev.key === 'a' || ev.key === 'A' || ev.key === 'ArrowLeft') { a.x = Math.max(0.08, a.x - step); moved = true; }
+      if (ev.key === 'd' || ev.key === 'D' || ev.key === 'ArrowRight') { a.x = Math.min(0.92, a.x + step); moved = true; }
+      if (ev.key === 'w' || ev.key === 'W' || ev.key === 'ArrowUp') { a.y = Math.max(0.28, a.y - step); moved = true; }
+      if (ev.key === 's' || ev.key === 'S' || ev.key === 'ArrowDown') { a.y = Math.min(0.84, a.y + step); moved = true; }
+      if (moved) {
+        ev.preventDefault();
+        const other = world.actors[selectedActor === 'kaio' ? 'viela' : 'kaio'];
+        other.gaze_x = Math.max(-0.85, Math.min(0.85, (a.x - other.x) * 1.4));
+        schedulePhysicalSync();
+      }
+    });
+
+    // Sliders
+    document.getElementById('slDepth').addEventListener('input', (e) => {
+      if (!world) return;
+      world.actors[selectedActor].depth_scale = parseFloat(e.target.value);
+      document.getElementById('valDepth').textContent = Number(e.target.value).toFixed(2);
+      schedulePhysicalSync();
+    });
+    document.getElementById('slYaw').addEventListener('input', (e) => {
+      if (!world) return;
+      world.actors[selectedActor].yaw_deg = parseFloat(e.target.value);
+      document.getElementById('valYaw').textContent = `${Math.round(e.target.value)}°`;
+      schedulePhysicalSync();
+    });
+    document.getElementById('slHue').addEventListener('input', (e) => {
+      if (!world) return;
+      world.actors[selectedActor].garment_hue_deg = parseFloat(e.target.value);
+      document.getElementById('valHue').textContent = `${Math.round(e.target.value)}°`;
+      schedulePhysicalSync();
+    });
+    document.getElementById('slIllum').addEventListener('input', (e) => {
+      if (!world) return;
+      world.stage.illum_temp = parseFloat(e.target.value);
+      document.getElementById('valIllum').textContent = Number(e.target.value).toFixed(2);
+      schedulePhysicalSync();
+    });
+
+    // Buttons
+    document.getElementById('btnSelectKaio').addEventListener('click', () => setSelectedActor('kaio'));
+    document.getElementById('btnSelectViela').addEventListener('click', () => setSelectedActor('viela'));
+    document.getElementById('btnToggleOverlay').addEventListener('click', (e) => {
+      showOverlay = !showOverlay;
+      e.target.textContent = `Blue 뼈대·시선 빔: ${showOverlay ? 'ON' : 'OFF'}`;
+    });
+    document.getElementById('btnToggleVideo').addEventListener('click', () => {
+      const v = document.getElementById('origVideo');
+      v.style.display = v.style.display === 'block' ? 'none' : 'block';
+    });
+    document.getElementById('btnReset').addEventListener('click', () => sendIntervention({ action: 'reset' }));
+    document.getElementById('btnAutoTick').addEventListener('click', () => {
+      const target = selectedActor === 'kaio' ? 'viela' : 'kaio';
+      setSelectedActor(target);
+      sendIntervention({ action: 'autonomous_tick', actor_id: target, synthesize_voice: true });
+    });
+
+    function triggerTalk(text) {
+      const msg = (text || document.getElementById('chatInput').value).trim();
+      if (!msg) return;
+      document.getElementById('chatInput').value = '';
+      sendIntervention({ action: 'talk', actor_id: selectedActor, utterance: msg, synthesize_voice: true });
+    }
+    document.getElementById('btnSendTalk').addEventListener('click', () => triggerTalk());
+    document.getElementById('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') triggerTalk(); });
+    document.querySelectorAll('.quick-msg').forEach(btn => btn.addEventListener('click', () => triggerTalk(btn.dataset.msg)));
+
+    loadWorld();
+    requestAnimationFrame(drawStageLoop);
+  </script>
+</body>
+</html>

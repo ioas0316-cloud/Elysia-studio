@@ -319,6 +319,57 @@ _ALLOWED_ONE_CHAR_NOUNS: set[str] = {
 }
 
 
+_KIWI_SINGLETON: Any = None
+_KIWI_CHECKED: bool = False
+_KIWI_BOUND_NOUNS_SKIP = {
+    "것", "수", "등", "때", "바", "줄", "분", "데", "쪽", "곳", "채", "뿐",
+    "대한", "대해", "애들", "중", "위", "아래", "안", "밖", "속", "앞", "뒤", "옆", "상",
+}
+
+
+def _get_kiwi() -> Any:
+    global _KIWI_SINGLETON, _KIWI_CHECKED
+    if not _KIWI_CHECKED:
+        _KIWI_CHECKED = True
+        try:
+            from kiwipiepy import Kiwi  # type: ignore
+            _KIWI_SINGLETON = Kiwi()
+        except Exception:
+            _KIWI_SINGLETON = None
+    return _KIWI_SINGLETON
+
+
+def analyze_korean_pos_kiwi(text: str) -> Optional[Dict[str, List[str]]]:
+    """
+    Uses open-source C++ `kiwipiepy` as Elysia's Scale 1<->2 Korean morphosyntactic
+    receptor to separate true nominals (NNG/NNP), verbal predicates (VV/VA/VCP),
+    and case particles (JKS/JKO/JKB/JX/JKG) cleanly from spoken YouTube/web text.
+    """
+    kiwi = _get_kiwi()
+    if kiwi is None or not (text or "").strip():
+        return None
+    try:
+        toks = kiwi.tokenize(text)
+    except Exception:
+        return None
+    nominals: List[str] = []
+    predicates: List[str] = []
+    particles: List[str] = []
+    for tk in toks:
+        form = str(tk.form).strip()
+        tag = str(tk.tag)
+        if not form or not _is_pure_hangul(form):
+            continue
+        if tag in ("NNG", "NNP") and form not in _KIWI_BOUND_NOUNS_SKIP and form not in _NON_NOMINAL_TOKENS:
+            if len(form) >= 2 or form in _ALLOWED_ONE_CHAR_NOUNS:
+                nominals.append(form)
+        elif tag.startswith(("VV", "VA")):
+            predicates.append(form)
+        elif tag.startswith("J"):
+            particles.append(form)
+    return {"nominals": nominals, "predicates": predicates, "particles": particles}
+
+
 def _is_pure_hangul(s: str) -> bool:
     return bool(s) and all("가" <= ch <= "힣" for ch in s)
 
@@ -338,12 +389,27 @@ def _is_valid_nominal_stem(stem: str, raw_word: str = "") -> bool:
         return False
     if len(s) > 7:
         return False
-    if s in _NON_NOMINAL_TOKENS or rw in _NON_NOMINAL_TOKENS:
+    if s in _NON_NOMINAL_TOKENS or rw in _NON_NOMINAL_TOKENS or s in _KIWI_BOUND_NOUNS_SKIP:
         return False
     if any(s.endswith(suf) for suf in _NON_NOMINAL_SUFFIXES) or any(rw.endswith(suf) for suf in _NON_NOMINAL_SUFFIXES):
         return False
     if _is_valid_korean_predicate_word(s):
         return False
+    # Verify via kiwipiepy POS receptor when available so colloquial fragments/postpositions never leak into noun slots!
+    kiwi = _get_kiwi()
+    if kiwi is not None:
+        try:
+            toks = kiwi.tokenize(rw)
+            if toks:
+                has_noun = any(
+                    str(tk.tag) in ("NNG", "NNP") and str(tk.form) not in _KIWI_BOUND_NOUNS_SKIP
+                    for tk in toks
+                )
+                first_tag = str(toks[0].tag)
+                if not has_noun or first_tag.startswith(("MM", "MA", "IC", "E", "J", "VV", "VA")):
+                    return False
+        except Exception:
+            pass
     return True
 
 

@@ -38,6 +38,7 @@ from core.embodiment.language_scale_rotor import (
     _CANONICAL_KOREAN_PARTICLES,
     _is_pure_hangul,
     _is_valid_korean_predicate_word,
+    _is_valid_nominal_stem,
     _strip_word_edge_punct,
     bind_korean_operator,
     decompose_hangul_jamo,
@@ -1180,16 +1181,7 @@ class ScaleRotorHierarchy:
 
     def _is_clean_nominal_unit(self, nd: ScaleRotorNode) -> bool:
         surf = (nd.surface or "").strip()
-        if not surf or not _is_pure_hangul(surf):
-            return False
-        if len(surf) == 1 and surf not in ("빛", "밤", "낮", "길", "말", "눈", "귀", "손", "별", "해", "달", "물", "불", "힘", "숨", "꿈"):
-            return False
-        if len(surf) > 7:
-            return False
-        # Exclude sentence-final verbal predicates and adnominal/connective fragments
-        if _is_valid_korean_predicate_word(surf):
-            return False
-        if any(surf.endswith(end) for end in _PROTECTED_NON_NOMINAL_ENDINGS):
+        if not _is_valid_nominal_stem(surf, surf):
             return False
         # Exclude stems that still carry dangling case/genitive/connective suffixes (unless protected noun)
         if surf not in _PROTECTED_WHOLE_NOUNS and surf.endswith(("의", "에서", "으로", "에게", "부터", "까지", "처럼", "보다", "하고", "되며", "하며", "이자", "이며", "이나", "라도")):

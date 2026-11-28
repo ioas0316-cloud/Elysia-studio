@@ -6056,6 +6056,87 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    if (method === 'GET' && pathname === '/world-5d') {
+      const htmlPath = path.join(ROOT_DIR, 'L0_substrate', 'mva', 'static', 'world_5d.html');
+      if (fs.existsSync(htmlPath)) {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        return res.end(fs.readFileSync(htmlPath));
+      }
+      return sendJson(res, 404, { status: 'error', message: 'world_5d.html not found' });
+    }
+
+    if (method === 'GET' && pathname === '/api/world-5d/state') {
+      const mode = url.searchParams.get('mode') || 'azeria';
+      const metaPath = mode === 'game_map'
+        ? path.join(ROOT_DIR, 'data', 'open_sandbox', 'youtube_multimodal', 'nature_env', 'autonomous_game_map_meta.json')
+        : path.join(ROOT_DIR, 'data', 'open_sandbox', 'youtube_multimodal', 'azeria', 'world_5d', 'azeria_5d_world_meta.json');
+      try {
+        if (fs.existsSync(metaPath)) {
+          return sendJson(res, 200, { status: 'ok', world_5d: JSON.parse(fs.readFileSync(metaPath, 'utf8')) });
+        }
+        const scriptPath = path.join(ROOT_DIR, 'L1_causal_field', 'core', 'embodiment', 'unit_branch_language_cortex.py');
+        const out = await new Promise((resolve, reject) => {
+          execFile(PYTHON_BIN, [scriptPath, '--build-5d-world'], { cwd: ROOT_DIR, timeout: 120000, maxBuffer: 6 * 1024 * 1024 }, (err, stdout, stderr) => {
+            if (err) return reject(new Error(stderr || err.message));
+            try { resolve(JSON.parse(stdout)); } catch (pErr) { reject(pErr); }
+          });
+        });
+        return sendJson(res, 200, { status: 'ok', world_5d: out });
+      } catch (err) {
+        return sendJson(res, 500, { status: 'error', message: err instanceof Error ? err.message : '5D world load failed' });
+      }
+    }
+
+    if (method === 'GET' && pathname === '/playable-world') {
+      const htmlPath = path.join(ROOT_DIR, 'L0_substrate', 'mva', 'static', 'playable_world.html');
+      if (fs.existsSync(htmlPath)) {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        return res.end(fs.readFileSync(htmlPath));
+      }
+      return sendJson(res, 404, { status: 'error', message: 'playable_world.html not found' });
+    }
+
+    if (method === 'GET' && pathname === '/api/playable-world/state') {
+      const pwPath = path.join(ROOT_DIR, 'data', 'open_sandbox', 'youtube_multimodal', 'azeria', 'playable', 'azeria_playable_world.json');
+      try {
+        if (fs.existsSync(pwPath)) {
+          const world = JSON.parse(fs.readFileSync(pwPath, 'utf8'));
+          return sendJson(res, 200, { status: 'ok', world });
+        }
+        const scriptPath = path.join(ROOT_DIR, 'L1_causal_field', 'core', 'embodiment', 'unit_branch_language_cortex.py');
+        const out = await new Promise((resolve, reject) => {
+          execFile(PYTHON_BIN, [scriptPath, '--build-playable'], { cwd: ROOT_DIR, timeout: 60000, maxBuffer: 6 * 1024 * 1024 }, (err, stdout, stderr) => {
+            if (err) return reject(new Error(stderr || err.message));
+            try { resolve(JSON.parse(stdout)); } catch (pErr) { reject(pErr); }
+          });
+        });
+        return sendJson(res, 200, { status: 'ok', world: out });
+      } catch (err) {
+        return sendJson(res, 500, { status: 'error', message: err instanceof Error ? err.message : 'playable state failed' });
+      }
+    }
+
+    if (method === 'POST' && pathname === '/api/playable-world/intervene') {
+      const body = await readJsonBody(req);
+      try {
+        const scriptPath = path.join(ROOT_DIR, 'L1_causal_field', 'core', 'embodiment', 'unit_branch_language_cortex.py');
+        const out = await new Promise((resolve, reject) => {
+          execFile(
+            PYTHON_BIN,
+            [scriptPath, '--playable-intervene', JSON.stringify(body || {})],
+            { cwd: ROOT_DIR, timeout: 60000, maxBuffer: 6 * 1024 * 1024 },
+            (err, stdout, stderr) => {
+              if (err) return reject(new Error(stderr || err.message));
+              try { resolve(JSON.parse(stdout)); } catch (pErr) { reject(new Error(`Invalid JSON: ${pErr.message}`)); }
+            }
+          );
+        });
+        return sendJson(res, 200, { status: 'ok', ...out });
+      } catch (err) {
+        return sendJson(res, 502, { status: 'error', message: err instanceof Error ? err.message : 'playable intervention failed' });
+      }
+    }
+
     if (method === 'GET' && pathname === '/story-world') {
       const htmlPath = path.join(ROOT_DIR, 'L0_substrate', 'mva', 'static', 'story_world.html');
       if (fs.existsSync(htmlPath)) {

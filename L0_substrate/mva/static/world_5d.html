@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ELYSIA · 4D Spacetime + Variable Geometric Rotor & GPU Ping-Pong Studio</title>
+  <style>
+    :root {
+      --bg: #070a12;
+      --panel: #101625;
+      --border: #23314f;
+      --text: #e6eefc;
+      --muted: #8ea1c2;
+      --cyan: #4cd7f6;
+      --violet: #b688ff;
+      --amber: #f7b955;
+      --green: #58e6a3;
+      --red: #ff6b7d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+      background: radial-gradient(circle at 25% 0%, #131c33, var(--bg) 65%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7, 10, 18, 0.9);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    header h1 { margin: 0; font-size: 15px; letter-spacing: 0.3px; }
+    .nav { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+    a.pill, button {
+      background: #172136;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.14s ease;
+    }
+    a.pill:hover, button:hover { border-color: var(--cyan); background: #1f2d49; }
+    button.active { border-color: var(--cyan); background: #1e3354; box-shadow: 0 0 10px rgba(76,215,246,0.28); }
+    button.primary { background: linear-gradient(135deg, #2563eb, #7c3aed); border-color: transparent; font-weight: 600; }
+    button.impulse { background: linear-gradient(135deg, #0ea5e9, #10b981); border-color: transparent; font-weight: 600; color: #04131c; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(560px, 1.55fr) minmax(340px, 1fr);
+      gap: 14px;
+      padding: 14px 18px;
+      max-width: 1540px;
+      margin: 0 auto;
+    }
+    @media (max-width: 1040px) { .layout { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px;
+      margin-bottom: 12px;
+    }
+    .panel h2 {
+      margin: 0 0 9px 0;
+      font-size: 13px;
+      color: var(--cyan);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .gl-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #2b3e66;
+      background: #05070e;
+      cursor: grab;
+      user-select: none;
+    }
+    .gl-wrap:active { cursor: grabbing; }
+    canvas#glCanvas { width: 100%; height: 100%; display: block; }
+    .hud {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      pointer-events: none;
+    }
+    .chip {
+      background: rgba(7, 11, 20, 0.82);
+      border: 1px solid rgba(76, 215, 246, 0.42);
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 11px;
+      color: #dbe8ff;
+    }
+    .chip.pingpong { border-color: rgba(88, 230, 163, 0.6); color: var(--green); }
+    .hud-bottom {
+      position: absolute;
+      bottom: 8px;
+      left: 10px;
+      font-size: 11px;
+      color: rgba(215, 230, 255, 0.84);
+      background: rgba(7, 11, 20, 0.76);
+      padding: 3px 9px;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+    .row { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+    .sliders { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+    .ctrl { font-size: 12px; color: var(--muted); }
+    .ctrl label { display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .ctrl input[type="range"] { width: 100%; accent-color: var(--cyan); }
+    .tier-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .tier { background: #0b101e; border: 1px solid #1e2a45; border-left: 3px solid var(--amber); border-radius: 7px; padding: 6px 9px; font-size: 11.5px; }
+    .chat-box { max-height: 165px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+    .msg { background: #0b101e; border: 1px solid #1d2942; border-radius: 8px; padding: 7px 9px; font-size: 12px; line-height: 1.4; }
+    .msg.viela { border-left: 3px solid var(--violet); }
+    .msg.kaio { border-left: 3px solid var(--cyan); }
+    .msg.player { border-left: 3px solid var(--green); }
+    .input-row { display: flex; gap: 7px; }
+    .input-row input { flex: 1; background: #0a0e19; border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ELYSIA · 4D Base <span style="color:var(--cyan);font-weight:400;">(X·Y·Z·T)</span> + Variable Rotor Dims + <span style="color:var(--green);font-weight:400;">GPU Ping-Pong Field</span></h1>
+    <div class="nav">
+      <a class="pill" href="/playable-world">2.5D Actor Stage</a>
+      <a class="pill" href="/story-world">Story World</a>
+      <button id="btnWorldAzeria" class="active">월드 A: AZERIA 선술집</button>
+      <button id="btnWorldGameMap">월드 B: 자율 분화 3D 맵(숲·강·NPC)</button>
+      <button id="btnPure4D">순수 4D로 접기 (Σ=0)</button>
+      <button id="btnResetCam">카메라·장 리셋</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div>
+      <div class="panel">
+        <h2>
+          <span>WebGL2 Transform Feedback 핑퐁 누적 순환 (Buffer A ⇄ Buffer B · CPU 왕복 0)</span>
+          <span id="statusBadge" style="font-size:11px;color:var(--green);">로드 중...</span>
+        </h2>
+        <div class="gl-wrap" id="glWrap">
+          <canvas id="glCanvas" width="960" height="540"></canvas>
+          <div class="hud">
+            <span class="chip pingpong" id="hudPingPong">GPU Ping-Pong: 활성 (Step 0)</span>
+            <span class="chip" id="hudDepth">깊이: 대기</span>
+            <span class="chip" id="hudTime">4D 시간 T: 0.00</span>
+            <span class="chip" id="hudSigma">가변 목적 텐서 Σ: 0.55</span>
+          </div>
+          <div class="hud-bottom">좌드래그: 360° 3D 궤도 · Shift+클릭: 3D 공명 파동 주입 · 휠: 줌 · WASD/QE: 3D 공간 비행</div>
+        </div>
+
+        <div class="row" style="justify-content:space-between;">
+          <div class="row" style="margin-top:0;">
+            <button id="btnPingPong" class="active">⇄ GPU 핑퐁 누적: ON</button>
+            <button id="btnImpulse" class="impulse">⚡ 3D 인과 파동 충격 주입</button>
+            <button id="btnPlayT" class="primary">▶ 4D 시간 재생</button>
+            <button id="btnToggleTensor" class="active">3D 텐서장: ON</button>
+            <button id="btnToggleTint">색채 분리: OFF</button>
+          </div>
+          <div class="row" style="margin-top:0;">
+            <button class="layer-btn active" data-layer="0">전체</button>
+            <button class="layer-btn" data-layer="4">S4 지형/환경</button>
+            <button class="layer-btn" data-layer="3">S3 인물/NPC</button>
+            <button class="layer-btn" data-layer="2">S2 유체/미시</button>
+          </div>
+        </div>
+
+        <div class="sliders">
+          <div class="ctrl">
+            <label><span>4D 시간축 T (과거 -1.0 ← 현재 0 → 미래 +1.0)</span><span id="valT">0.00</span></label>
+            <input type="range" id="slT" min="-1.0" max="1.0" step="0.02" value="0.00" />
+          </div>
+          <div class="ctrl">
+            <label><span>가변 기하 로터 목적 텐서 Σ (0 순수 4D → 1.5 강한 목적 곡률)</span><span id="valSigma">0.55</span></label>
+            <input type="range" id="slSigma" min="0.0" max="1.5" step="0.05" value="0.55" />
+          </div>
+          <div class="ctrl">
+            <label><span>Blue 정적 얼음 복원 탄성 (낮을수록 자유 유동, 높을수록 원형 치유)</span><span id="valHeal">0.06</span></label>
+            <input type="range" id="slHeal" min="0.01" max="0.20" step="0.01" value="0.06" />
+          </div>
+          <div class="ctrl">
+            <label><span>볼류메트릭 3D 가우시안 반경</span><span id="valSize">1.00</span></label>
+            <input type="range" id="slSize" min="0.45" max="1.80" step="0.05" value="1.00" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h2>가변 기하 로터 · 미래 목적 텐서장 (CausalField · FractalEngramShell)</h2>
+        <div style="font-size:11.5px; color:var(--muted); margin-bottom:6px;">
+          Transform Feedback 핑퐁 셰이더가 매 프레임 이전 상태 버퍼(Buffer A)에 3×3 대칭 인력 + 반대칭 Clifford 와류 텐서와 사용자 3D 충격을 누적 계산해 다음 버퍼(Buffer B)로 순환합니다.
+        </div>
+        <div class="row">
+          <button class="regime-btn active" data-regime="converge_seal">봉인 공명 (수렴)</button>
+          <button class="regime-btn" data-regime="dialogue_vortex">대화 와류 (회전)</button>
+          <button class="regime-btn" data-regime="patrol_expand">경계 출격 (확산)</button>
+        </div>
+        <div class="tier-list" id="tierList"></div>
+      </div>
+
+      <div class="panel">
+        <h2>
+          <span>3D 월드 인물 대화 개입 (Praat 음성 + 3D 파동 공명 연동)</span>
+          <span id="talkTarget" style="font-size:11px; color:var(--violet);">대상: 비엘라</span>
+        </h2>
+        <div class="row" style="margin-top:0; margin-bottom:8px;">
+          <button id="btnTalkViela" class="active">비엘라 (우측 3D)</button>
+          <button id="btnTalkKaio">카이오 (좌측 3D)</button>
+        </div>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-row">
+          <input id="talkInput" type="text" placeholder="한국어로 개입하면 3D 핑퐁 장에 파동이 퍼지고 Praat 음성으로 응답합니다" />
+          <button id="btnSend" class="primary">개입</button>
+        </div>
+        <audio id="voiceAud" controls style="width:100%; height:28px; margin-top:8px; display:none;"></audio>
+      </div>
+
+      <div class="panel">
+        <h2>4D+가변 로터 실측 통계</h2>
+        <pre id="metaPre" style="margin:0; font-size:11px; color:#9ec5ff; background:#090d18; padding:8px; border-radius:8px; overflow:auto;"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('glCanvas');
+    const gl = canvas.getContext('webgl2', { antialias: true, preserveDrawingBuffer: true });
+
+    let meta = null;
+    let splatCount = 0;
+    let staticVBO = null;
+    let dynVBO = [null, null];     // Ping-Pong GPU State Buffers [A, B]: each splat = (px, py, pz, vx, vy, vz)
+    let updateVAO = [null, null];  // VAO reading staticVBO + dynVBO[ping]
+    let renderVAO = [null, null];  // VAO rendering staticVBO + dynVBO[ping]
+    let tfObj = null;
+    let ping = 0;
+    let pingPongSteps = 0;
+    let pingPongActive = true;
+
+    let lineVAO = null, lineVertCount = 0;
+    let updateProg = null, splatProg = null, lineProg = null;
+    let currentWorldMode = 'azeria';
+    let loopStarted = false;
+
+    // 4D + Variable Geometric Rotor Controls
+    let camYaw = 0.0, camPitch = 0.08, camDist = 2.45;
+    let camPanX = 0.0, camPanY = 0.0, camPanZ = 0.10;
+    let timeT = 0.0, sigmaTeleo = 0.55, healGain = 0.06;
+    let layerFilter = 0, layerTint = 0.0, showTensor = true, sizeMul = 1.0, playingT = false;
+    let activeRegime = 'converge_seal', talkActor = 'viela', animClock = 0.0;
+    let dragging = false, lastMX = 0, lastMY = 0;
+    let impulsePos = [0.0, 0.0, -0.25], impulseStrength = 0.0;
+
+    function compileShader(type, src) {
+      const sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(sh));
+      return sh;
+    }
+    function makeProgram(vsSrc, fsSrc, tfVaryings = null) {
+      const p = gl.createProgram();
+      gl.attachShader(p, compileShader(gl.VERTEX_SHADER, vsSrc));
+      gl.attachShader(p, compileShader(gl.FRAGMENT_SHADER, fsSrc));
+      if (tfVaryings) gl.transformFeedbackVaryings(p, tfVaryings, gl.INTERLEAVED_ATTRIBS);
+      gl.linkProgram(p);
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) console.error(gl.getProgramInfoLog(p));
+      return p;
+    }
+
+    // -------------------------------------------------------------------------
+    // PASS 1: WebGL2 Transform Feedback Ping-Pong Rotor Integrator (GPU-only!)
+    // Reads Static Ice (restPos, baseVel, meta) + Live Dyn Buffer A -> Writes Dyn Buffer B
+    // -------------------------------------------------------------------------
+    const UPDATE_VS = `#version 300 es
+      layout(location=0) in vec3 aRestPos;
+      layout(location=1) in vec3 aBaseVel;
+      layout(location=2) in vec3 aMeta;    // (layer_id, osc_amp, size_w)
+      layout(location=3) in vec3 aCurPos;
+      layout(location=4) in vec3 aCurVel;
+
+      uniform float uDt;
+      uniform float uClock;
+      uniform float uTimeT;
+      uniform float uSigma;
+      uniform float uHeal;
+      uniform vec3 uAttractor;
+      uniform float uRadialSign;
+      uniform float uCurlGain;
+      uniform vec3 uImpulsePos;
+      uniform float uImpulseStrength;
+
+      out vec3 vNextPos;
+      out vec3 vNextVel;
+
+      void main() {
+        float lv = aMeta.x;
+        float oscAmp = aMeta.y;
+        float phase = aRestPos.x * 2.3 + aRestPos.y * 1.9 + aRestPos.z * 1.5;
+
+        // 1. Target 4D Equilibrium Position (Static Ice + Continuous Time T Flow + Harmonic Wind/Breath)
+        vec3 target = aRestPos + aBaseVel * (uTimeT * 2.1);
+        target.y += sin(uClock * 2.1 + uTimeT * 4.0 + phase) * oscAmp * 0.55;
+        // S2 Fluid/River continuous cyclic phase drift when Ping-Pong is running!
+        if (lv < 2.5 && length(aBaseVel) > 0.01) {
+          float cyc = fract(uClock * 0.14 + phase * 0.12) - 0.5;
+          target += aBaseVel * (cyc * 0.55);
+        }
+
+        // 2. Blue Static-Ice Spring-Damper Self-Healing Acceleration (tears & heals continuously!)
+        float stiffness = (lv > 3.5) ? (uHeal * 2.4) : (uHeal * 1.25);
+        vec3 acc = (target - aCurPos) * stiffness * 22.0;
+
+        // 3. Variable Geometric Rotor 5D Teleological 3x3 Tensor Field (T_sym + T_skew Clifford Curl!)
+        if (uSigma > 0.001) {
+          vec3 r = aCurPos - uAttractor;
+          float d2 = dot(r, r) + 0.18;
+          float sWeight = (lv < 3.5) ? 1.0 : 0.14;
+          float f = sWeight * uSigma * (0.28 + max(0.0, uTimeT) * 0.95) * exp(-0.38 * d2);
+          vec3 tensorForce = vec3(
+            uRadialSign * r.x + uCurlGain * r.z,
+            uRadialSign * 0.65 * r.y,
+            uRadialSign * r.z - uCurlGain * r.x
+          );
+          acc += tensorForce * f * 1.45;
+        }
+
+        // 4. Live Interactive 3D Causal Shockwave / Resonance Impulse!
+        if (uImpulseStrength > 0.001) {
+          vec3 d = aCurPos - uImpulsePos;
+          float dist = length(d) + 0.08;
+          float fall = exp(-1.25 * dist * dist) * uImpulseStrength;
+          vec3 swirl = vec3(-d.z, 0.25, d.x) / dist;
+          acc += (normalize(d + vec3(0.0001)) * 1.6 + swirl * 1.4) * fall * 16.0;
+        }
+
+        // Symplectic Euler integration with viscous damping (energy-bounded!)
+        vec3 vel = (aCurVel + acc * uDt) * 0.88;
+        float sp = length(vel);
+        if (sp > 2.2) vel = vel * (2.2 / sp);
+        vec3 pos = aCurPos + vel * uDt;
+
+        vNextPos = pos;
+        vNextVel = vel;
+      }
+    `;
+    const DUMMY_FS = `#version 300 es
+      precision mediump float;
+      void main() {}
+    `;
+
+    // -------------------------------------------------------------------------
+    // PASS 2: Volumetric 3D Gaussian Splat Renderer (Reads Live Ping-Pong Buffer!)
+    // -------------------------------------------------------------------------
+    const SPLAT_VS = `#version 300 es
+      layout(location=0) in vec3 aCurPos;
+      layout(location=1) in vec3 aCurVel;
+      layout(location=2) in vec3 aCol;
+      layout(location=3) in vec3 aMeta; // (layer_id, osc_amp, size_w)
+
+      uniform mat4 uMVP;
+      uniform float uLayerFilter;
+      uniform float uLayerTint;
+      uniform float uSizeMul;
+
+      out vec3 vCol;
+      out float vAlpha;
+
+      void main() {
+        float lv = aMeta.x;
+        float sw = aMeta.z;
+        if (uLayerFilter > 0.5 && abs(lv - uLayerFilter) > 0.4) {
+          gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+          gl_PointSize = 0.0;
+          vAlpha = 0.0;
+          vCol = vec3(0.0);
+          return;
+        }
+
+        vec3 col = aCol;
+        float kineticGlow = clamp(length(aCurVel) * 0.35, 0.0, 0.42);
+        if (uLayerTint > 0.5) {
+          if (lv > 3.5) col = mix(col * 0.45, vec3(0.20, 0.55, 0.98), 0.68);
+          else if (lv > 2.5) col = mix(col * 0.45, vec3(0.98, 0.34, 0.44), 0.72);
+          else col = mix(col * 0.45, vec3(0.22, 0.95, 0.78), 0.78);
+        } else {
+          col = clamp(col + vec3(kineticGlow * 0.35, kineticGlow * 0.65, kineticGlow * 0.95), 0.0, 1.0);
+        }
+
+        vec4 clip = uMVP * vec4(aCurPos, 1.0);
+        gl_Position = clip;
+        float dist = max(0.45, clip.w);
+        gl_PointSize = clamp((24.0 * sw * uSizeMul) / dist, 2.0, 36.0);
+        vCol = col;
+        vAlpha = clamp(0.86 * sw, 0.35, 0.96);
+      }
+    `;
+    const SPLAT_FS = `#version 300 es
+      precision mediump float;
+      in vec3 vCol;
+      in float vAlpha;
+      out vec4 outColor;
+      void main() {
+        vec2 d = gl_PointCoord * 2.0 - 1.0;
+        float r2 = dot(d, d);
+        if (r2 > 1.0) discard;
+        outColor = vec4(vCol, exp(-2.2 * r2) * vAlpha);
+      }
+    `;
+
+    const LINE_VS = `#version 300 es
+      layout(location=0) in vec3 aPos;
+      layout(location=1) in vec3 aCol;
+      uniform mat4 uMVP;
+      out vec3 vCol;
+      void main() { gl_Position = uMVP * vec4(aPos, 1.0); vCol = aCol; }
+    `;
+    const LINE_FS = `#version 300 es
+      precision mediump float;
+      in vec3 vCol;
+      out vec4 outColor;
+      void main() { outColor = vec4(vCol, 0.88); }
+    `;
+
+    function mat4Perspective(fovRad, aspect, near, far) {
+      const f = 1.0 / Math.tan(fovRad * 0.5), nf = 1.0 / (near - far);
+      return new Float32Array([f/aspect,0,0,0, 0,f,0,0, 0,0,(far+near)*nf,-1, 0,0,(2*far*near)*nf,0]);
+    }
+    function mat4LookAt(eye, target, up) {
+      let zx=eye[0]-target[0], zy=eye[1]-target[1], zz=eye[2]-target[2];
+      let zl=Math.hypot(zx,zy,zz)||1; zx/=zl; zy/=zl; zz/=zl;
+      let xx=up[1]*zz-up[2]*zy, xy=up[2]*zx-up[0]*zz, xz=up[0]*zy-up[1]*zx;
+      let xl=Math.hypot(xx,xy,xz)||1; xx/=xl; xy/=xl; xz/=xl;
+      let yx=zy*xz-zz*xy, yy=zz*xx-zx*xz, yz=zx*xy-zy*xx;
+      return new Float32Array([
+        xx,yx,zx,0, xy,yy,zy,0, xz,yz,zz,0,
+        -(xx*eye[0]+xy*eye[1]+xz*eye[2]), -(yx*eye[0]+yy*eye[1]+yz*eye[2]), -(zx*eye[0]+zy*eye[1]+zz*eye[2]), 1
+      ]);
+    }
+    function mat4Mul(a, b) {
+      const o = new Float32Array(16);
+      for (let c=0;c<4;c++) for (let r=0;r<4;r++) o[c*4+r]=a[r]*b[c*4]+a[4+r]*b[c*4+1]+a[8+r]*b[c*4+2]+a[12+r]*b[c*4+3];
+      return o;
+    }
+
+    function rebuildTensorLines() {
+      if (!meta || !gl) return;
+      const reg = meta.teleological_tensor_regimes[activeRegime];
+      const verts = [];
+      reg.tensor_grid_nodes.forEach(n => {
+        const p = n.pos, v = n.vec, sc = 0.62 * Math.max(0.25, sigmaTeleo);
+        verts.push(p[0],p[1],p[2], 0.25,0.85,1.0, p[0]+v[0]*sc,p[1]+v[1]*sc,p[2]+v[2]*sc, 1.0,0.72,0.25);
+      });
+      const ap = reg.attractor_pos_3d, s = 0.16;
+      verts.push(ap[0]-s,ap[1],ap[2],1,0.85,0.22, ap[0]+s,ap[1],ap[2],1,0.85,0.22);
+      verts.push(ap[0],ap[1]-s,ap[2],1,0.85,0.22, ap[0],ap[1]+s,ap[2],1,0.85,0.22);
+      verts.push(ap[0],ap[1],ap[2]-s,1,0.85,0.22, ap[0],ap[1],ap[2]+s,1,0.85,0.22);
+
+      const data = new Float32Array(verts);
+      lineVertCount = data.length / 6;
+      if (!lineVAO) lineVAO = gl.createVertexArray();
+      gl.bindVertexArray(lineVAO);
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0);
+      gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
+      gl.bindVertexArray(null);
+
+      document.getElementById('tierList').innerHTML = reg.fractal_engram_tiers.map(t => `
+        <div class="tier"><strong>${t.tier}</strong> · ${t.name}<span style="float:right;color:var(--muted);">(${t.pos.join(', ')})</span></div>
+      `).join('');
+    }
+
+    function setupPingPongBuffers(bufArr) {
+      splatCount = bufArr.length / 12;
+      // Static Ice buffer: 12 floats/splat [restPos(3), col(3), baseVel(3), meta(3)]
+      if (!staticVBO) staticVBO = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, staticVBO);
+      gl.bufferData(gl.ARRAY_BUFFER, bufArr, gl.STATIC_DRAW);
+
+      // Initial Dynamic Ping-Pong Buffers [A, B]: 6 floats/splat [curPos(3), curVel(3)]
+      const initDyn = new Float32Array(splatCount * 6);
+      for (let i = 0; i < splatCount; i++) {
+        initDyn[i*6+0] = bufArr[i*12+0];
+        initDyn[i*6+1] = bufArr[i*12+1];
+        initDyn[i*6+2] = bufArr[i*12+2];
+        initDyn[i*6+3] = 0.0; initDyn[i*6+4] = 0.0; initDyn[i*6+5] = 0.0;
+      }
+      for (let b = 0; b < 2; b++) {
+        if (!dynVBO[b]) dynVBO[b] = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, dynVBO[b]);
+        gl.bufferData(gl.ARRAY_BUFFER, initDyn, gl.DYNAMIC_COPY);
+      }
+
+      // Build paired Update VAOs & Render VAOs for Buffer A (0) and Buffer B (1)
+      const sStride = 12 * 4, dStride = 6 * 4;
+      for (let b = 0; b < 2; b++) {
+        if (!updateVAO[b]) updateVAO[b] = gl.createVertexArray();
+        gl.bindVertexArray(updateVAO[b]);
+        gl.bindBuffer(gl.ARRAY_BUFFER, staticVBO);
+        gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, sStride, 0);   // aRestPos
+        gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, sStride, 24);  // aBaseVel
+        gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 3, gl.FLOAT, false, sStride, 36);  // aMeta
+        gl.bindBuffer(gl.ARRAY_BUFFER, dynVBO[b]);
+        gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 3, gl.FLOAT, false, dStride, 0);   // aCurPos
+        gl.enableVertexAttribArray(4); gl.vertexAttribPointer(4, 3, gl.FLOAT, false, dStride, 12);  // aCurVel
+
+        if (!renderVAO[b]) renderVAO[b] = gl.createVertexArray();
+        gl.bindVertexArray(renderVAO[b]);
+        gl.bindBuffer(gl.ARRAY_BUFFER, dynVBO[b]);
+        gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, dStride, 0);   // aCurPos
+        gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, dStride, 12);  // aCurVel
+        gl.bindBuffer(gl.ARRAY_BUFFER, staticVBO);
+        gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 3, gl.FLOAT, false, sStride, 12);  // aCol
+        gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 3, gl.FLOAT, false, sStride, 36);  // aMeta
+      }
+      gl.bindVertexArray(null);
+      if (!tfObj) tfObj = gl.createTransformFeedback();
+      ping = 0;
+      pingPongSteps = 0;
+    }
+
+    async function load5DMode(mode) {
+      currentWorldMode = mode;
+      const st = document.getElementById('statusBadge');
+      st.textContent = mode === 'game_map' ? '자율 분화 3D 맵 로드 중...' : 'AZERIA 4D+로터 로드 중...';
+      document.getElementById('btnWorldAzeria').classList.toggle('active', mode === 'azeria');
+      document.getElementById('btnWorldGameMap').classList.toggle('active', mode === 'game_map');
+      const res = await fetch('/api/world-5d/state?mode=' + mode);
+      const d = await res.json();
+      if (d.status !== 'ok' || !d.world_5d) { st.textContent = '로드 실패'; return; }
+      meta = d.world_5d;
+      document.getElementById('hudDepth').textContent = `깊이: ${meta.depth_engine}`;
+      document.getElementById('metaPre').textContent = JSON.stringify({
+        mode,
+        depth_engine: meta.depth_engine,
+        splat_count: meta.splat_count,
+        scale_layers: meta.scale_layer_counts,
+        unsupervised_4d_diff: meta.unsupervised_4d_differentiation || undefined,
+        metrics: meta.verification_metrics,
+      }, null, 2);
+
+      const binRes = await fetch(meta.splats_bin_url + '?t=' + Date.now());
+      const bufArr = new Float32Array(await binRes.arrayBuffer());
+      setupPingPongBuffers(bufArr);
+      rebuildTensorLines();
+      st.textContent = `${mode === 'game_map' ? '자율 3D 게임 맵' : 'AZERIA 4D'} · ${splatCount.toLocaleString()} GPU 핑퐁 로터`;
+      if (!loopStarted) { loopStarted = true; requestAnimationFrame(renderFrame); }
+    }
+
+    function renderFrame() {
+      animClock += 0.016;
+      if (playingT) {
+        timeT += 0.008;
+        if (timeT > 1.0) timeT = -1.0;
+        document.getElementById('slT').value = timeT.toFixed(2);
+        updateHUD();
+      }
+
+      // PASS 1: WebGL2 Transform Feedback Ping-Pong Step (Buffer A -> Buffer B on GPU!)
+      if (pingPongActive && meta && splatCount > 0) {
+        const dst = 1 - ping;
+        const reg = meta.teleological_tensor_regimes[activeRegime];
+        gl.useProgram(updateProg);
+        gl.uniform1f(gl.getUniformLocation(updateProg, 'uDt'), 0.022);
+        gl.uniform1f(gl.getUniformLocation(updateProg, 'uClock'), animClock);
+        gl.uniform1f(gl.getUniformLocation(updateProg, 'uTimeT'), timeT);
+        gl.uniform1f(gl.getUniformLocation(updateProg, 'uSigma'), sigmaTeleo);
+        gl.uniform1f(gl.getUniformLocation(updateProg, 'uHeal'), healGain);
+        gl.uniform3fv(gl.getUniformLocation(updateProg, 'uAttractor'), reg.attractor_pos_3d);
+        gl.uniform1f(gl.getUniformLocation(updateProg, 'uRadialSign'), reg.radial_sign);
+        gl.uniform1f(gl.getUniformLocation(updateProg, 'uCurlGain'), reg.curl_gain);
+        gl.uniform3fv(gl.getUniformLocation(updateProg, 'uImpulsePos'), impulsePos);
+        gl.uniform1f(gl.getUniformLocation(updateProg, 'uImpulseStrength'), impulseStrength);
+
+        gl.bindVertexArray(updateVAO[ping]);
+        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tfObj);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, dynVBO[dst]);
+        gl.enable(gl.RASTERIZER_DISCARD);
+        gl.beginTransformFeedback(gl.POINTS);
+        gl.drawArrays(gl.POINTS, 0, splatCount);
+        gl.endTransformFeedback();
+        gl.disable(gl.RASTERIZER_DISCARD);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+        gl.bindVertexArray(null);
+
+        ping = dst;
+        pingPongSteps += 1;
+        impulseStrength *= 0.78;
+        if (impulseStrength < 0.005) impulseStrength = 0.0;
+        if (pingPongSteps % 12 === 0) {
+          document.getElementById('hudPingPong').textContent = `GPU Ping-Pong: 활성 (Step ${pingPongSteps})`;
+        }
+      }
+
+      // PASS 2: True 3D Volumetric Gaussian Splatting Render from Live Evolved Buffer!
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clearColor(0.03, 0.04, 0.08, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.enable(gl.DEPTH_TEST);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+      const eyeX = camPanX + Math.sin(camYaw) * Math.cos(camPitch) * camDist;
+      const eyeY = camPanY + Math.sin(camPitch) * camDist;
+      const eyeZ = camPanZ - Math.cos(camYaw) * Math.cos(camPitch) * camDist;
+      const mvp = mat4Mul(
+        mat4Perspective(Math.PI * 0.28, canvas.width / canvas.height, 0.1, 30.0),
+        mat4LookAt([eyeX, eyeY, eyeZ], [camPanX, camPanY, camPanZ], [0, 1, 0])
+      );
+
+      if (renderVAO[ping] && splatCount > 0) {
+        gl.useProgram(splatProg);
+        gl.uniformMatrix4fv(gl.getUniformLocation(splatProg, 'uMVP'), false, mvp);
+        gl.uniform1f(gl.getUniformLocation(splatProg, 'uLayerFilter'), layerFilter);
+        gl.uniform1f(gl.getUniformLocation(splatProg, 'uLayerTint'), layerTint);
+        gl.uniform1f(gl.getUniformLocation(splatProg, 'uSizeMul'), sizeMul);
+        gl.bindVertexArray(renderVAO[ping]);
+        gl.drawArrays(gl.POINTS, 0, splatCount);
+        gl.bindVertexArray(null);
+      }
+
+      if (showTensor && lineVAO && lineVertCount > 0) {
+        gl.useProgram(lineProg);
+        gl.uniformMatrix4fv(gl.getUniformLocation(lineProg, 'uMVP'), false, mvp);
+        gl.bindVertexArray(lineVAO);
+        gl.drawArrays(gl.LINES, 0, lineVertCount);
+        gl.bindVertexArray(null);
+      }
+
+      requestAnimationFrame(renderFrame);
+    }
+
+    function updateHUD() {
+      const tLbl = timeT < -0.15 ? '과거' : (timeT > 0.15 ? '미래' : '현재');
+      document.getElementById('hudTime').textContent = `4D 시간 T: ${timeT.toFixed(2)} (${tLbl})`;
+      document.getElementById('valT').textContent = timeT.toFixed(2);
+      document.getElementById('hudSigma').textContent = `가변 목적 텐서 Σ: ${sigmaTeleo.toFixed(2)}`;
+      document.getElementById('valSigma').textContent = sigmaTeleo.toFixed(2);
+    }
+
+    function triggerImpulse(x3 = 0.0, y3 = 0.0, z3 = -0.25, mag = 1.15) {
+      impulsePos = [x3, y3, z3];
+      impulseStrength = mag;
+    }
+
+    // Mouse Controls: Left-drag = 3D Orbit, Shift+Click = Inject 3D Causal Impulse Wave!
+    canvas.addEventListener('mousedown', (e) => {
+      if (e.shiftKey) {
+        const rect = canvas.getBoundingClientRect();
+        const nx = ((e.clientX - rect.left) / rect.width) * 2.0 - 1.0;
+        const ny = 1.0 - ((e.clientY - rect.top) / rect.height) * 2.0;
+        triggerImpulse(nx * 1.1, ny * 0.65, -0.20, 1.35);
+        return;
+      }
+      dragging = true; lastMX = e.clientX; lastMY = e.clientY;
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      camYaw += (e.clientX - lastMX) * 0.008;
+      camPitch = Math.max(-0.9, Math.min(0.9, camPitch + (e.clientY - lastMY) * 0.007));
+      lastMX = e.clientX; lastMY = e.clientY;
+    });
+    window.addEventListener('mouseup', () => { dragging = false; });
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      camDist = Math.max(0.85, Math.min(5.2, camDist + e.deltaY * 0.002));
+    }, { passive: false });
+    window.addEventListener('keydown', (e) => {
+      if (document.activeElement === document.getElementById('talkInput')) return;
+      const sp = 0.08;
+      if (e.key==='w'||e.key==='W') camPanZ += sp;
+      if (e.key==='s'||e.key==='S') camPanZ -= sp;
+      if (e.key==='a'||e.key==='A') camPanX -= sp;
+      if (e.key==='d'||e.key==='D') camPanX += sp;
+      if (e.key==='q'||e.key==='Q') camPanY += sp;
+      if (e.key==='e'||e.key==='E') camPanY -= sp;
+    });
+
+    // UI Controls
+    document.getElementById('slT').addEventListener('input', (e) => { timeT = parseFloat(e.target.value); updateHUD(); });
+    document.getElementById('slSigma').addEventListener('input', (e) => { sigmaTeleo = parseFloat(e.target.value); rebuildTensorLines(); updateHUD(); });
+    document.getElementById('slHeal').addEventListener('input', (e) => { healGain = parseFloat(e.target.value); document.getElementById('valHeal').textContent = healGain.toFixed(2); });
+    document.getElementById('slSize').addEventListener('input', (e) => { sizeMul = parseFloat(e.target.value); document.getElementById('valSize').textContent = sizeMul.toFixed(2); });
+
+    document.getElementById('btnPingPong').addEventListener('click', (e) => {
+      pingPongActive = !pingPongActive;
+      e.target.classList.toggle('active', pingPongActive);
+      e.target.textContent = `⇄ GPU 핑퐁 누적: ${pingPongActive ? 'ON' : 'OFF'}`;
+      document.getElementById('hudPingPong').textContent = pingPongActive ? `GPU Ping-Pong: 활성 (Step ${pingPongSteps})` : 'GPU Ping-Pong: 일시정지';
+    });
+    document.getElementById('btnImpulse').addEventListener('click', () => triggerImpulse(0.0, 0.0, -0.25, 1.40));
+    document.getElementById('btnPlayT').addEventListener('click', (e) => { playingT = !playingT; e.target.textContent = playingT ? '⏸ 4D 시간 정지' : '▶ 4D 시간 재생'; });
+    document.getElementById('btnToggleTensor').addEventListener('click', (e) => { showTensor = !showTensor; e.target.classList.toggle('active', showTensor); e.target.textContent = `3D 텐서장: ${showTensor ? 'ON' : 'OFF'}`; });
+    document.getElementById('btnToggleTint').addEventListener('click', (e) => { layerTint = layerTint > 0.5 ? 0.0 : 1.0; e.target.classList.toggle('active', layerTint > 0.5); e.target.textContent = `색채 분리: ${layerTint > 0.5 ? 'ON' : 'OFF'}`; });
+    document.getElementById('btnPure4D').addEventListener('click', (e) => {
+      if (sigmaTeleo > 0.01) { sigmaTeleo = 0.0; showTensor = false; e.target.textContent = '가변 로터 펼치기 (4D+D₅)'; }
+      else { sigmaTeleo = 0.55; showTensor = true; e.target.textContent = '순수 4D로 접기 (Σ=0)'; }
+      document.getElementById('slSigma').value = sigmaTeleo.toFixed(2);
+      document.getElementById('btnToggleTensor').classList.toggle('active', showTensor);
+      rebuildTensorLines(); updateHUD();
+    });
+    document.getElementById('btnResetCam').addEventListener('click', () => {
+      camYaw = 0; camPitch = 0.08; camDist = 2.45; camPanX = 0; camPanY = 0; camPanZ = 0.1;
+      load5DMode(currentWorldMode);
+    });
+
+    document.querySelectorAll('.layer-btn').forEach(b => b.addEventListener('click', () => {
+      layerFilter = Number(b.dataset.layer);
+      document.querySelectorAll('.layer-btn').forEach(x => x.classList.toggle('active', x === b));
+    }));
+    document.querySelectorAll('.regime-btn').forEach(b => b.addEventListener('click', () => {
+      activeRegime = b.dataset.regime;
+      document.querySelectorAll('.regime-btn').forEach(x => x.classList.toggle('active', x === b));
+      rebuildTensorLines();
+      triggerImpulse(0.0, 0.0, -0.20, 0.75);
+    }));
+
+    document.getElementById('btnTalkViela').addEventListener('click', () => { talkActor = 'viela'; document.getElementById('btnTalkViela').classList.add('active'); document.getElementById('btnTalkKaio').classList.remove('active'); document.getElementById('talkTarget').textContent = '대상: 비엘라'; });
+    document.getElementById('btnTalkKaio').addEventListener('click', () => { talkActor = 'kaio'; document.getElementById('btnTalkKaio').classList.add('active'); document.getElementById('btnTalkViela').classList.remove('active'); document.getElementById('talkTarget').textContent = '대상: 카이오'; });
+
+    async function send3DTalk() {
+      const inp = document.getElementById('talkInput');
+      const txt = inp.value.trim();
+      if (!txt) return;
+      inp.value = '';
+      const box = document.getElementById('chatBox');
+      box.innerHTML += `<div class="msg player"><strong>플레이어 → ${talkActor === 'viela' ? '비엘라' : '카이오'}:</strong> ${txt}</div>`;
+      if (txt.includes('마물') || txt.includes('출격') || txt.includes('위험')) activeRegime = 'patrol_expand';
+      else if (txt.includes('봉인') || txt.includes('마법') || txt.includes('로터')) activeRegime = 'converge_seal';
+      else activeRegime = 'dialogue_vortex';
+      document.querySelectorAll('.regime-btn').forEach(x => x.classList.toggle('active', x.dataset.regime === activeRegime));
+      rebuildTensorLines();
+      // Inject localized 3D acoustic-causal resonance wave right at the spoken character's 3D centroid!
+      const c = (meta && meta.actor_3d_centroids && meta.actor_3d_centroids[talkActor]) || [0, 0, -0.2];
+      triggerImpulse(c[0], c[1], c[2], 1.15);
+
+      const res = await fetch('/api/playable-world/intervene', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'talk', actor_id: talkActor, utterance: txt, synthesize_voice: true }),
+      });
+      const d = await res.json();
+      if (d.status === 'ok' && d.world) {
+        const a = d.world.actors[talkActor];
+        box.innerHTML += `<div class="msg ${talkActor}"><strong>${a.name_ko} [${a.emotion_label}]:</strong> ${a.last_utterance}</div>`;
+        box.scrollTop = box.scrollHeight;
+        if (a.last_voice_url) {
+          const aud = document.getElementById('voiceAud');
+          aud.src = a.last_voice_url + '?t=' + Date.now();
+          aud.style.display = 'block';
+          aud.play().catch(() => {});
+        }
+      }
+    }
+    document.getElementById('btnSend').addEventListener('click', send3DTalk);
+    document.getElementById('talkInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') send3DTalk(); });
+
+    updateProg = makeProgram(UPDATE_VS, DUMMY_FS, ['vNextPos', 'vNextVel']);
+    splatProg = makeProgram(SPLAT_VS, SPLAT_FS);
+    lineProg = makeProgram(LINE_VS, LINE_FS);
+    document.getElementById('btnWorldAzeria').addEventListener('click', () => load5DMode('azeria'));
+    document.getElementById('btnWorldGameMap').addEventListener('click', () => load5DMode('game_map'));
+    load5DMode('azeria');
+  </script>
+</body>
+</html>
